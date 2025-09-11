@@ -19,7 +19,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchJsonWithMeta, type AppError } from "@/lib/api/client";
 import { newIdemKey } from "@/lib/api/idempotency";
-import { env } from "@/lib/env";
+import { PATHS } from "@/lib/env";
 import { z } from "zod";
 import {
   EmailChangeConfirmSchema as SharedEmailChangeConfirmSchema,
@@ -31,9 +31,8 @@ import {
    Path (SSR-safe env) + normalization
    ──────────────────────────────────────────────────────────────────────────── */
 
-const RAW_EMAIL_CHANGE_CONFIRM_PATH =
-  env().NEXT_PUBLIC_EMAIL_CHANGE_CONFIRM_PATH ?? "api/v1/auth/email/change/confirm";
-export const EMAIL_CHANGE_CONFIRM_PATH = RAW_EMAIL_CHANGE_CONFIRM_PATH.replace(/^\/+/, "");
+// Use centralized, validated path (relative to API base)
+export const EMAIL_CHANGE_CONFIRM_PATH = PATHS.emailChangeConfirm;
 
 /* ────────────────────────────────────────────────────────────────────────────
    Types

@@ -29,7 +29,7 @@ import {
 } from "@/lib/api/client";
 import { newIdemKey } from "@/lib/api/idempotency";
 import { logout } from "@/lib/auth_store";
-import { env } from "@/lib/env";
+import { PATHS } from "@/lib/env";
 import { z } from "zod";
 import { GenericOtpSchema } from "@/features/auth/schemas";
 
@@ -37,9 +37,8 @@ import { GenericOtpSchema } from "@/features/auth/schemas";
    Path (SSR-safe env) + normalization
    ──────────────────────────────────────────────────────────────────────────── */
 
-const RAW_DELETE_USER_PATH =
-  env().NEXT_PUBLIC_DELETE_USER_PATH ?? "api/v1/auth/delete-user";
-export const DELETE_USER_PATH = RAW_DELETE_USER_PATH.replace(/^\/+/, "");
+// Use centralized, validated path (relative to API base)
+export const DELETE_USER_PATH = PATHS.accountDelete;
 
 /* ────────────────────────────────────────────────────────────────────────────
    Schemas & Types

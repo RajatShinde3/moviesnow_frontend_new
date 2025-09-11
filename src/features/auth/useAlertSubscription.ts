@@ -3,6 +3,7 @@
 
 import { useQuery, QueryClient, UseQueryOptions } from "@tanstack/react-query";
 import { getMaybeJson, type EnrichedHTTPError } from "@/lib/api";
+import { PATHS } from "@/lib/env";
 import {
   AlertSubscriptionGetResponseSchema,
   type AlertSubscription,
@@ -43,12 +44,8 @@ import {
 // Path + Query Keys
 // ─────────────────────────────────────────────────────────────────────────────
 
-const RAW_ALERT_SUBSCRIPTION_PATH =
-  process.env.NEXT_PUBLIC_ALERT_SUBSCRIPTION_PATH ??
-  "api/v1/auth/alerts/subscription";
-
-/** Strip leading slashes so the API base `prefixUrl` in your client applies. */
-export const ALERT_SUBSCRIPTION_PATH = RAW_ALERT_SUBSCRIPTION_PATH.replace(/^\/+/, "");
+// Use centralized, validated path (relative to API base)
+export const ALERT_SUBSCRIPTION_PATH = PATHS.alertsSubscription as string;
 
 /** Canonical React Query key for this resource. */
 export const ALERT_SUBSCRIPTION_QK = ["auth", "alerts", "subscription"] as const;

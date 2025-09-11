@@ -133,9 +133,9 @@ const PublicEnvSchema = z
     NEXT_PUBLIC_SESSIONS_LIST_PATH:       z.string().optional().transform((v) => stripLeading(v ?? "auth/sessions")),
     NEXT_PUBLIC_SESSIONS_REVOKE_OTHERS_PATH: z.string().optional().transform((v) => stripLeading(v ?? "auth/sessions/others")),
 
-    /* Trusted devices */
-    NEXT_PUBLIC_TD_LIST_PATH:             z.string().optional().transform((v) => stripLeading(v ?? "auth/trusted-devices")),
-    NEXT_PUBLIC_TD_REGISTER_PATH:         z.string().optional().transform((v) => stripLeading(v ?? "auth/trusted-devices/register")),
+    /* Trusted devices (MFA remembered devices) */
+    NEXT_PUBLIC_TD_LIST_PATH:             z.string().optional().transform((v) => stripLeading(v ?? "auth/mfa/trusted-devices")),
+    NEXT_PUBLIC_TD_REGISTER_PATH:         z.string().optional().transform((v) => stripLeading(v ?? "auth/mfa/trusted-devices/register")),
 
     /* Account lifecycle + aliases */
     NEXT_PUBLIC_ACCOUNT_DEACTIVATE_PATH:  z.string().optional().transform((v) => stripLeading(v ?? "auth/deactivate-user")),
@@ -153,6 +153,10 @@ const PublicEnvSchema = z
 
     /* Activity */
     NEXT_PUBLIC_ACTIVITY_LIST_PATH:       z.string().optional().transform((v) => stripLeading(v ?? "auth/activity")),
+
+    /* Alerts (security notifications) */
+    NEXT_PUBLIC_ALERT_SUBSCRIPTION_PATH:  z.string().optional().transform((v) => stripLeading(v ?? "auth/alerts/subscription")),
+    NEXT_PUBLIC_ALERT_UPDATE_PATH:        z.string().optional().transform((v) => stripLeading(v ?? "auth/alerts/subscribe")),
   })
   .readonly();
 
@@ -242,6 +246,8 @@ function buildRawEnv(): Record<string, string | undefined> {
     NEXT_PUBLIC_REQUEST_DELETION_OTP_PATH: process.env.NEXT_PUBLIC_REQUEST_DELETION_OTP_PATH,
 
     NEXT_PUBLIC_ACTIVITY_LIST_PATH: process.env.NEXT_PUBLIC_ACTIVITY_LIST_PATH,
+    NEXT_PUBLIC_ALERT_SUBSCRIPTION_PATH: process.env.NEXT_PUBLIC_ALERT_SUBSCRIPTION_PATH,
+    NEXT_PUBLIC_ALERT_UPDATE_PATH: process.env.NEXT_PUBLIC_ALERT_UPDATE_PATH,
   };
 }
 
@@ -401,7 +407,7 @@ export const PATHS = {
   // trusted devices
   tdList: E.NEXT_PUBLIC_TD_LIST_PATH,
   tdRegister: E.NEXT_PUBLIC_TD_REGISTER_PATH,
-  tdRevoke: ((id: string) => `auth/trusted-devices/${stripLeading(id)}`) as PathFn,
+  tdRevoke: ((id: string) => `auth/mfa/trusted-devices/${stripLeading(id)}`) as PathFn,
 
   // account lifecycle
   accountDeactivate: ACCOUNT_DEACTIVATE,
@@ -415,6 +421,9 @@ export const PATHS = {
 
   // activity
   activityList: E.NEXT_PUBLIC_ACTIVITY_LIST_PATH,
+  // alerts
+  alertsSubscription: E.NEXT_PUBLIC_ALERT_SUBSCRIPTION_PATH,
+  alertsSubscribe: E.NEXT_PUBLIC_ALERT_UPDATE_PATH,
   
   // UI route hints (stable client-side paths)
   settingsSecurity: "/settings/security",

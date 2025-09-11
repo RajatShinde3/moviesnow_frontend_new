@@ -24,7 +24,7 @@ import {
   type AppError,
 } from "@/lib/api/client";
 import { newIdemKey } from "@/lib/api/idempotency";
-import { env } from "@/lib/env";
+import { PATHS } from "@/lib/env";
 import { z } from "zod";
 import {
   EmailChangeStartSchema,                // { new_email, reauth_token? }
@@ -36,9 +36,8 @@ import {
    Path (SSR-safe env) + normalization
    ──────────────────────────────────────────────────────────────────────────── */
 
-const RAW_EMAIL_CHANGE_START_PATH =
-  env().NEXT_PUBLIC_EMAIL_CHANGE_START_PATH ?? "api/v1/auth/email/change/start";
-export const EMAIL_CHANGE_START_PATH = RAW_EMAIL_CHANGE_START_PATH.replace(/^\/+/, "");
+// Use centralized, validated path (relative to API base)
+export const EMAIL_CHANGE_START_PATH = PATHS.emailChangeStart;
 
 /* ────────────────────────────────────────────────────────────────────────────
    Types

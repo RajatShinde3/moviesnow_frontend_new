@@ -86,7 +86,7 @@ function isStepUpRequired(err: unknown): boolean {
 /** Fire-and-forget trusted-device registration after fresh MFA */
 async function registerTrustedDeviceSafely(toast: ReturnType<typeof useToast>) {
   try {
-    await postMaybeJson<undefined>("mfa/trusted-devices/register", undefined, {
+    await postMaybeJson<undefined>(PATHS.tdRegister, undefined, {
       headers: {
         "Idempotency-Key": newIdemKey("mfa_trust_after_verify"),
         "Cache-Control": "no-store",

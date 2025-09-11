@@ -25,14 +25,12 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { postMaybeJson, withIdempotency, type EnrichedHTTPError } from "@/lib/api";
+import { PATHS } from "@/lib/env";
 import { z } from "zod";
 
 /* ---------------------------------- Path ---------------------------------- */
 
-const ALERT_UPDATE_PATH = (
-  process.env.NEXT_PUBLIC_ALERT_UPDATE_PATH ??
-  "api/v1/auth/alerts/subscribe"
-).replace(/^\/+/, "");
+const ALERT_UPDATE_PATH = PATHS.alertsSubscribe as string;
 
 /* --------------------------- Query key (shared) --------------------------- */
 
