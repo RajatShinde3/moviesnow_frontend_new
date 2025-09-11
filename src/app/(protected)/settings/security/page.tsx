@@ -70,11 +70,7 @@ import { useAuthActivity } from "@/features/auth/useAuthActivity";
 // Hooks (write)
 import { useUpdateAlertSubscription } from "@/features/auth/useUpdateAlertSubscription";
 
-// -----------------------------------------------------------------------------
-// Page-level cache hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache is handled at the segment layout level for all protected routes.
 
 // -----------------------------------------------------------------------------
 // Helpers

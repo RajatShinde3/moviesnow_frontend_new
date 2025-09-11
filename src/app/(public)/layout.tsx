@@ -13,10 +13,7 @@ import * as React from "react";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
-// Prefer no-store across this segment; pairs with your route headers.
-export const fetchCache = "force-no-store";
+// (Public segment layout is a client component; keep defaults)
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false }, // keep auth pages out of search

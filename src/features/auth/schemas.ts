@@ -74,14 +74,27 @@ export type Ok = z.infer<typeof OkSchema>;
    Tokens (shared)
    ──────────────────────────────────────────────────────────────────────────── */
 
-export const LoginSuccessSchema = z
-  .object({
-    access_token: z.string(),
-    refresh_token: z.string().optional(),
-    token_type: z.literal("bearer").optional(),
-    is_active: z.boolean().optional(),
-  })
-  .passthrough();
+// Accept common token field variants from different backends and normalize to
+// `{ access_token }` so the rest of the app can rely on a single key.
+export const LoginSuccessSchema = z.preprocess(
+  (val) => {
+    if (!val || typeof val !== "object") return val as any;
+    const v = { ...(val as any) };
+    if (!v.access_token) {
+      const alt = v.accessToken ?? v.token;
+      if (typeof alt === "string" && alt.length > 0) v.access_token = alt;
+    }
+    return v;
+  },
+  z
+    .object({
+      access_token: z.string(),
+      refresh_token: z.string().optional(),
+      token_type: z.literal("bearer").optional(),
+      is_active: z.boolean().optional(),
+    })
+    .passthrough()
+);
 export type LoginSuccess = z.infer<typeof LoginSuccessSchema>;
 
 export const TokenResponseSchema = LoginSuccessSchema;

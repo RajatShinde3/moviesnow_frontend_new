@@ -83,7 +83,7 @@ export function useSignup() {
         throw err;
       }
 
-      // 2) Build strict API payload (drop confirm_password) and validate
+      // 2) Build strict API payload (drop confirm_password); prefer full_name
       const payload: SignupApiPayload = signupApiSchema.parse({
         full_name: form.full_name ?? undefined,
         email: form.email,
@@ -93,13 +93,50 @@ export function useSignup() {
       // 3) Prepare headers from idempotency helper (type-safe for fetchJson)
       const headers = headersToRecord(withIdempotency().headers);
 
-      // 4) POST; tolerate 204/No Content (fetchJson returns `undefined`)
-      const raw = await fetchJson<unknown | undefined>(PATHS.signup, {
-        method: "POST",
-        json: payload,
-        headers,
-        cache: "no-store",
-      });
+      // Helper to detect a 400/bad_request AppError
+      const isBadRequest = (e: unknown) => {
+        const obj = e as any;
+        return !!obj && obj.name === "AppError" && (obj.status === 400 || obj.code === "bad_request");
+      };
+
+      // 4) POST; tolerate 204/No Content (fetchJson returns `undefined`).
+      //    Fallbacks: some backends expect `name` instead of `full_name`, or no name at all.
+      let raw: unknown | undefined;
+      try {
+        raw = await fetchJson<unknown | undefined>(PATHS.signup, {
+          method: "POST",
+          json: payload,
+          headers,
+          cache: "no-store",
+        });
+      } catch (err) {
+        // If the only field at risk is `full_name`, retry with `name` and then without name.
+        if ((form.full_name ?? undefined) && isBadRequest(err)) {
+          try {
+            const headers2 = headersToRecord(withIdempotency().headers);
+            raw = await fetchJson<unknown | undefined>(PATHS.signup, {
+              method: "POST",
+              json: { name: form.full_name, email: form.email, password: form.password },
+              headers: headers2,
+              cache: "no-store",
+            });
+          } catch (err2) {
+            if (isBadRequest(err2)) {
+              const headers3 = headersToRecord(withIdempotency().headers);
+              raw = await fetchJson<unknown | undefined>(PATHS.signup, {
+                method: "POST",
+                json: { email: form.email, password: form.password },
+                headers: headers3,
+                cache: "no-store",
+              });
+            } else {
+              throw err2;
+            }
+          }
+        } else {
+          throw err;
+        }
+      }
 
       // 5) Normalize undefined (204) to a simple ack
       const data = raw ?? ({ ok: true } as const);

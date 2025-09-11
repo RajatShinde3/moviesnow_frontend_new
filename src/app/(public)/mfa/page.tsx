@@ -50,8 +50,6 @@ import { useRecoveryCodeRedeem } from "@/features/auth/useRecoveryCodeRedeem";
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
 
 // -----------------------------------------------------------------------------
 // SessionStorage keys (contract with /login page)

@@ -26,8 +26,6 @@ import { useReactivationStart } from "@/features/auth/useReactivationStart";
 // -----------------------------------------------------------------------------
 // Cache hints (client-side). Server route should also send no-store.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
 
 // -----------------------------------------------------------------------------
 // Helpers

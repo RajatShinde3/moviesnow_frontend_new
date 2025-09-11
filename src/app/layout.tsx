@@ -7,12 +7,14 @@
  */
 
 import type { Metadata, Viewport } from "next";
+import "./globals.css";
 import * as React from "react";
 import { headers } from "next/headers";
 import { Inter, JetBrains_Mono } from "next/font/google";
 
 import { cn } from "@/lib/cn";
 import Providers from "./providers";
+import RouteAnnouncer from "@/components/RouteAnnouncer";
 
 // ————————————————————————————————————————————————————————————————
 // Fonts (variables → use in your Tailwind theme as var(--font-sans/mono))
@@ -85,33 +87,5 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </Providers>
       </body>
     </html>
-  );
-}
-
-/**
- * Announces route changes to screen readers without visual noise.
- * Drop if you already have something similar in <Providers/>.
- */
-function RouteAnnouncer() {
-  const [message, setMessage] = React.useState<string>("");
-
-  React.useEffect(() => {
-    // Use document.title so you get meaningful page names.
-    const announce = () => setMessage(document.title || "Page updated");
-    announce();
-    // Re-announce on history changes
-    const onPop = () => announce();
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-
-  return (
-    <div
-      aria-live="polite"
-      aria-atomic="true"
-      className="sr-only"
-    >
-      {message}
-    </div>
   );
 }

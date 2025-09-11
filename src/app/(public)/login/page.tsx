@@ -52,8 +52,6 @@ import { useLogin } from "@/features/auth/useLogin";
 // -----------------------------------------------------------------------------
 // Cache hints (client-side). Server should also send `Cache-Control: no-store`.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
 
 // Note: metadata cannot be exported from client components; handled by segment layout.
 
@@ -231,6 +229,8 @@ function LoginForm() {
       const friendly = formatError(err, {
         includeRequestId: true, // subtle "Ref: abcd123" for support
         maskServerErrors: true,
+        statusMessages: { 401: "Email or password is incorrect." },
+        preferCodeCopy: false,
         fallback:
           "We couldn’t sign you in. Please check your details and try again.",
       });
@@ -276,7 +276,10 @@ function LoginForm() {
           required
           placeholder="you@example.com"
           value={form.email}
-          onChange={(e) => setForm((s) => ({ ...s, email: e.currentTarget.value }))}
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            setForm((s) => ({ ...s, email: v }));
+          }}
           autoFocus
           aria-invalid={form.email.length > 0 && !emailLooksOk ? true : undefined}
           className={cn(
@@ -300,7 +303,10 @@ function LoginForm() {
           autoComplete="current-password"
           placeholder="••••••••"
           value={form.password}
-          onChange={(e) => setForm((s) => ({ ...s, password: e.currentTarget.value }))}
+          onChange={(e) => {
+            const v = e.currentTarget.value;
+            setForm((s) => ({ ...s, password: v }));
+          }}
           hint="Use your account password. Forgot it? Reset below."
           disabled={isPending}
         />
@@ -315,9 +321,10 @@ function LoginForm() {
             type="checkbox"
             className="h-4 w-4 rounded border"
             checked={form.rememberDevice}
-            onChange={(e) =>
-              setForm((s) => ({ ...s, rememberDevice: e.currentTarget.checked }))
-            }
+            onChange={(e) => {
+              const checked = e.currentTarget.checked;
+              setForm((s) => ({ ...s, rememberDevice: checked }));
+            }}
             disabled={isPending}
           />
           <span>Remember this device</span>
@@ -325,7 +332,7 @@ function LoginForm() {
 
         <Link
           className="text-sm font-medium underline underline-offset-4 hover:text-foreground"
-          href="/reset"
+          href="/reset/request"
           prefetch
         >
           Forgot password?

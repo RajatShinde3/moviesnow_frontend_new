@@ -42,8 +42,6 @@ import { useReactivateAccount } from "@/features/auth/useReactivateAccount";
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
 
 // -----------------------------------------------------------------------------
 // Types & helpers
