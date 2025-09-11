@@ -51,11 +51,11 @@ import {
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts"; // ✅ consistent path
-import { useReauthDialog } from "@/components/ReauthDialog";
-import { EmptyState } from "@/components/EmptyState";
+import { useToast } from "@/components/feedback/Toasts"; // ✅ consistent path
+import { useReauthPrompt } from "@/components/ReauthDialog";
+import EmptyState from "@/components/feedback/EmptyState";
 
-import { useAuthActivity } from "@/features/auth/useAuthActivity";
+import { getMaybeJson } from "@/lib/api";
 
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
@@ -278,7 +278,7 @@ export default function ActivityPage() {
 function ActivityPanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
@@ -290,8 +290,8 @@ function ActivityPanel() {
   const [cursor, setCursor] = React.useState<string | null>(null);
   const [hasMore, setHasMore] = React.useState<boolean>(true);
 
-  // We treat the hook as a fetcher (mutation-style), like other pages we built.
-  const { mutateAsync: fetchActivity, isPending } = useAuthActivity();
+  // Local pending state for fetches
+  const [isPending, setIsPending] = React.useState(false);
 
   // keep last payload so step-up retry preserves filters/pagination
   const lastPayloadRef = React.useRef<Record<string, unknown> | null>(null);
@@ -319,9 +319,15 @@ function ActivityPanel() {
 
   async function load({ reset = false }: { reset?: boolean } = {}) {
     setErrorMsg(null);
+    setIsPending(true);
     try {
       const payload = buildPayload({ reset });
-      const res = await fetchActivity(payload);
+      const params = new URLSearchParams();
+      if (payload.cursor) params.set("cursor", String(payload.cursor));
+      if (payload.limit) params.set("limit", String(payload.limit));
+      if (payload.q) params.set("q", String(payload.q));
+      if (payload.only_failed) params.set("only_failed", "1");
+      const res = (await getMaybeJson<unknown>(PATHS.activityList, { searchParams: params })) as any;
 
       // Accept a few shapes:
       //  - { items: [], next_cursor?, has_more? }
@@ -364,13 +370,18 @@ function ActivityPanel() {
       }
       // Step-up required → open dialog and retry with same payload + xReauth
       try {
-        const token = await openReauth({
+        await promptReauth({
           reason: "Confirm it’s you to view account activity",
         } as any);
-        if (!token) return;
+        
 
-        const retryPayload = { ...(lastPayloadRef.current || {}), xReauth: token } as any;
-        const res = await fetchActivity(retryPayload);
+        const retryPayload = { ...(lastPayloadRef.current || {}) } as any;
+        const params = new URLSearchParams();
+        if (retryPayload.cursor) params.set("cursor", String(retryPayload.cursor));
+        if (retryPayload.limit) params.set("limit", String(retryPayload.limit));
+        if (retryPayload.q) params.set("q", String(retryPayload.q));
+        if (retryPayload.only_failed) params.set("only_failed", "1");
+        const res = (await getMaybeJson<unknown>(PATHS.activityList, { searchParams: params })) as any;
 
         const list: any[] = Array.isArray(res)
           ? res
@@ -402,6 +413,8 @@ function ActivityPanel() {
         });
         setErrorMsg(friendly);
       }
+    } finally {
+      setIsPending(false);
     }
   }
 

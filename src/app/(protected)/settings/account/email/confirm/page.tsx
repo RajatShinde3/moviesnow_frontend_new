@@ -29,8 +29,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useToast } from "@/components/feedback/Toasts";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 import { useEmailChangeConfirm } from "@/features/auth/useEmailChangeConfirm";
 
@@ -79,7 +79,7 @@ export default function EmailChangeConfirmPage() {
 
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <Link
-          href={PATHS.afterLogin || "/"}
+          href={"/"}
           className="font-medium underline underline-offset-4 hover:text-foreground"
           prefetch
         >
@@ -96,7 +96,7 @@ export default function EmailChangeConfirmPage() {
 function ConfirmPanel({ token }: { token: string }) {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const [done, setDone] = React.useState(false);
@@ -157,11 +157,10 @@ function ConfirmPanel({ token }: { token: string }) {
 
         // Step-up path (rare for confirm endpoints, but supported)
         try {
-          const tokenReauth = await openReauth({
+          await promptReauth({
             reason: "Confirm it’s you to finish changing your email",
           } as any);
-          if (!tokenReauth) return;
-          await confirm({ token, xReauth: tokenReauth } as any);
+          await confirm({ token } as any);
           if (cancelled) return;
 
           setDone(true);
@@ -229,7 +228,7 @@ function ConfirmPanel({ token }: { token: string }) {
                 Back to Account settings
               </Link>
               <Link
-                href={PATHS.afterLogin || "/"}
+                href={"/"}
                 className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm hover:bg-accent"
                 prefetch
               >

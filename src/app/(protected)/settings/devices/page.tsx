@@ -34,9 +34,9 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts";
-import { EmptyState } from "@/components/EmptyState";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useToast } from "@/components/feedback/Toasts";
+import EmptyState from "@/components/feedback/EmptyState";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 // Hooks you provided
 import { useTrustedDevices } from "@/features/auth/useTrustedDevices";
@@ -135,7 +135,7 @@ export default function TrustedDevicesPage() {
 function DevicesPanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
@@ -188,11 +188,10 @@ function DevicesPanel() {
   async function handleReauthView() {
     setErrorMsg(null);
     try {
-      const token = await openReauth({
+      await promptReauth({
         reason: "Confirm it’s you to view trusted devices",
       } as any);
-      if (!token) return;
-      await refreshWithOptionalToken(token);
+      await refreshWithOptionalToken();
       setNeedsReauthToView(false);
     } catch (err) {
       const friendly = formatError(err, {
@@ -230,17 +229,16 @@ function DevicesPanel() {
       }
       // Step-up path
       try {
-        const token = await openReauth({
+        await promptReauth({
           reason: "Confirm it’s you to trust this device",
         } as any);
-        if (!token) return;
-        await registerDevice({ xReauth: token } as any);
+        await registerDevice({} as any);
         toast.success({
           title: "Device remembered",
           description: "We’ll ask for MFA less often on this device.",
           duration: 2200,
         });
-        await refreshWithOptionalToken(token);
+        await refreshWithOptionalToken();
       } catch (err2) {
         const friendly = formatError(err2, {
           includeRequestId: true,
@@ -280,17 +278,16 @@ function DevicesPanel() {
       }
       // step-up
       try {
-        const token = await openReauth({
+        await promptReauth({
           reason: "Confirm it’s you to revoke a trusted device",
         } as any);
-        if (!token) return;
-        await revokeDevice({ id, xReauth: token } as any);
+        await revokeDevice({ id } as any);
         toast.success({
           title: "Trust revoked",
           description: "This device will no longer be remembered.",
           duration: 1800,
         });
-        await refreshWithOptionalToken(token);
+        await refreshWithOptionalToken();
       } catch (err2) {
         const friendly = formatError(err2, {
           includeRequestId: true,
@@ -311,17 +308,16 @@ function DevicesPanel() {
     if (!ok) return;
     try {
       // Most servers require step-up for revoke-all; prompt proactively
-      const token = await openReauth({
+      await promptReauth({
         reason: "Confirm it’s you to revoke all trusted devices",
       } as any);
-      if (!token) return;
-      await revokeAll({ xReauth: token } as any);
+      await revokeAll({} as any);
       toast.success({
         title: "All devices revoked",
         description: "No devices are remembered now.",
         duration: 2200,
       });
-      await refreshWithOptionalToken(token);
+      await refreshWithOptionalToken();
     } catch (err) {
       const friendly = formatError(err, {
         includeRequestId: true,

@@ -37,8 +37,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useToast } from "@/components/feedback/Toasts";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 import { useAlertSubscription } from "@/features/auth/useAlertSubscription";
 import { useUpdateAlertSubscription } from "@/features/auth/useUpdateAlertSubscription";
@@ -263,7 +263,7 @@ export default function AlertsPage() {
 function AlertsPanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
@@ -296,11 +296,10 @@ function AlertsPanel() {
       } catch (err) {
         if (isStepUpRequired(err)) {
           try {
-            const token = await openReauth({
+            await promptReauth({
               reason: "Confirm it’s you to view security alerts",
             } as any);
-            if (!token) return;
-            const res = await fetchSub({ xReauth: token } as any);
+            const res = await fetchSub({} as any);
             const { model: norm, shape, original } = normalizeFromServer(res);
             originalRef.current = original;
             shapeRef.current = shape;
@@ -365,11 +364,10 @@ function AlertsPanel() {
         return;
       }
       try {
-        const token = await openReauth({
+        await promptReauth({
           reason: "Confirm it’s you to update security alerts",
         } as any);
-        if (!token) return;
-        await save(token);
+        await save();
       } catch (err2) {
         const friendly = formatError(err2, {
           includeRequestId: true,

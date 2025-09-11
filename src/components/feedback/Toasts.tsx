@@ -315,14 +315,6 @@ export function Toaster({
   const reduced = useReducedMotion();
 
   const ctx = React.useContext(ToastContext);
-  if (!ctx) {
-    // fail-soft: wrap a provider if someone mounted Toaster alone
-    return (
-      <ToastProvider>
-        <Toaster position={position} className={className} />
-      </ToastProvider>
-    );
-  }
 
   React.useEffect(() => {
     setMounted(true);
@@ -334,6 +326,15 @@ export function Toaster({
     window.dispatchEvent(new CustomEvent("toast-request"));
     return () => window.removeEventListener("toast-store", onStore as EventListener);
   }, []);
+
+  if (!ctx) {
+    // fail-soft: wrap a provider if someone mounted Toaster alone
+    return (
+      <ToastProvider>
+        <Toaster position={position} className={className} />
+      </ToastProvider>
+    );
+  }
 
   return mounted
     ? createPortal(

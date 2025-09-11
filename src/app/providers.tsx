@@ -17,15 +17,15 @@
  */
 
 import * as React from "react";
-import { ToastsRoot } from "@/components/Toasts";
-import { ReauthDialogProvider } from "@/components/ReauthDialog";
+import ToastsRoot from "@/components/feedback/Toasts";
+import { ReauthProvider } from "@/components/ReauthDialog";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ReauthDialogProvider>
+    <ReauthProvider>
       <React.Suspense fallback={null}>{children}</React.Suspense>
       {/* Portals live at the end of <body> to layer correctly above content */}
       <ToastsRoot />
-    </ReauthDialogProvider>
+    </ReauthProvider>
   );
 }

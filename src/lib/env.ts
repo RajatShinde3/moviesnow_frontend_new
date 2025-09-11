@@ -415,6 +415,17 @@ export const PATHS = {
 
   // activity
   activityList: E.NEXT_PUBLIC_ACTIVITY_LIST_PATH,
+  
+  // UI route hints (stable client-side paths)
+  settingsSecurity: "/settings/security",
+  settingsActivity: "/settings/activity",
+  settingsSessions: "/settings/sessions",
+  settingsPassword: "/settings/security/password",
+  settingsMfa: "/settings/security/mfa",
+  settingsRecoveryCodes: "/settings/security/recovery-codes",
+  settingsDevices: "/settings/security/devices",
+  settingsAlerts: "/settings/alerts",
+  settingsAccount: "/settings/account",
 } as const;
 
 export type Paths = typeof PATHS;

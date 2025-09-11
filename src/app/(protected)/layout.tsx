@@ -21,8 +21,8 @@
  */
 
 import * as React from "react";
-import { Header } from "@/components/Header";
-import { AuthGate } from "@/components/AuthGate";
+import Header from "@/components/Header";
+import  AuthGate  from "@/components/AuthGate";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";

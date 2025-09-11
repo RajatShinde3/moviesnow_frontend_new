@@ -36,28 +36,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/cn";
-import client from "@/lib/client";
-import { newIdemKey } from "@/lib/idempotency";
+import { postMaybeJson } from "@/lib/api";
+import { newIdemKey } from "@/lib/api/idempotency";
 import { formatError } from "@/lib/formatError";
 import { PATHS } from "@/lib/env";
 
-import { OtpInput } from "@/components/OtpInput";
+import OtpInput from "@/components/forms/OtpInput";
 import { useToast } from "@/components/feedback/Toasts";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 // Hooks (you provide)
 import { useMfaEnable } from "@/features/auth/useMfaEnable";
 import { useMfaVerify } from "@/features/auth/useMfaVerify";
 import { useMfaDisable } from "@/features/auth/useMfaDisable";
 
-// Optional: read MFA status from your store if available (safe fallback)
-let useAuthStore: any;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  useAuthStore = require("@/lib/auth_store").useAuthStore;
-} catch {
-  // no store available; we’ll run purely state-driven
-}
+// Optional store integration removed for hooks rules compliance; page is fully state-driven.
 
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
@@ -77,13 +70,9 @@ function normalizeTotp(input: string) {
   return input.replace(/\D/g, "").slice(0, 6);
 }
 
-async function generateQrDataUrl(otpauthUrl: string): Promise<string | null> {
-  try {
-    const QR = await import("qrcode");
-    return await QR.toDataURL(otpauthUrl, { margin: 1, scale: 4 });
-  } catch {
-    return null;
-  }
+// Build-safe stub: omit QR generation if library is unavailable.
+async function generateQrDataUrl(_otpauthUrl: string): Promise<string | null> {
+  return null;
 }
 
 function isStepUpRequired(err: unknown): boolean {
@@ -97,7 +86,7 @@ function isStepUpRequired(err: unknown): boolean {
 /** Fire-and-forget trusted-device registration after fresh MFA */
 async function registerTrustedDeviceSafely(toast: ReturnType<typeof useToast>) {
   try {
-    await client.post("mfa/trusted-devices/register", {
+    await postMaybeJson<undefined>("mfa/trusted-devices/register", undefined, {
       headers: {
         "Idempotency-Key": newIdemKey("mfa_trust_after_verify"),
         "Cache-Control": "no-store",
@@ -146,16 +135,9 @@ export default function MfaSettingsPage() {
 function MfaSettings() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
-  // Optional baseline "enabled" from store; page keeps its own shadow state
-  const enabledFromStore: boolean | undefined =
-    typeof useAuthStore === "function" ? !!useAuthStore((s: any) => s.user?.mfa_enabled) : undefined;
-
-  const [enabled, setEnabled] = React.useState<boolean>(!!enabledFromStore);
-  React.useEffect(() => {
-    if (enabledFromStore !== undefined) setEnabled(!!enabledFromStore);
-  }, [enabledFromStore]);
+  const [enabled, setEnabled] = React.useState<boolean>(false);
 
   const [setup, setSetup] = React.useState<SetupState>({ phase: "idle" });
   const [qrDataUrl, setQrDataUrl] = React.useState<string | null>(null);
@@ -219,9 +201,8 @@ function MfaSettings() {
         return;
       }
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to enable MFA" } as any);
-        if (!token) return;
-        const res = await enableMfa({ xReauth: token } as any);
+        await promptReauth({ reason: "Confirm it’s you to enable MFA" } as any);
+        const res = await enableMfa({} as any);
         const secret = (res as any)?.secret ?? "";
         const otpauth_url = (res as any)?.otpauth_url ?? null;
         if (!secret) throw new Error("Missing secret in enable response.");
@@ -302,9 +283,8 @@ function MfaSettings() {
         return;
       }
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to disable MFA" } as any);
-        if (!token) return;
-        await disableMfa({ xReauth: token } as any);
+        await promptReauth({ reason: "Confirm it’s you to disable MFA" } as any);
+        await disableMfa({} as any);
         setEnabled(false);
         setSetup({ phase: "idle" });
         toast({

@@ -56,9 +56,9 @@ import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 import { SettingsTab } from "@/components/SettingsTab";
-import { EmptyState } from "@/components/EmptyState";
+import EmptyState from "@/components/feedback/EmptyState";
 
 // Hooks (read)
 import { useTrustedDevices } from "@/features/auth/useTrustedDevices";
@@ -172,7 +172,7 @@ function RefreshButton() {
 function SecurityOverviewPanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
@@ -331,15 +331,10 @@ function SecurityOverviewPanel() {
         setLoading(false);
         return;
       }
-      // Step-up: open dialog and retry once with token
+      // Step-up: prompt and retry once
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to view security settings" } as any);
-        if (!token) {
-          if (!alive.current) return;
-          setLoading(false);
-          return;
-        }
-        await loadAll(token);
+        await promptReauth({ reason: "Confirm it’s you to view security settings" } as any);
+        await loadAll();
       } catch (err2) {
         const friendly = formatError(err2, {
           includeRequestId: true,
@@ -378,17 +373,13 @@ function SecurityOverviewPanel() {
         setErrorMsg(friendly);
       } else {
         try {
-          const token = await openReauth({ reason: "Confirm it’s you to change alert settings" } as any);
-          if (!token) {
-            setData((d) => ({ ...d, alertsEnabled: prev }));
-          } else {
-            await updateAlerts({ enabled: next, xReauth: token } as any);
-            toast({
-              variant: "success",
-              title: next ? "Security alerts enabled" : "Security alerts disabled",
-              duration: 2000,
-            });
-          }
+          await promptReauth({ reason: "Confirm it’s you to change alert settings" } as any);
+          await updateAlerts({ enabled: next } as any);
+          toast({
+            variant: "success",
+            title: next ? "Security alerts enabled" : "Security alerts disabled",
+            duration: 2000,
+          });
         } catch (err2) {
           setData((d) => ({ ...d, alertsEnabled: prev }));
           const friendly = formatError(err2, {

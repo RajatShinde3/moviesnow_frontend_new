@@ -53,6 +53,14 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   compress: true,
+  eslint: {
+    // Re-enable lint checks in builds
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    // Re-enable type checking in builds
+    ignoreBuildErrors: false,
+  },
 
   /** Apply conservative security headers across the app. */
   async headers() {

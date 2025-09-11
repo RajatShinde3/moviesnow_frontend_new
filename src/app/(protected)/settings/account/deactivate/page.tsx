@@ -37,8 +37,8 @@ import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts"; // adjust import if your path differs
-import { useReauthDialog } from "@/components/ReauthDialog";
-import { OtpInput } from "@/components/OtpInput";
+import { useReauthPrompt } from "@/components/ReauthDialog";
+import OtpInput from "@/components/forms/OtpInput";
 
 // Hooks
 import { useRequestDeactivationOtp } from "@/features/auth/useRequestDeactivationOtp";
@@ -108,7 +108,7 @@ export default function DeactivateAccountPage() {
 function DeactivatePanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [phase, setPhase] = React.useState<Phase>("intro");
 
@@ -167,11 +167,10 @@ function DeactivatePanel() {
         setErrorMsg(friendly);
         return;
       }
-      // Step-up required → open dialog & retry with token
+      // Step-up required → prompt and retry
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to deactivate your account" } as any);
-        if (!token) return;
-        const ack: any = await sendOtp(token);
+        await promptReauth({ reason: "Confirm it’s you to deactivate your account" } as any);
+        const ack: any = await sendOtp();
         setPhase("code");
         const cd = deriveCooldown(ack);
         if (cd > 0) setCooldown(cd);
@@ -192,10 +191,9 @@ function DeactivatePanel() {
     }
   }
 
-  // --- Step 2: finalize deactivation (with optional step-up)
-  async function finalize(code: string, nextToken?: string) {
+  // --- Step 2: finalize deactivation
+  async function finalize(code: string) {
     const payload: any = { code };
-    if (nextToken) payload.xReauth = nextToken;
     return await deactivate(payload);
   }
 
@@ -225,9 +223,8 @@ function DeactivatePanel() {
       }
       // Step-up path
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to finish deactivation" } as any);
-        if (!token) return;
-        await finalize(code, token);
+        await promptReauth({ reason: "Confirm it’s you to finish deactivation" } as any);
+        await finalize(code);
         afterSuccess();
       } catch (err2) {
         const friendly = formatError(err2, {
@@ -318,12 +315,11 @@ function DeactivatePanel() {
 
           <div className="space-y-2">
             <OtpInput
-              id="deactivate-otp"
               value={otpCode}
               onChange={setOtpCode}
-              numInputs={6}
-              inputMode="numeric"
-              aria-describedby="deactivate-otp-help"
+              length={6}
+              numericOnly
+              ariaLabel="One-time code"
               autoFocus
             />
             <p id="deactivate-otp-help" className="text-xs text-muted-foreground">

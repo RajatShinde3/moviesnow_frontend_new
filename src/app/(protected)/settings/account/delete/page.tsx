@@ -38,8 +38,8 @@ import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";            // ✅ keep this path consistent with your file
-import { useReauthDialog } from "@/components/ReauthDialog";
-import { OtpInput } from "@/components/OtpInput";
+import { useReauthPrompt } from "@/components/ReauthDialog";
+import OtpInput from "@/components/forms/OtpInput";
 
 import { useRequestDeletionOtp } from "@/features/auth/useRequestDeletionOtp";
 import { useDeleteUser } from "@/features/auth/useDeleteUser";
@@ -108,7 +108,7 @@ export default function DeleteAccountPage() {
 function DeletePanel() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [phase, setPhase] = React.useState<Phase>("intro");
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
@@ -174,9 +174,8 @@ function DeletePanel() {
         return;
       }
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to request account deletion" } as any);
-        if (!token) return;
-        const ack: any = await sendOtp(token);
+        await promptReauth({ reason: "Confirm it’s you to request account deletion" } as any);
+        const ack: any = await sendOtp();
         setPhase("otp");
         const cd = deriveCooldown(ack);
         if (cd > 0) setCooldown(cd);
@@ -199,9 +198,8 @@ function DeletePanel() {
   }
 
   // -- Step 2: Finalize deletion (with step-up if required)
-  async function finalizeDeletion(code: string, nextToken?: string) {
+  async function finalizeDeletion(code: string) {
     const payload: any = { code };
-    if (nextToken) payload.xReauth = nextToken;
     await deleteUser(payload);
   }
 
@@ -230,9 +228,8 @@ function DeletePanel() {
         return;
       }
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to permanently delete your account" } as any);
-        if (!token) return;
-        await finalizeDeletion(code, token);
+        await promptReauth({ reason: "Confirm it’s you to permanently delete your account" } as any);
+        await finalizeDeletion(code);
         afterSuccess();
       } catch (err2) {
         const friendly = formatError(err2, {
@@ -362,12 +359,11 @@ function DeletePanel() {
 
           <div className="space-y-2">
             <OtpInput
-              id="delete-otp"
               value={otp}
               onChange={setOtp}
-              numInputs={6}
-              inputMode="numeric"
-              aria-describedby="delete-otp-help"
+              length={6}
+              numericOnly
+              ariaLabel="One-time code"
               autoFocus
             />
             <p id="delete-otp-help" className="text-xs text-muted-foreground">

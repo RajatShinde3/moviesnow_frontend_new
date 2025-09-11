@@ -101,8 +101,12 @@ export type EmptyStateProps = {
   titleAs?: keyof JSX.IntrinsicElements;
   /** Supporting text under the title. Accepts string or any React content. */
   description?: React.ReactNode;
-  /** Primary/secondary actions. */
+  /** Primary/secondary actions (preferred). */
   actions?: EmptyAction[];
+  /** Back-compat: single primary action via label + onClick or label + href. */
+  actionLabel?: string;
+  onAction?: () => void | Promise<void>;
+  actionHref?: string;
   /**
    * Visual style:
    * - "subtle": padded container with light background (default)
@@ -270,6 +274,9 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
       titleAs = "h2",
       description,
       actions,
+      actionLabel,
+      onAction,
+      actionHref,
       variant = "subtle",
       align = "center",
       size = "md",
@@ -343,7 +350,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           {children ? <div className="max-w-prose">{children}</div> : null}
 
           {/* Actions */}
-          {actions && actions.length > 0 && (
+          {(actions && actions.length > 0) || actionLabel ? (
             <div
               className={cn(
                 "flex flex-wrap items-center gap-2",
@@ -351,11 +358,18 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
                 isCenter ? "justify-center" : "justify-start"
               )}
             >
-              {actions.map((a, i) => (
-                <ActionButton key={`${a.label}-${i}`} a={a} />
+              {(actions && actions.length > 0
+                ? actions
+                : [
+                    actionHref
+                      ? { label: actionLabel!, href: actionHref, variant: "primary" }
+                      : { label: actionLabel!, onClick: onAction!, variant: "primary" },
+                  ]
+              ).map((a, i) => (
+                <ActionButton key={`${a.label}-${i}`} a={a as EmptyAction} />
               ))}
             </div>
-          )}
+          ) : null}
         </div>
       </section>
     );

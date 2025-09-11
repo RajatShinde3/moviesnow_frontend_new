@@ -28,7 +28,7 @@ import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
-import { OtpInput } from "@/components/OtpInput";
+import OtpInput from "@/components/forms/OtpInput";
 
 import { useReactivateAccount } from "@/features/auth/useReactivateAccount";
 

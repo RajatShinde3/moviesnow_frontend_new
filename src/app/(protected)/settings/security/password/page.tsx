@@ -35,9 +35,9 @@ import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
-import { useReauthDialog } from "@/components/ReauthDialog";
-import { PasswordField } from "@/components/PasswordField";
-import { PasswordStrength } from "@/components/PasswordStrength";
+import { useReauthPrompt } from "@/components/ReauthDialog";
+import { PasswordField } from "@/components/forms/PasswordField";
+import PasswordStrength from "@/components/forms/PasswordStrength";
 
 import { useChangePassword } from "@/features/auth/useChangePassword";
 
@@ -103,7 +103,7 @@ export default function ChangePasswordPage() {
 function ChangePasswordForm() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [form, setForm] = React.useState<FormState>({
     current: "",
@@ -197,11 +197,10 @@ function ChangePasswordForm() {
       }
       // Step-up required → collect short-lived token then retry
       try {
-        const token = await openReauth({
+        await promptReauth({
           reason: "Confirm it’s you to change your password",
         } as any);
-        if (!token) return;
-        await submit(token);
+        await submit();
         toast({
           variant: "success",
           title: "Password updated",

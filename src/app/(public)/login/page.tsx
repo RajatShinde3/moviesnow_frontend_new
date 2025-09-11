@@ -55,10 +55,7 @@ import { useLogin } from "@/features/auth/useLogin";
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
-// Optional: keep bots away from auth pages.
-export const metadata = {
-  robots: { index: false, follow: false },
-};
+// Note: metadata cannot be exported from client components; handled by segment layout.
 
 // -----------------------------------------------------------------------------
 // sessionStorage keys for MFA handoff + redirect continuity

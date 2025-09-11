@@ -29,7 +29,7 @@ import { RefreshCw } from "lucide-react";
 
 import { PATHS } from "@/lib/env";
 // Your component already imports the necessary hooks and handles reauth/toasts.
-import { SessionsTable } from "@/components/SessionsTable";
+import SessionsTable from "@/components/tables/SessionsTable";
 
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.

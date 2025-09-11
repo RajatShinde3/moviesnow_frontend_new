@@ -32,8 +32,8 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts";            // ✅ consistent import
-import { useReauthDialog } from "@/components/ReauthDialog";
+import { useToast } from "@/components/feedback/Toasts";            // ✅ consistent import
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 import { useEmailChangeStart } from "@/features/auth/useEmailChangeStart";
 
@@ -101,7 +101,7 @@ export default function ChangeEmailPage() {
 function ChangeEmailForm() {
   const router = useRouter();
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [email, setEmail] = React.useState("");
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
@@ -170,10 +170,9 @@ function ChangeEmailForm() {
 
       // Step-up path
       try {
-        const token = await openReauth({ reason: "Confirm it’s you to change your email" } as any);
-        if (!token) return;
+        await promptReauth({ reason: "Confirm it’s you to change your email" } as any);
 
-        const ack: any = await doStart(token);
+        const ack: any = await doStart();
         setSuccessEmail(trimmed);
         const cd = deriveCooldown(ack);
         if (cd > 0) setCooldown(cd);
@@ -222,10 +221,9 @@ function ChangeEmailForm() {
         setErrorMsg(friendly);
         return;
       }
-      try {
-        const token = await openReauth({ reason: "Confirm it’s you to resend the link" } as any);
-        if (!token) return;
-        const ack: any = await doStart(token);
+    try {
+      await promptReauth({ reason: "Confirm it’s you to resend the link" } as any);
+      const ack: any = await doStart();
         const cd = deriveCooldown(ack);
         if (cd > 0) setCooldown(cd);
         toast({
@@ -285,7 +283,7 @@ function ChangeEmailForm() {
               {isPending ? "Resending…" : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend email"}
             </button>
             <Link
-              href={PATHS.afterLogin || "/"}
+              href={"/"}
               className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
               prefetch
             >

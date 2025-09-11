@@ -97,7 +97,7 @@ function ResetRequestForm() {
   React.useEffect(() => {
     const next = PATHS.resetConfirm || "/reset/confirm";
     // router.prefetch is safe; if unsupported it’s a no-op
-    // @ts-ignore
+    // @ts-expect-error -- prefetch may be undefined in some Next runtimes
     router.prefetch?.(next);
   }, [router]);
 

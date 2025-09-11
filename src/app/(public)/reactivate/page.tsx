@@ -36,7 +36,7 @@ import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
 import OtpInput from "@/components/forms/OtpInput";
 
-import { useRequestReactivationOtp } from "@/features/auth/useRequestReactivationOtp";
+import { useReactivationStart } from "@/features/auth/useReactivationStart";
 import { useReactivateAccount } from "@/features/auth/useReactivateAccount";
 
 // -----------------------------------------------------------------------------
@@ -121,7 +121,7 @@ function ReactivatePanel({ redirect }: { redirect: string }) {
     defaultValues: { email: prefillEmailFromQuery(sp) },
     mode: "onSubmit",
   });
-  const requestOtp = useRequestReactivationOtp();
+  const requestOtp = useReactivationStart();
 
   // last successful/attempted email → used for messaging & resend
   const [lastEmail, setLastEmail] = React.useState<string>(prefillEmailFromQuery(sp));

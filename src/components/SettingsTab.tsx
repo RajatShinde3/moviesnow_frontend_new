@@ -287,3 +287,9 @@ export default function SettingsTabs({
     </div>
   );
 }
+
+// Lightweight wrapper for legacy usages: <SettingsTab />
+// Ignores deprecated props like `active`; active tab is inferred from pathname.
+export const SettingsTab = (props: Partial<SettingsTabsProps>) => {
+  return <SettingsTabs {...props} />;
+};

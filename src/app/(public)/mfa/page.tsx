@@ -37,10 +37,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/cn";
-import client from "@/lib/client";
-import { newIdemKey } from "@/lib/idempotency";
+import { postMaybeJson } from "@/lib/api";
+import { newIdemKey } from "@/lib/api/idempotency";
 import { formatError } from "@/lib/formatError";
-import { OtpInput } from "@/components/OtpInput";
+import OtpInput from "@/components/forms/OtpInput";
 import { useToast } from "@/components/feedback/Toasts";
 import { PATHS } from "@/lib/env";
 
@@ -388,7 +388,7 @@ function MfaForm() {
  */
 async function registerTrustedDeviceSafely(toast: ReturnType<typeof useToast>) {
   try {
-    await client.post("mfa/trusted-devices/register", {
+    await postMaybeJson<undefined>("mfa/trusted-devices/register", undefined, {
       headers: {
         "Idempotency-Key": newIdemKey("mfa_trust"),
         "Cache-Control": "no-store",

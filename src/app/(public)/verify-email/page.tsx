@@ -93,7 +93,7 @@ function VerifyEmailGate() {
 
   const token = params?.get("token") || params?.get("t") || null;
   const nextPath = React.useMemo(
-    () => sanitizeNextPath(params?.get("next"), PATHS.afterLogin || "/"),
+    () => sanitizeNextPath(params?.get("next"), "/"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [params?.get("next")]
   );
@@ -129,7 +129,6 @@ function VerifyEmailGate() {
 
   // Prefetch post-verify target for snappier navigation
   React.useEffect(() => {
-    // @ts-ignore
     router.prefetch?.(nextPath);
   }, [router, nextPath]);
 

@@ -36,9 +36,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/Toasts";
-import { PasswordField } from "@/components/PasswordField";
-import { PasswordStrength } from "@/components/PasswordStrength";
+import { useToast } from "@/components/feedback/Toasts";
+import { PasswordField } from "@/components/forms/PasswordField";
+import PasswordStrength from "@/components/forms/PasswordStrength";
 import { useSignup } from "@/features/auth/useSignup";
 
 // -----------------------------------------------------------------------------
@@ -119,7 +119,7 @@ function SignupForm() {
   // Prefetch verify-email for snappier handoff
   React.useEffect(() => {
     const next = PATHS.verifyEmail || "/verify-email";
-    // @ts-ignore
+    // @ts-expect-error -- prefetch may be undefined in some Next runtimes
     router.prefetch?.(next);
   }, [router]);
 

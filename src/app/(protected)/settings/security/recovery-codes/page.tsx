@@ -30,8 +30,8 @@ import * as React from "react";
 import { cn } from "@/lib/cn";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
-import { EmptyState } from "@/components/EmptyState";
-import { useReauthDialog } from "@/components/ReauthDialog";
+import EmptyState from "@/components/feedback/EmptyState";
+import { useReauthPrompt } from "@/components/ReauthDialog";
 
 import { useRecoveryCodesList } from "@/features/auth/useRecoveryCodesList";
 import { useRecoveryCodesGenerate } from "@/features/auth/useRecoveryCodesGenerate";
@@ -82,7 +82,7 @@ export default function RecoveryCodesPage() {
 
 function RecoveryCodesPanel() {
   const toast = useToast();
-  const { open: openReauth } = useReauthDialog();
+  const promptReauth = useReauthPrompt();
 
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
@@ -165,9 +165,8 @@ function RecoveryCodesPanel() {
   async function handleReauthView() {
     setErrorMsg(null);
     try {
-      const token = await openReauth({ reason: "Confirm it’s you to view recovery codes" } as any);
-      if (!token) return;
-      const res = await listCodes({ xReauth: token } as any);
+      await promptReauth({ reason: "Confirm it’s you to view recovery codes" } as any);
+      const res = await listCodes({} as any);
       const codes = extractCodes(res);
       setState({ status: "ready", codes });
       setViewNeedsReauth(false);
@@ -192,12 +191,11 @@ function RecoveryCodesPanel() {
 
     try {
       // Most backends require step-up here; request proactively.
-      const token = await openReauth({
+      await promptReauth({
         reason: "Confirm it’s you to regenerate recovery codes",
       } as any);
-      if (!token) return;
 
-      const res = await generateCodes({ xReauth: token } as any);
+      const res = await generateCodes({} as any);
       const codes = extractCodes(res);
       setState({ status: "ready", codes });
       setRevealed(true); // reveal freshly-generated set for quick saving
@@ -430,8 +428,12 @@ function RecoveryCodesPanel() {
             <EmptyState
               title="No recovery codes"
               description="Generate a new set to use in case you lose access to your authenticator app."
-              actionLabel={isGenerating ? "Generating…" : "Generate codes"}
-              onAction={isGenerating ? undefined : handleRegenerate}
+              actions={[{
+                label: isGenerating ? "Generating…" : "Generate codes",
+                onClick: handleRegenerate,
+                disabled: isGenerating,
+                variant: "primary",
+              }]}
             />
           )}
 
