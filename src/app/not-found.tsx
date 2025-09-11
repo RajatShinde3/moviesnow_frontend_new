@@ -8,31 +8,11 @@
  */
 
 import Link from "next/link";
-import { headers } from "next/headers";
 import { PATHS } from "@/lib/env";
 import { Home, LogIn, ArrowLeft, CircleHelp, UserPlus } from "lucide-react";
 
-function getSafeBackHref(): string | null {
-  // Safely derive a same-origin back link from the Referer header
-  const h = headers();
-  const referer = h.get("referer");
-  const host = h.get("host");
-  if (!referer || !host) return null;
-
-  try {
-    const u = new URL(referer);
-    // Only allow same-origin paths to avoid open redirects
-    if (u.host === host && u.pathname) {
-      return `${u.pathname}${u.search}${u.hash}`;
-    }
-  } catch {
-    /* ignore malformed referer */
-  }
-  return null;
-}
-
 export default function NotFound() {
-  const backHref = getSafeBackHref();
+  const backHref = null; // Keep simple: omit back link to avoid headers() typing issues
 
   return (
     <main className="mx-auto w-full max-w-2xl px-4 py-20 sm:px-6 lg:px-8 text-center">
@@ -60,7 +40,7 @@ export default function NotFound() {
         ) : null}
 
         <Link
-          href={PATHS.home || "/"}
+          href={"/"}
           prefetch
           className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
         >
@@ -87,7 +67,7 @@ export default function NotFound() {
         </Link>
 
         <Link
-          href={PATHS.helpCenter || "/help"}
+          href={"/help"}
           prefetch
           className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
         >

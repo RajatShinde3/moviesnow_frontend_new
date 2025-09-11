@@ -11,7 +11,7 @@
 
 import * as React from "react";
 import type { Metadata } from "next";
-import { Header } from "@/components/Header";
+import Header from "@/components/Header";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";

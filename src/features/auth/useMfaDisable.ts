@@ -42,8 +42,8 @@ export const MFA_DISABLE_PATH = RAW_MFA_DISABLE_PATH.replace(/^\/+/, "");
 
 const MfaDisableClientInputSchema = z
   .object({
-    /** Current password (backend validates timing-safe). */
-    password: z.string().trim().min(1, "Password is required"),
+    /** Current password (backend validates timing-safe). Optional when reauth header is used. */
+    password: z.string().trim().min(1).optional(),
     /** Optional step-up token to be sent as X-Reauth header. */
     reauth_token: z.string().min(1).optional(),
   })
@@ -89,10 +89,13 @@ export function useMfaDisable() {
       const headers: Record<string, string> = { "Idempotency-Key": newIdemKey() };
       if (reauth_token) headers[REAUTH_HEADER_NAME] = reauth_token;
 
-      // Backend expects only { password } in the JSON body
+      // Backend expects { password } if provided; allow header-only when reauth is used
+      const body: Record<string, unknown> = {};
+      if (password) body.password = password;
+
       const { requestId } = await fetchJsonWithMeta<void>(MFA_DISABLE_PATH, {
         method: "POST",
-        json: { password },
+        json: body,
         headers,
         cache: "no-store",
       });

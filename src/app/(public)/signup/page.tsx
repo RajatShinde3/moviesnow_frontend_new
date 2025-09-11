@@ -119,7 +119,6 @@ function SignupForm() {
   // Prefetch verify-email for snappier handoff
   React.useEffect(() => {
     const next = PATHS.verifyEmail || "/verify-email";
-    // @ts-expect-error -- prefetch may be undefined in some Next runtimes
     router.prefetch?.(next);
   }, [router]);
 
@@ -178,7 +177,7 @@ function SignupForm() {
         description: "Your account is ready.",
         duration: 2500,
       });
-      router.replace(PATHS.afterLogin || "/");
+      router.replace("/");
     } catch (err) {
       const friendly = formatError(err, {
         includeRequestId: true,

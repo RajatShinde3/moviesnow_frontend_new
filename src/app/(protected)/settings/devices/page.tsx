@@ -140,7 +140,11 @@ function DevicesPanel() {
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
 
-  const { mutateAsync: fetchDevices, isPending: isListing } = useTrustedDevices();
+  const { data: devicesData, error: listError, isFetching: isListing, refetch: refetchDevices } = useTrustedDevices();
+  const fetchDevices = React.useCallback(async (..._args: any[]) => {
+    const { data } = await refetchDevices();
+    return (data ?? devicesData) as any;
+  }, [refetchDevices, devicesData]);
   const { mutateAsync: registerDevice, isPending: isRegistering } = useTrustedDeviceRegister();
   const { mutateAsync: revokeDevice, isPending: isRevokingOne } = useTrustedDeviceRevoke();
   const { mutateAsync: revokeAll, isPending: isRevokingAll } = useTrustedDevicesRevokeAll();

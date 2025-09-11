@@ -253,9 +253,9 @@ function ConfirmPanel({
             id="otp"
             value={code}
             onChange={(v) => setCode(normalizeCode(v))}
-            numInputs={6}
-            inputMode="numeric"
-            aria-describedby="otp-help"
+            length={6}
+            numericOnly
+            inputProps={{ "aria-describedby": "otp-help", inputMode: "numeric" } as any}
             autoFocus={mode === "code"}
           />
           <p id="otp-help" className="text-xs text-muted-foreground">
@@ -277,7 +277,7 @@ function ConfirmPanel({
         <div className="text-center text-xs text-muted-foreground">
           Didn’t get a code? Check spam, or{" "}
           <Link
-            href={PATHS.reactivate || "/reactivate"}
+            href={(PATHS as any).reactivateStart || "/reactivation"}
             className="underline underline-offset-4 hover:text-foreground"
             prefetch
           >

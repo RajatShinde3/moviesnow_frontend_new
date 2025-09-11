@@ -50,9 +50,10 @@ export const viewport: Viewport = {
 // export const revalidate = 0;
 // export const dynamic = "force-dynamic";
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // If you set a CSP with nonces in middleware/edge, you can forward it here.
-  const nonce = headers().get("x-nonce") ?? undefined;
+  const h = await headers();
+  const nonce = h.get("x-nonce") ?? undefined;
 
   return (
     <html lang="en" dir="ltr" suppressHydrationWarning>
@@ -73,7 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
 
         {/* App-wide providers (toasts, reauth dialog, themes, etc.) */}
-        <Providers nonce={nonce}>
+        <Providers>
           {/* Route change announcer for SR users */}
           <RouteAnnouncer />
 

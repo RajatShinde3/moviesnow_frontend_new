@@ -59,7 +59,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         Skip to content
       </a>
 
-      <SettingsTab active={active} />
+      <SettingsTab />
 
       {/* Main landmark keeps pages consistent and helps SR users */}
       <main id="settings-content" className="mt-6">

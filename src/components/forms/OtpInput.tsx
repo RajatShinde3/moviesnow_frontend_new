@@ -45,6 +45,8 @@ export type OtpInputHandle = {
 };
 
 export type OtpInputProps = {
+  /** Optional id for the OTP group container. */
+  id?: string;
   /** Number of code cells. */
   length?: number;
 
@@ -112,6 +114,7 @@ function cleanCode(input: string, numericOnly: boolean, maxLen: number) {
 
 const OtpInput = React.forwardRef<OtpInputHandle, OtpInputProps>(function OtpInput(
   {
+    id,
     length = 6,
     value,
     defaultValue,
@@ -345,6 +348,7 @@ const OtpInput = React.forwardRef<OtpInputHandle, OtpInputProps>(function OtpInp
   return (
     <div
       role="group"
+      id={id}
       aria-label={ariaLabel}
       className={cn("flex items-center gap-2", containerClassName)}
     >

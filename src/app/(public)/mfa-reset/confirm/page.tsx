@@ -243,9 +243,9 @@ function ConfirmPanel({ initialToken, initialCode }: { initialToken: string; ini
               id="otp"
               value={code}
               onChange={(v) => setCode(normalizeDigits(v))}
-              numInputs={OTP_LEN}
-              inputMode="numeric"
-              aria-describedby="otp-help"
+              length={OTP_LEN}
+              numericOnly
+              inputProps={{ "aria-describedby": "otp-help", inputMode: "numeric" } as any}
               autoFocus={mode === "code"}
             />
             <p id="otp-help" className="text-xs text-muted-foreground">

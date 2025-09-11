@@ -37,7 +37,7 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/cn";
 import { postMaybeJson } from "@/lib/api";
-import { newIdemKey } from "@/lib/api/idempotency";
+import { newIdemKeyWithPrefix } from "@/lib/api/idempotency";
 import { formatError } from "@/lib/formatError";
 import { PATHS } from "@/lib/env";
 
@@ -88,7 +88,7 @@ async function registerTrustedDeviceSafely(toast: ReturnType<typeof useToast>) {
   try {
     await postMaybeJson<undefined>(PATHS.tdRegister, undefined, {
       headers: {
-        "Idempotency-Key": newIdemKey("mfa_trust_after_verify"),
+        "Idempotency-Key": newIdemKeyWithPrefix("mfa-trust-after-verify"),
         "Cache-Control": "no-store",
       },
     });
@@ -263,7 +263,7 @@ function MfaSettings() {
   async function onDisable() {
     setErrorMsg(null);
     try {
-      await disableMfa(); // attempt without step-up
+      await disableMfa({} as any); // attempt without step-up
       setEnabled(false);
       setSetup({ phase: "idle" });
       toast({
@@ -519,9 +519,9 @@ function MfaSettings() {
                 id="otp"
                 value={totp}
                 onChange={(val) => setTotp(normalizeTotp(val))}
-                numInputs={6}
-                inputMode="numeric"
-                aria-describedby="otp-help"
+                length={6}
+                numericOnly
+                inputProps={{ "aria-describedby": "otp-help", inputMode: "numeric" } as any}
                 autoFocus
               />
               <p id="otp-help" className="text-xs text-muted-foreground">

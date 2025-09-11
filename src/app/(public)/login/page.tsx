@@ -167,7 +167,7 @@ function LoginForm() {
 
   // Compute & persist a safe "next" path so the MFA step can reuse it.
   const postLoginPathRef = React.useRef<string>(
-    sanitizeNextPath(params?.get("next")) || PATHS.afterLogin || "/"
+    sanitizeNextPath(params?.get("next")) || "/"
   );
 
   React.useEffect(() => {

@@ -95,9 +95,8 @@ function ResetRequestForm() {
 
   // Preload the confirm step route for snappy navigation
   React.useEffect(() => {
-    const next = PATHS.resetConfirm || "/reset/confirm";
+    const next = PATHS.pwResetConfirm || "/reset/confirm";
     // router.prefetch is safe; if unsupported it’s a no-op
-    // @ts-expect-error -- prefetch may be undefined in some Next runtimes
     router.prefetch?.(next);
   }, [router]);
 
@@ -150,7 +149,7 @@ function ResetRequestForm() {
       duration: 3200,
     });
 
-    const next = PATHS.resetConfirm || "/reset/confirm";
+    const next = PATHS.pwResetConfirm || "/reset/confirm";
     // Include ?email= for environments where sessionStorage is disabled
     router.replace(`${next}?email=${encodeURIComponent(addr)}`);
   }

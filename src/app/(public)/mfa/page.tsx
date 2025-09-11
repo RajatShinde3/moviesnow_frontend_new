@@ -38,7 +38,7 @@ import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/cn";
 import { postMaybeJson } from "@/lib/api";
-import { newIdemKey } from "@/lib/api/idempotency";
+import { newIdemKeyWithPrefix } from "@/lib/api/idempotency";
 import { formatError } from "@/lib/formatError";
 import OtpInput from "@/components/forms/OtpInput";
 import { useToast } from "@/components/feedback/Toasts";
@@ -138,7 +138,7 @@ function MfaForm() {
   // Pull ephemeral state from sessionStorage (one time)
   const challengeRef = React.useRef<any>(null);
   const rememberRef = React.useRef<boolean>(false);
-  const afterLoginRef = React.useRef<string>(PATHS.afterLogin || "/");
+  const afterLoginRef = React.useRef<string>("/");
 
   React.useEffect(() => {
     try {
@@ -296,9 +296,9 @@ function MfaForm() {
             value={totp}
             onChange={setTotp}
             autoFocus
-            numInputs={6}
-            inputMode="numeric"
-            aria-describedby="otp-help"
+            length={6}
+            numericOnly
+            inputProps={{ "aria-describedby": "otp-help", inputMode: "numeric" } as any}
             disabled={isBusy}
           />
           <p id="otp-help" className="text-xs text-muted-foreground">
@@ -390,7 +390,7 @@ async function registerTrustedDeviceSafely(toast: ReturnType<typeof useToast>) {
   try {
     await postMaybeJson<undefined>("mfa/trusted-devices/register", undefined, {
       headers: {
-        "Idempotency-Key": newIdemKey("mfa_trust"),
+        "Idempotency-Key": newIdemKeyWithPrefix("mfa-trust"),
         "Cache-Control": "no-store",
       },
     });

@@ -91,7 +91,11 @@ function RecoveryCodesPanel() {
   const [state, setState] = React.useState<CodesState>({ status: "idle", codes: null });
   const [revealed, setRevealed] = React.useState(false);
 
-  const { mutateAsync: listCodes, isPending: isListing } = useRecoveryCodesList();
+  const { data: listData, error: listError, isFetching: isListing, refetch: refetchList } = useRecoveryCodesList();
+  const listCodes = React.useCallback(async (..._args: any[]) => {
+    const { data } = await refetchList();
+    return (data ?? listData) as any;
+  }, [refetchList, listData]);
   const { mutateAsync: generateCodes, isPending: isGenerating } = useRecoveryCodesGenerate();
 
   const listId = React.useId(); // tie reveal button to list for a11y

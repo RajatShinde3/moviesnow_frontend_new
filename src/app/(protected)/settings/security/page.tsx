@@ -124,7 +124,7 @@ type SecuritySummary = {
 export default function SecurityOverviewPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <SettingsTab active="security" />
+      <SettingsTab />
 
       <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
@@ -197,11 +197,17 @@ function SecurityOverviewPanel() {
   const [updatingAlerts, setUpdatingAlerts] = React.useState(false);
 
   // Treat read hooks as "fetchers" to keep a consistent pattern with earlier pages
-  const { mutateAsync: fetchDevices } = useTrustedDevices();
-  const { mutateAsync: fetchSessions } = useAuthSessions();
-  const { mutateAsync: fetchRecoveryCodes } = useRecoveryCodesList();
-  const { mutateAsync: fetchAlerts } = useAlertSubscription();
-  const { mutateAsync: fetchActivity } = useAuthActivity();
+  const { data: devicesData, refetch: refetchDevices } = useTrustedDevices();
+  const { data: sessionsData, refetch: refetchSessions } = useAuthSessions();
+  const { data: recoveryData, refetch: refetchRecoveryCodes } = useRecoveryCodesList();
+  const { data: alertsData, refetch: refetchAlerts } = useAlertSubscription();
+  const { data: activityData, refetch: refetchActivity } = useAuthActivity();
+  // Back-compat tiny shims to reuse existing logic below
+  const fetchDevices = React.useCallback(async (..._args: any[]) => (await refetchDevices()).data ?? devicesData, [refetchDevices, devicesData]);
+  const fetchSessions = React.useCallback(async (..._args: any[]) => (await refetchSessions()).data ?? sessionsData, [refetchSessions, sessionsData]);
+  const fetchRecoveryCodes = React.useCallback(async (..._args: any[]) => (await refetchRecoveryCodes()).data ?? recoveryData, [refetchRecoveryCodes, recoveryData]);
+  const fetchAlerts = React.useCallback(async (..._args: any[]) => (await refetchAlerts()).data ?? alertsData, [refetchAlerts, alertsData]);
+  const fetchActivity = React.useCallback(async (..._args: any[]) => (await refetchActivity()).data ?? activityData, [refetchActivity, activityData]);
   const { mutateAsync: updateAlerts } = useUpdateAlertSubscription();
 
   React.useEffect(() => {

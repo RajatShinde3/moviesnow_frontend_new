@@ -98,7 +98,7 @@ export type EmptyStateProps = {
   /** Main heading content. */
   title?: React.ReactNode;
   /** Heading level element (defaults to h2). */
-  titleAs?: keyof JSX.IntrinsicElements;
+  titleAs?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6";
   /** Supporting text under the title. Accepts string or any React content. */
   description?: React.ReactNode;
   /** Primary/secondary actions (preferred). */
@@ -292,7 +292,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
     const titleId = React.useId();
     const descId = React.useId();
 
-    const TitleTag = titleAs as keyof JSX.IntrinsicElements;
+    const HeadingTag = (titleAs || "h2") as any;
 
     return (
       <section
@@ -337,7 +337,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
           ) : null}
 
           {/* Title */}
-          {title && <TitleTag id={titleId} className={cn(s.title)}>{title}</TitleTag>}
+          {title && React.createElement(HeadingTag, { id: titleId, className: cn(s.title) }, title)}
 
           {/* Description */}
           {description && (

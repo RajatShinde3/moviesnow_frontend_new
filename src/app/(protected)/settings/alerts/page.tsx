@@ -268,8 +268,13 @@ function AlertsPanel() {
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
   const errorRef = React.useRef<HTMLDivElement | null>(null);
 
-  // fetching + saving
-  const { mutateAsync: fetchSub, isPending: isFetching } = useAlertSubscription();
+  // fetching (query) + saving (mutation)
+  const { data: subData, error: fetchError, isFetching, refetch: refetchSub } = useAlertSubscription();
+  // Back-compat shim for existing effect below
+  const fetchSub = React.useCallback(async (..._args: any[]) => {
+    const { data } = await refetchSub();
+    return (data ?? subData) as any;
+  }, [refetchSub, subData]);
   const { mutateAsync: updateSub, isPending: isSaving } = useUpdateAlertSubscription();
 
   // original shape/payload (to reconstruct updates) + current UI model
