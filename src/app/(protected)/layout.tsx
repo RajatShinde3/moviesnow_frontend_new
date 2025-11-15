@@ -21,8 +21,8 @@
  */
 
 import * as React from "react";
-import Header from "@/components/Header";
-import  AuthGate  from "@/components/AuthGate";
+import { Navigation } from "@/components/Navigation";
+import AuthGate from "@/components/AuthGate";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -40,14 +40,11 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
         Skip to content
       </a>
 
-      {/* Global header (auth-aware) */}
-      <Header />
+      {/* Global navigation */}
+      <Navigation />
 
-      {/* Main content area */}
-      <main
-        id="protected-content"
-        className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8"
-      >
+      {/* Main content area - full width for OTT layout */}
+      <main id="protected-content" className="w-full">
         <React.Suspense fallback={<ContentSkeleton />}>{children}</React.Suspense>
       </main>
 
