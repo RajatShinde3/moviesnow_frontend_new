@@ -84,7 +84,7 @@ export default function ReactivatePage() {
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         Changed your mind?{" "}
         <Link
-          href={PATHS.login || "/login"}
+          href={'/login'}
           className="font-medium underline underline-offset-4 hover:text-foreground"
           prefetch
         >
@@ -403,7 +403,7 @@ function ReactivatePanel({ redirect }: { redirect: string }) {
             Resend code
           </button>
           <Link
-            href={`${PATHS.login || "/login"}?redirect=${encodeURIComponent(redirect)}`}
+            href={`${"/login"}?redirect=${encodeURIComponent(redirect)}`}
             className="underline underline-offset-4 hover:text-foreground"
             prefetch
           >

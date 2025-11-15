@@ -48,6 +48,7 @@ import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { useLogin } from "@/features/auth/useLogin";
+import { useEmailVerificationResend } from "@/features/auth/useEmailVerificationResend";
 
 // -----------------------------------------------------------------------------
 // Cache hints (client-side). Server should also send `Cache-Control: no-store`.
@@ -162,6 +163,8 @@ function LoginForm() {
   const errorRef = React.useRef<HTMLDivElement | null>(null);
 
   const { mutateAsync: login, isPending } = useLogin();
+  const { mutateAsync: resendVerify, isPending: isResending } = useEmailVerificationResend();
+  const [needsEmailVerification, setNeedsEmailVerification] = React.useState(false);
 
   // Compute & persist a safe "next" path so the MFA step can reuse it.
   const postLoginPathRef = React.useRef<string>(
@@ -217,14 +220,14 @@ function LoginForm() {
         ss.set(SSKEY_MFA_CHALLENGE, JSON.stringify(res ?? {}));
         ss.set(SSKEY_REMEMBER_DEVICE, form.rememberDevice ? "1" : "0");
         // SSKEY_AFTER_LOGIN_REDIRECT already set on mount.
-        router.replace(PATHS.loginMfa || "/login/mfa");
+        router.replace("/mfa");
         return;
       }
 
       // Defensive fallback: treat as challenge if ambiguous.
       ss.set(SSKEY_MFA_CHALLENGE, JSON.stringify(res ?? {}));
       ss.set(SSKEY_REMEMBER_DEVICE, form.rememberDevice ? "1" : "0");
-      router.replace(PATHS.loginMfa || "/login/mfa");
+      router.replace("/mfa");
     } catch (err) {
       const friendly = formatError(err, {
         includeRequestId: true, // subtle "Ref: abcd123" for support
@@ -237,6 +240,17 @@ function LoginForm() {
       setErrorMsg(friendly);
       // Clear password on error to reduce shoulder-surfing risk.
       setForm((s) => ({ ...s, password: "" }));
+
+      // If backend indicates unverified email, offer quick resend + guidance
+      if ((err as any)?.code === "email_unverified") {
+        setNeedsEmailVerification(true);
+        try {
+          ss.set(SSKEY_AFTER_LOGIN_REDIRECT, postLoginPathRef.current);
+          ss.set("auth:verify.target_email", form.email.trim());
+        } catch { /* non-fatal */ }
+      } else {
+        setNeedsEmailVerification(false);
+      }
     }
   }
 
@@ -259,6 +273,42 @@ function LoginForm() {
       >
         {errorMsg}
       </div>
+
+      {needsEmailVerification && (
+        <div className="rounded-lg border bg-amber-50/60 px-4 py-3 text-xs text-amber-900">
+          <div className="mb-1 font-medium">Verify your email to continue.</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={async () => {
+                const target = form.email.trim();
+                if (!target) return;
+                try {
+                  await resendVerify({ email: target } as any);
+                  toast({
+                    variant: "success",
+                    title: "Verification sent",
+                    description: "Check your inbox for the verification email.",
+                    duration: 2600,
+                  });
+                } catch (e) {
+                  toast({ variant: "error", title: "Could not resend", description: formatError(e), duration: 2600 });
+                }
+              }}
+              disabled={isResending || form.email.trim().length < 3}
+              className={cn(
+                "inline-flex items-center justify-center rounded border bg-background px-2.5 py-1 text-xs font-medium shadow-sm transition",
+                isResending ? "opacity-70" : "hover:bg-accent"
+              )}
+            >
+              {isResending ? "Resending…" : "Resend verification email"}
+            </button>
+            <Link href="/verify-email" className="underline underline-offset-4 hover:text-foreground">
+              Open verification page
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Email */}
       <div className="space-y-2">

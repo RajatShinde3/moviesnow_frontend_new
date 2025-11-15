@@ -10,6 +10,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Script from "next/script";
+import AuthCtas from "@/components/AuthCtas";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
@@ -67,32 +68,7 @@ export default function HomePage() {
           </p>
         </header>
 
-        <div className="mt-6 flex flex-wrap gap-3" aria-describedby="hero-desc">
-          <Link
-            href="/signup"
-            prefetch
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            aria-label="Create your MoviesNow account"
-          >
-            Get started
-          </Link>
-          <Link
-            href="/login"
-            prefetch
-            className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            aria-label="Sign in to MoviesNow"
-          >
-            Log in
-          </Link>
-          <Link
-            href="/browse"
-            prefetch
-            className="inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-            aria-label="Browse popular movies"
-          >
-            Browse movies
-          </Link>
-        </div>
+        <AuthCtas />
 
         {/* Quick value props */}
         <ul className="mt-8 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">

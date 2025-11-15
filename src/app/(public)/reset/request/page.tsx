@@ -36,11 +36,7 @@ import { useToast } from "@/components/feedback/Toasts";
 import { PATHS } from "@/lib/env";
 import { usePasswordResetRequest } from "@/features/auth/usePasswordResetRequest";
 
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache hints are configured at the segment layout (server component).
 
 // sessionStorage key to hand off the email to /reset/confirm
 const SSKEY_RESET_EMAIL = "auth:reset.email";

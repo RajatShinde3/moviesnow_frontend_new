@@ -34,8 +34,7 @@ import SessionsTable from "@/components/tables/SessionsTable";
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache hints are configured at the (protected) segment layout.
 
 export default function SessionsPage() {
   const [refreshKey, setRefreshKey] = React.useState(0);

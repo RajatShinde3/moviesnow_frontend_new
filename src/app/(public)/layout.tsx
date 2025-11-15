@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false }, // keep auth pages out of search
 };
 
+// Ensure public auth pages are not cached and remain dynamic.
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 function SkipToContent() {
   return (
     <a

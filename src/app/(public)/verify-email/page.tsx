@@ -259,6 +259,7 @@ function VerifyEmailGate() {
               autoComplete="email"
               spellCheck={false}
               required
+              suppressHydrationWarning
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.currentTarget.value)}

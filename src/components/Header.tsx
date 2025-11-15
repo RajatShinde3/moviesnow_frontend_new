@@ -21,8 +21,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { useMe } from "@/lib/useMe"; // { data?: { email?: string; name?: string }, ... }
 import { useLogout } from "@/features/auth/useLogout";
+import { useRecoveryCodesList } from "@/features/auth/useRecoveryCodesList";
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "Acme";
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "MoviesNow";
 
 type NavLink = { href: string; label: string };
 
@@ -67,6 +68,9 @@ export default function Header() {
 
   const { data: me, isLoading: meLoading } = useMe();
   const logout = useLogout();
+  const signedIn = !!me;
+  const rc = useRecoveryCodesList({ enabled: signedIn });
+  const mfaEnabled = rc.isSuccess ? (rc.data?.codes?.length ?? 0) > 0 : undefined;
 
   // Mobile menu state
   const [open, setOpen] = React.useState(false);
@@ -134,25 +138,33 @@ export default function Header() {
 
         {/* Desktop nav */}
         <nav aria-label="Primary" className="ml-2 hidden flex-1 items-center gap-1 md:flex">
-          {NAV_LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              aria-current={isActive(l.href) ? "page" : undefined}
-              className={cn(
-                "rounded px-2.5 py-1.5 text-sm transition",
-                isActive(l.href) ? "bg-black text-white" : "text-gray-900 hover:bg-gray-100"
+          {signedIn
+            ? (
+                NAV_LINKS.map((l) => (
+                  <Link
+                    key={l.href}
+                    href={l.href}
+                    aria-current={isActive(l.href) ? "page" : undefined}
+                    className={cn(
+                      "rounded px-2.5 py-1.5 text-sm transition",
+                      isActive(l.href) ? "bg-black text-white" : "text-gray-900 hover:bg-gray-100"
+                    )}
+                  >
+                    {l.label}
+                  </Link>
+                ))
+              ) : (
+                <Link href="/login" className="rounded px-2.5 py-1.5 text-sm text-gray-900 hover:bg-gray-100">
+                  Log in
+                </Link>
               )}
-            >
-              {l.label}
-            </Link>
-          ))}
         </nav>
 
         {/* Spacer */}
         <div className="flex-1 md:hidden" />
 
-        {/* User menu (details/summary gives built-in a11y & outside-click close) */}
+        {/* User menu (details/summary) or auth CTAs */}
+        {signedIn ? (
         <details className="relative group">
           <summary
             className={cn(
@@ -195,7 +207,7 @@ export default function Header() {
                 role="menuitem"
                 className="block rounded px-3 py-2 text-sm hover:bg-gray-100"
               >
-                Security & MFA
+                {mfaEnabled === false ? "Enable MFA" : "Security & MFA"}
               </Link>
               <Link
                 href="/settings/sessions"
@@ -228,6 +240,12 @@ export default function Header() {
             </div>
           </div>
         </details>
+        ) : (
+          <div className="hidden items-center gap-2 md:flex">
+            <Link href="/login" className="rounded px-3 py-1.5 text-sm hover:bg-gray-100">Log in</Link>
+            <Link href="/signup" className="rounded bg-black px-3 py-1.5 text-sm text-white hover:opacity-90">Sign up</Link>
+          </div>
+        )}
 
         {/* Mobile menu toggle */}
         <button
@@ -252,7 +270,7 @@ export default function Header() {
       >
         <nav className="mx-auto w-full max-w-6xl px-4 py-2 sm:px-6">
           <ul className="flex flex-col gap-1">
-            {NAV_LINKS.map((l, i) => (
+            {(signedIn ? NAV_LINKS : []).map((l, i) => (
               <li key={l.href}>
                 <Link
                   ref={i === 0 ? firstLinkRef : undefined}

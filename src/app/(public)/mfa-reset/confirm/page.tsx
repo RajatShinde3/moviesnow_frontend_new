@@ -34,11 +34,7 @@ import OtpInput from "@/components/forms/OtpInput";
 
 import { useMfaConfirmReset } from "@/features/auth/useMfaConfirmReset";
 
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache hints are configured at the segment layout (server component).
 
 // -----------------------------------------------------------------------------
 // Constants & helpers

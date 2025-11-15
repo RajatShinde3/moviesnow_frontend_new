@@ -60,7 +60,7 @@ export default function MfaResetRequestPage() {
 
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         Remembered your code?{" "}
-        <Link href={PATHS.login || "/login"} className="font-medium underline underline-offset-4 hover:text-foreground" prefetch>
+        <Link href={'/login'} className="font-medium underline underline-offset-4 hover:text-foreground" prefetch>
           Back to sign in
         </Link>
       </footer>
@@ -186,7 +186,7 @@ function RequestForm() {
             </button>
 
             <Link
-              href={PATHS.mfaResetConfirm || "/mfa-reset/confirm"}
+              href={'/mfa-reset/confirm'}
               className="text-xs font-medium underline underline-offset-4 hover:text-foreground"
               prefetch
             >

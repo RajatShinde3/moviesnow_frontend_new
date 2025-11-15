@@ -420,24 +420,35 @@ function useCountdown({
     lastTsRef.current = null;
   }, []);
 
+  const notifiedRef = React.useRef(false);
+
   const loop = React.useCallback((ts: number) => {
     if (paused || pausedExternally || remaining <= 0) return;
     if (lastTsRef.current == null) lastTsRef.current = ts;
     const dt = ts - lastTsRef.current;
     lastTsRef.current = ts;
-    setRemaining(r => {
-      const next = Math.max(0, r - dt);
-      if (next === 0) onElapsed();
-      return next;
-    });
+    setRemaining(r => Math.max(0, r - dt));
     tickRef.current = window.requestAnimationFrame(loop);
-  }, [paused, pausedExternally, remaining, onElapsed]);
+  }, [paused, pausedExternally, remaining]);
 
   React.useEffect(() => {
     if (durationMs <= 0 || initiallyRemainingMs <= 0) return;
     tickRef.current = window.requestAnimationFrame(loop);
     return stop;
   }, [durationMs, initiallyRemainingMs, loop, stop]);
+
+  // Fire elapsed callback after render when remaining reaches 0
+  React.useEffect(() => {
+    if (remaining <= 0 && !notifiedRef.current) {
+      notifiedRef.current = true;
+      onElapsed();
+    }
+  }, [remaining, onElapsed]);
+
+  // Reset notification flag when timer source changes
+  React.useEffect(() => {
+    notifiedRef.current = false;
+  }, [durationMs, initiallyRemainingMs]);
 
   return {
     remaining,

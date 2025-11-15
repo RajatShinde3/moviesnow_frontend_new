@@ -72,14 +72,26 @@ export default function SignupPage() {
       <SignupForm />
 
       <footer className="mt-8 text-center text-sm text-muted-foreground">
-        Already have an account?{' '}
-        <Link
-          className="font-medium underline underline-offset-4 hover:text-foreground"
-          href="/login"
-          prefetch
-        >
-          Sign in
-        </Link>
+        <div>
+          Already have an account?{' '}
+          <Link
+            className="font-medium underline underline-offset-4 hover:text-foreground"
+            href="/login"
+            prefetch
+          >
+            Sign in
+          </Link>
+        </div>
+        <div className="mt-1">
+          Didn’t receive your verification email?{' '}
+          <Link
+            className="font-medium underline underline-offset-4 hover:text-foreground"
+            href="/verify-email"
+            prefetch
+          >
+            Resend verification
+          </Link>
+        </div>
       </footer>
     </main>
   )
@@ -119,7 +131,7 @@ function SignupForm() {
 
   // Prefetch verify‑email for snappier handoff
   React.useEffect(() => {
-    const next = PATHS.verifyEmail || '/verify-email'
+    const next = '/verify-email'
     router.prefetch?.(next)
   }, [router])
 
@@ -213,7 +225,7 @@ function SignupForm() {
       duration: 3000,
     })
 
-    const next = PATHS.verifyEmail || '/verify-email'
+    const next = '/verify-email'
     router.replace(`${next}?email=${encodeURIComponent(email)}`)
   }
 

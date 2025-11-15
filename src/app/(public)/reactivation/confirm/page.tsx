@@ -32,11 +32,7 @@ import OtpInput from "@/components/forms/OtpInput";
 
 import { useReactivateAccount } from "@/features/auth/useReactivateAccount";
 
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache hints are configured at the segment layout (server component).
 
 // -----------------------------------------------------------------------------
 // Helpers
@@ -61,7 +57,7 @@ export default function ReactivationConfirmPage() {
   const params = useSearchParams();
   const token = params?.get("token") || params?.get("t") || "";
   const codeParam = params?.get("code") || "";
-  const redirect = sanitizeRedirect(params?.get("redirect"), PATHS.login || "/login");
+  const redirect = sanitizeRedirect(params?.get("redirect"), "/login");
 
   return (
     <main className="mx-auto w-full max-w-md px-4 py-12 sm:px-6 lg:px-8">
@@ -76,7 +72,7 @@ export default function ReactivationConfirmPage() {
 
       <footer className="mt-8 text-center text-sm text-muted-foreground">
         <Link
-          href={PATHS.login || "/login"}
+          href={'/login'}
           className="font-medium underline underline-offset-4 hover:text-foreground"
           prefetch
         >
@@ -277,7 +273,7 @@ function ConfirmPanel({
         <div className="text-center text-xs text-muted-foreground">
           Didn’t get a code? Check spam, or{" "}
           <Link
-            href={(PATHS as any).reactivateStart || "/reactivation"}
+            href={"/reactivation"}
             className="underline underline-offset-4 hover:text-foreground"
             prefetch
           >

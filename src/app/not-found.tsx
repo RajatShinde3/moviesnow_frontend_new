@@ -49,7 +49,7 @@ export default function NotFound() {
         </Link>
 
         <Link
-          href={PATHS.login || "/login"}
+          href={'/login'}
           prefetch
           className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
         >
@@ -58,7 +58,7 @@ export default function NotFound() {
         </Link>
 
         <Link
-          href={PATHS.signup || "/signup"}
+          href={'/signup'}
           prefetch
           className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
         >

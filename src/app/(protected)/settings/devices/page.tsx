@@ -47,8 +47,7 @@ import { useTrustedDevicesRevokeAll } from "@/features/auth/useTrustedDevicesRev
 // -----------------------------------------------------------------------------
 // Page-level caching hints (client-side). Server should also send no-store.
 // -----------------------------------------------------------------------------
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// Cache hints are configured at the (protected) segment layout.
 
 // -----------------------------------------------------------------------------
 // Types & helpers (tolerant to backend field names)
