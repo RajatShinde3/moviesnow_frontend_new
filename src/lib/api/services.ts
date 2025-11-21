@@ -159,6 +159,26 @@ export const userService = {
     fetchJson<T.SuccessResponse>(ENDPOINTS.USER.DEVICE_REMOVE(deviceId), {
       method: "DELETE",
     }),
+
+  /**
+   * Get all profiles for the current user
+   */
+  getProfiles: async () =>
+    fetchJson<T.Profile[]>(ENDPOINTS.PROFILES.LIST),
+
+  /**
+   * Switch to a different profile
+   */
+  switchProfile: async (profileId: string) =>
+    fetchJson<T.SuccessResponse>(ENDPOINTS.PROFILES.GET(profileId), {
+      method: "POST",
+    }),
+
+  /**
+   * Get subscription info
+   */
+  getSubscription: async () =>
+    fetchJson<T.Subscription | null>(`${ENDPOINTS.USER.ME}/subscription`).catch(() => null),
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -178,6 +198,7 @@ export const profileService = {
     fetchJson<T.Profile>(ENDPOINTS.PROFILES.CREATE, {
       method: "POST",
       json: data,
+      ...withIdempotency(),
     }),
 
   /**
@@ -200,6 +221,14 @@ export const profileService = {
   delete: async (id: string) =>
     fetchJson<T.SuccessResponse>(ENDPOINTS.PROFILES.DELETE(id), {
       method: "DELETE",
+    }),
+
+  /**
+   * Switch active profile
+   */
+  switch: async (profileId: string) =>
+    fetchJson<T.SuccessResponse>(`${ENDPOINTS.PROFILES.GET(profileId)}/switch`, {
+      method: "POST",
     }),
 };
 

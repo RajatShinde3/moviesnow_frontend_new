@@ -1,107 +1,100 @@
 // app/not-found.tsx
 /**
  * =============================================================================
- * 404 · Not Found (Best-of-best)
+ * 404 Not Found Page
  * =============================================================================
- * Friendly, accessible “not found” page with safe “Go back”, helpful links,
- * and consistent styling with the rest of the app.
+ * Custom error page for routes that don't exist
  */
 
+import * as React from "react";
 import Link from "next/link";
-import { PATHS } from "@/lib/env";
-import { Home, LogIn, ArrowLeft, CircleHelp, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Home, Search, Film } from "lucide-react";
 
 export default function NotFound() {
-  const backHref = null; // Keep simple: omit back link to avoid headers() typing issues
-
   return (
-    <main className="mx-auto w-full max-w-2xl px-4 py-20 sm:px-6 lg:px-8 text-center">
-      <div className="mx-auto mb-6 inline-flex h-12 w-12 items-center justify-center rounded-full border bg-card/50 shadow-sm">
-        <span className="text-lg font-semibold">404</span>
-      </div>
+    <div className="flex min-h-screen items-center justify-center px-4">
+      <div className="mx-auto max-w-2xl text-center">
+        {/* 404 Illustration */}
+        <div className="mb-8">
+          <div className="relative inline-flex items-center justify-center">
+            <div className="text-[150px] font-bold leading-none text-muted opacity-20 sm:text-[200px]">
+              404
+            </div>
+            <div className="absolute">
+              <Film className="h-24 w-24 text-primary sm:h-32 sm:w-32" />
+            </div>
+          </div>
+        </div>
 
-      <h1 className="text-3xl font-semibold tracking-tight">Page not found</h1>
-      <p className="mt-2 text-sm text-muted-foreground">
-        The page you’re looking for doesn’t exist or may have moved.
-      </p>
+        {/* Message */}
+        <h1 className="text-3xl font-bold sm:text-4xl">Page Not Found</h1>
+        <p className="mt-4 text-lg text-muted-foreground">
+          Oops! The page you're looking for doesn't exist. It might have been moved
+          or deleted.
+        </p>
 
-      {/* Primary actions */}
-      <div className="mt-6 flex flex-wrap justify-center gap-2">
-        {backHref ? (
-          <Link
-            href={backHref}
-            prefetch
-            className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-            aria-label="Go back to previous page"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Go back
-          </Link>
-        ) : null}
-
-        <Link
-          href={"/"}
-          prefetch
-          className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-        >
-          <Home className="h-4 w-4" />
-          Home
-        </Link>
-
-        <Link
-          href={'/login'}
-          prefetch
-          className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-        >
-          <LogIn className="h-4 w-4" />
-          Sign in
-        </Link>
-
-        <Link
-          href={'/signup'}
-          prefetch
-          className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-        >
-          <UserPlus className="h-4 w-4" />
-          Create account
-        </Link>
-
-        <Link
-          href={"/help"}
-          prefetch
-          className="inline-flex items-center gap-2 rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-        >
-          <CircleHelp className="h-4 w-4" />
-          Help
-        </Link>
-      </div>
-
-      {/* Suggestions (optional) */}
-      <div className="mx-auto mt-8 max-w-lg rounded-xl border bg-card/50 p-4 text-left text-sm shadow-sm">
-        <div className="font-medium">Here are a few places to try:</div>
-        <ul className="mt-2 list-inside list-disc text-muted-foreground">
-          <li>
-            Security settings:{" "}
-            <Link
-              href={PATHS.settingsSecurity || "/settings/security"}
-              className="font-medium underline underline-offset-4 hover:text-foreground"
-              prefetch
-            >
-              /settings/security
+        {/* Actions */}
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Button size="lg" asChild>
+            <Link href="/home">
+              <Home className="h-4 w-4" />
+              Go Home
             </Link>
-          </li>
-          <li>
-            Account activity:{" "}
-            <Link
-              href={PATHS.settingsActivity || "/settings/activity"}
-              className="font-medium underline underline-offset-4 hover:text-foreground"
-              prefetch
-            >
-              /settings/activity
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/browse">
+              <Film className="h-4 w-4" />
+              Browse Content
             </Link>
-          </li>
-        </ul>
+          </Button>
+          <Button size="lg" variant="outline" asChild>
+            <Link href="/search">
+              <Search className="h-4 w-4" />
+              Search
+            </Link>
+          </Button>
+        </div>
+
+        {/* Popular Suggestions */}
+        <div className="mt-12 rounded-lg border bg-card p-6 text-left">
+          <h2 className="mb-4 font-semibold">Popular Pages</h2>
+          <ul className="space-y-2 text-sm">
+            <li>
+              <Link
+                href="/home"
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                → Home
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/browse"
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                → Browse All Content
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/watchlist"
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                → My Watchlist
+              </Link>
+            </li>
+            <li>
+              <Link
+                href="/downloads"
+                className="text-muted-foreground transition-colors hover:text-primary"
+              >
+                → Downloads
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,31 +1,37 @@
 // app/page.tsx
 /**
  * =============================================================================
- * Page · Home (Best-of-best)
+ * Landing Page - Netflix-Quality Design
  * =============================================================================
- * Polished, accessible landing hero with SEO (metadata + JSON-LD), safe CTAs,
- * and zero-layout-shift rendering.
+ * Features:
+ * - Full-screen hero with background video
+ * - Feature sections with alternating layouts
+ * - FAQ accordion
+ * - SEO optimized with JSON-LD
  */
 
 import type { Metadata } from "next";
-import Link from "next/link";
 import Script from "next/script";
-import AuthCtas from "@/components/AuthCtas";
+import { LandingHero, FeatureSection, FAQSection } from "@/components/LandingHero";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const metadata: Metadata = {
-  title: "MoviesNow — Discover & track films",
-  description: "Welcome to MoviesNow — create an account to explore, track, and save your favorite movies.",
+  title: "MoviesNow — Watch Movies & TV Shows Online",
+  description: "Stream unlimited movies and TV shows on your phone, tablet, laptop, and TV. Watch anywhere. Cancel anytime.",
   alternates: { canonical: "/" },
   openGraph: {
-    title: "MoviesNow",
-    description: "Explore, track, and save your favorite movies.",
+    title: "MoviesNow — Watch Movies & TV Shows Online",
+    description: "Stream unlimited movies and TV shows. Watch anywhere. Cancel anytime.",
     url: siteUrl,
     siteName: "MoviesNow",
     type: "website",
   },
-  twitter: { card: "summary_large_image", title: "MoviesNow", description: "Explore, track, and save your favorite movies." },
+  twitter: {
+    card: "summary_large_image",
+    title: "MoviesNow — Watch Movies & TV Shows Online",
+    description: "Stream unlimited movies and TV shows. Watch anywhere. Cancel anytime.",
+  },
 };
 
 const jsonLd = {
@@ -42,47 +48,62 @@ const jsonLd = {
 
 export default function HomePage() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate py-10 sm:py-14">
+    <main className="bg-black">
       {/* SEO: JSON-LD */}
-      <Script id="moviesnow-website-ld" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <Script
+        id="moviesnow-website-ld"
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
-      {/* Decorative bg (no content impact) */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-20 -z-10 blur-3xl"
-        style={{
-          maskImage: "radial-gradient(50% 50% at 50% 50%, rgba(0,0,0,1), transparent)",
-        }}
-      >
-        <div className="mx-auto h-40 max-w-3xl bg-gradient-to-r from-primary/30 via-purple-400/20 to-emerald-400/20 opacity-50" />
-      </div>
+      {/* Hero Section */}
+      <LandingHero
+        title="Unlimited movies, TV shows, and more"
+        description="Watch anywhere. Cancel anytime."
+        backgroundImage="/hero-bg.jpg"
+        showScrollIndicator={true}
+      />
 
-      <div className="mx-auto w-full max-w-5xl px-4">
-        <header className="max-w-2xl">
-          <p className="text-xs font-medium tracking-wide text-muted-foreground">Welcome</p>
-          <h1 id="hero-title" className="mt-2 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-            Explore what to watch next — all in one place
-          </h1>
-          <p id="hero-desc" className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Sign up to build your watchlist, follow trends, and get personalized picks. Already a member? Jump back in.
+      {/* Divider */}
+      <div className="h-2 bg-gray-900" />
+
+      {/* Features Section */}
+      <FeatureSection />
+
+      {/* Divider */}
+      <div className="h-2 bg-gray-900" />
+
+      {/* FAQ Section */}
+      <FAQSection />
+
+      {/* Divider */}
+      <div className="h-2 bg-gray-900" />
+
+      {/* Footer CTA */}
+      <section className="bg-black py-16 text-center text-white">
+        <div className="mx-auto max-w-3xl px-4">
+          <h2 className="mb-4 text-2xl font-medium sm:text-3xl">
+            Ready to watch? Get started today.
+          </h2>
+          <p className="mb-8 text-lg text-gray-300">
+            Join millions of users streaming their favorite content.
           </p>
-        </header>
-
-        <AuthCtas />
-
-        {/* Quick value props */}
-        <ul className="mt-8 grid grid-cols-1 gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-          <li className="rounded-lg border bg-card/50 p-3 shadow-sm">
-            🎯 Personalized watchlists
-          </li>
-          <li className="rounded-lg border bg-card/50 p-3 shadow-sm">
-            🔔 New release alerts
-          </li>
-          <li className="rounded-lg border bg-card/50 p-3 shadow-sm">
-            🎬 Trending picks daily
-          </li>
-        </ul>
-      </div>
-    </section>
+          <div className="flex flex-col justify-center gap-4 sm:flex-row">
+            <a
+              href="/signup"
+              className="rounded-md bg-red-600 px-8 py-3 text-lg font-semibold transition-colors hover:bg-red-700"
+            >
+              Get Started
+            </a>
+            <a
+              href="/login"
+              className="rounded-md border-2 border-gray-500 px-8 py-3 text-lg font-semibold transition-colors hover:border-white"
+            >
+              Sign In
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }
