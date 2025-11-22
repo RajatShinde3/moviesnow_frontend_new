@@ -26,7 +26,7 @@ import { useSelectedLayoutSegments } from "next/navigation";
 import { SettingsTab } from "@/components/SettingsTab";
 
 // Canonical tab keys shown in <SettingsTab />
-const TABS = ["security", "sessions", "devices", "alerts", "activity", "account"] as const;
+const TABS = ["security", "sessions", "devices", "alerts", "activity", "account", "subscription"] as const;
 type TabKey = (typeof TABS)[number];
 
 // Aliases that should highlight an existing tab (e.g., deep security pages)

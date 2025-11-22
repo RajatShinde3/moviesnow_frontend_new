@@ -20,15 +20,18 @@ import * as React from "react";
 import ToastsRoot from "@/components/feedback/Toasts";
 import { ReauthProvider } from "@/components/ReauthDialog";
 import ReactQueryProvider from "./providers/ReactQueryProvider";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ReactQueryProvider>
       <ReauthProvider>
-        {/* Wrap app children with the Toast provider so useToast() works anywhere */}
-        <ToastsRoot>
-          <React.Suspense fallback={null}>{children}</React.Suspense>
-        </ToastsRoot>
+        <SubscriptionProvider>
+          {/* Wrap app children with the Toast provider so useToast() works anywhere */}
+          <ToastsRoot>
+            <React.Suspense fallback={null}>{children}</React.Suspense>
+          </ToastsRoot>
+        </SubscriptionProvider>
       </ReauthProvider>
     </ReactQueryProvider>
   );
