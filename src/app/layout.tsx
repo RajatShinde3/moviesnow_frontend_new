@@ -1,9 +1,17 @@
 // app/layout.tsx
 /**
  * =============================================================================
- * Root Layout · App Router (best-of-best)
+ * Root Layout · MoviesNow OTT Platform (Enterprise-Grade)
  * =============================================================================
  * Global HTML shell + providers. A11y-first, CSP-friendly, and font-optimized.
+ *
+ * Features:
+ * - Optimized font loading with display: swap
+ * - Comprehensive SEO metadata (Open Graph, Twitter Cards)
+ * - PWA manifest integration
+ * - Accessibility-first design (skip links, route announcer)
+ * - CSP nonce support for inline scripts
+ * - Performance-optimized viewport settings
  */
 
 import type { Metadata, Viewport } from "next";
@@ -18,27 +26,96 @@ import RouteAnnouncer from "@/components/RouteAnnouncer";
 
 // ————————————————————————————————————————————————————————————————
 // Fonts (variables → use in your Tailwind theme as var(--font-sans/mono))
+// Subset optimization for performance, swap for FOUT prevention
 // ————————————————————————————————————————————————————————————————
 const fontSans = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+  preload: true,
 });
 const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   display: "swap",
+  preload: true,
 });
 
+// ————————————————————————————————————————————————————————————————
+// Enterprise-Grade Metadata Configuration
+// ————————————————————————————————————————————————————————————————
+const APP_NAME = "MoviesNow";
+const APP_DESCRIPTION = "Stream movies, TV shows, and exclusive originals. Your premium entertainment destination.";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://moviesnow.com";
+
 export const metadata: Metadata = {
-  title: "YourApp",
-  description: "Secure, modern authentication flows",
-  // metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: APP_NAME,
+    template: `%s | ${APP_NAME}`,
+  },
+  description: APP_DESCRIPTION,
+  applicationName: APP_NAME,
+  keywords: ["streaming", "movies", "TV shows", "entertainment", "OTT", "watch online"],
+  authors: [{ name: "MoviesNow Team" }],
+  creator: "MoviesNow",
+  publisher: "MoviesNow",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   icons: {
-    icon: [{ url: "/favicon.ico" }],
-    apple: [{ url: "/apple-touch-icon.png" }],
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180" },
+    ],
+    shortcut: "/favicon.ico",
   },
   manifest: "/site.webmanifest",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: APP_URL,
+    siteName: APP_NAME,
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: `${APP_NAME} - Premium Streaming`,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: APP_NAME,
+    description: APP_DESCRIPTION,
+    images: ["/og-image.png"],
+    creator: "@moviesnow",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  verification: {
+    // Add your verification tokens here
+    // google: "your-google-verification-token",
+    // yandex: "your-yandex-verification-token",
+  },
+  category: "entertainment",
 };
 
 export const viewport: Viewport = {

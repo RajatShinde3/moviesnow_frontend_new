@@ -199,7 +199,7 @@ export default function DownloadRedirectPage() {
                 </div>
               </div>
               <span className="rounded-full bg-yellow-500 px-4 py-1 text-sm font-bold text-black">
-                $9.99/mo
+                Go Premium
               </span>
             </button>
           </div>

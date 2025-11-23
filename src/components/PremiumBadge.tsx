@@ -106,7 +106,7 @@ export function PremiumBadge({
             </p>
           </div>
           <div className="ml-auto rounded-full bg-yellow-500 px-4 py-1.5 text-sm font-bold text-black">
-            $9.99/mo
+            Upgrade
           </div>
         </button>
       );
@@ -235,7 +235,7 @@ export function PremiumBadge({
                   : 'Monthly'}
               </p>
             </div>
-            <p className="text-2xl font-bold text-white">$9.99</p>
+            <p className="text-2xl font-bold text-yellow-500">Premium</p>
           </div>
         </div>
       </div>

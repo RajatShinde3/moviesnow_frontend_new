@@ -9,14 +9,33 @@
  * - Upgrade to premium
  * - Cancel/reactivate subscription
  * - View billing history
+ * - Manage payment methods
  */
 
 import * as React from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { BillingHistory } from '@/components/subscription/BillingHistory';
-import { Crown, CreditCard, Calendar, AlertCircle, Check, X, Loader2 } from 'lucide-react';
+import { TrialCountdownBanner } from '@/components/subscription/TrialCountdownBanner';
+import { Crown, CreditCard, Calendar, AlertCircle, Check, X, Loader2, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+
+interface PaymentMethod {
+  brand: string;
+  last4: string;
+  exp_month: number;
+  exp_year: number;
+}
+
+interface SubscriptionDetails {
+  plan_name: string;
+  plan_slug: string;
+  price: number;
+  currency: string;
+  interval: string;
+  payment_method: PaymentMethod | null;
+}
 
 export default function SubscriptionSettingsPage() {
   const router = useRouter();
@@ -33,6 +52,45 @@ export default function SubscriptionSettingsPage() {
   const [isProcessing, setIsProcessing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = React.useState(false);
+
+  // Fetch subscription details (plan info, payment method) from API
+  const { data: subscriptionDetails } = useQuery<SubscriptionDetails>({
+    queryKey: ['subscription-details'],
+    queryFn: async () => {
+      const response = await fetch('/api/v1/subscriptions/payment-method', {
+        credentials: 'include',
+      });
+      if (!response.ok) return null;
+      return response.json();
+    },
+    enabled: isPremium,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Update payment method mutation
+  const updatePaymentMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/v1/subscriptions/update-payment-method', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) throw new Error('Failed to open billing portal');
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data.portal_url) {
+        window.location.href = data.portal_url;
+      }
+    },
+  });
+
+  const formatPrice = (price: number, currency: string, interval: string) => {
+    const formatted = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(price);
+    return `${formatted}/${interval === 'yearly' ? 'year' : 'month'}`;
+  };
 
   const handleUpgrade = async () => {
     setIsProcessing(true);
@@ -81,6 +139,11 @@ export default function SubscriptionSettingsPage() {
 
   return (
     <div className="space-y-6">
+      {/* Trial Countdown Banner */}
+      {status === 'trial' && (
+        <TrialCountdownBanner className="rounded-xl" />
+      )}
+
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-white">Subscription</h1>
@@ -276,21 +339,59 @@ export default function SubscriptionSettingsPage() {
           <div className="mt-4 space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Plan</span>
-              <span className="text-white">Premium Monthly</span>
+              <span className="text-white">
+                {subscriptionDetails?.plan_name || 'Premium Monthly'}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Price</span>
-              <span className="text-white">$9.99/month</span>
+              <span className="text-white">
+                {subscriptionDetails
+                  ? formatPrice(
+                      subscriptionDetails.price,
+                      subscriptionDetails.currency,
+                      subscriptionDetails.interval
+                    )
+                  : '$9.99/month'}
+              </span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Payment Method</span>
-              <span className="text-white">•••• 4242</span>
+              <span className="text-white">
+                {subscriptionDetails?.payment_method ? (
+                  <>
+                    {subscriptionDetails.payment_method.brand.charAt(0).toUpperCase() +
+                      subscriptionDetails.payment_method.brand.slice(1)}{' '}
+                    •••• {subscriptionDetails.payment_method.last4}
+                    <span className="ml-2 text-gray-500">
+                      ({subscriptionDetails.payment_method.exp_month}/
+                      {subscriptionDetails.payment_method.exp_year})
+                    </span>
+                  </>
+                ) : (
+                  'No payment method'
+                )}
+              </span>
             </div>
           </div>
 
-          <button className="mt-4 text-sm text-yellow-500 hover:text-yellow-400">
+          <button
+            onClick={() => updatePaymentMutation.mutate()}
+            disabled={updatePaymentMutation.isPending}
+            className="mt-4 flex items-center gap-1.5 text-sm text-yellow-500 hover:text-yellow-400 disabled:opacity-50"
+          >
+            {updatePaymentMutation.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ExternalLink className="h-3.5 w-3.5" />
+            )}
             Manage payment method
           </button>
+          {updatePaymentMutation.isError && (
+            <p className="mt-2 text-xs text-red-400">
+              Failed to open billing portal. Please try again.
+            </p>
+          )}
         </div>
       )}
 
