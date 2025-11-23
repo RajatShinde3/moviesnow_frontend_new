@@ -175,10 +175,28 @@ export const userService = {
     }),
 
   /**
+   * Create a new profile
+   */
+  createProfile: async (data: { name: string; avatar_url?: string }) =>
+    fetchJson<T.Profile>(ENDPOINTS.PROFILES.CREATE, {
+      method: "POST",
+      json: data,
+    }),
+
+  /**
    * Get subscription info
    */
   getSubscription: async () =>
     fetchJson<T.Subscription | null>(`${ENDPOINTS.USER.ME}/subscription`).catch(() => null),
+
+  /**
+   * Rate a title (like/dislike)
+   */
+  rateTitle: async (titleId: string, rating: "like" | "dislike") =>
+    fetchJson<T.SuccessResponse>(`/api/v1/titles/${titleId}/rate`, {
+      method: "POST",
+      json: { rating },
+    }),
 };
 
 /* ══════════════════════════════════════════════════════════════

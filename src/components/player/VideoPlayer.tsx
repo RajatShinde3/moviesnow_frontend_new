@@ -76,7 +76,7 @@ export function VideoPlayer({
 
         if (!mounted) return;
 
-        setSession(sessionData);
+        setSession(sessionData ?? null);
 
         // Fetch markers if episode
         if (episodeId && sessionData) {

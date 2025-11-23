@@ -47,7 +47,7 @@ export default async function WatchEpisodePage({ params }: PageProps) {
     // Find next episode
     const currentEpisodeIndex = currentSeason.episodes.findIndex((e) => e.episode_number === episodeNum);
     const nextEpisode = currentSeason.episodes[currentEpisodeIndex + 1];
-    const nextSeason = !nextEpisode && seasons.find((s) => s.season_number === seasonNum + 1);
+    const nextSeason = !nextEpisode ? seasons.find((s) => s.season_number === seasonNum + 1) : undefined;
 
     return (
       <div className="min-h-screen bg-black">

@@ -19,6 +19,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api/services";
+import type { Device as ApiDevice } from "@/lib/api/types";
 import { cn } from "@/lib/cn";
 import { ThemeToggleCard } from "./ThemeToggle";
 import {
@@ -118,19 +119,19 @@ export function SecurityStatus() {
   const securityChecks: SecurityCheckItem[] = [
     {
       label: "Email Verified",
-      status: user?.email_verified ? "good" : "warning",
-      description: user?.email_verified
+      status: user?.is_email_verified ? "good" : "warning",
+      description: user?.is_email_verified
         ? "Your email is verified"
         : "Please verify your email",
-      action: user?.email_verified ? undefined : "Verify Now",
+      action: user?.is_email_verified ? undefined : "Verify Now",
     },
     {
       label: "Two-Factor Authentication",
-      status: user?.two_factor_enabled ? "good" : "warning",
-      description: user?.two_factor_enabled
+      status: user?.is_2fa_enabled ? "good" : "warning",
+      description: user?.is_2fa_enabled
         ? "2FA is enabled"
         : "Enable 2FA for extra security",
-      action: user?.two_factor_enabled ? undefined : "Enable 2FA",
+      action: user?.is_2fa_enabled ? undefined : "Enable 2FA",
     },
     {
       label: "Password Strength",
@@ -204,19 +205,13 @@ export function SecurityStatus() {
  * =============================================================================
  */
 
-interface Device {
-  id: string;
-  name: string;
-  type: "mobile" | "desktop" | "tablet" | "tv";
-  last_active: string;
-  location?: string;
-  is_current: boolean;
-}
-
 export function ConnectedDevices() {
-  const { data: devices } = useQuery<Device[]>({
+  const { data: devices } = useQuery<ApiDevice[]>({
     queryKey: ["devices"],
-    queryFn: () => api.user.getDevices?.() || Promise.resolve([]),
+    queryFn: async () => {
+      const result = await api.user.getDevices();
+      return result ?? [];
+    },
   });
 
   const queryClient = useQueryClient();
@@ -228,7 +223,15 @@ export function ConnectedDevices() {
     },
   });
 
-  const mockDevices: Device[] = devices || [
+  // Transform API devices to display format, or use mock data
+  const displayDevices = devices?.map(d => ({
+    id: d.id,
+    name: d.device_name,
+    type: d.device_type as "mobile" | "desktop" | "tablet" | "tv",
+    last_active: d.last_seen_at,
+    location: undefined,
+    is_current: false,
+  })) || [
     {
       id: "1",
       name: "Windows PC",
@@ -255,12 +258,12 @@ export function ConnectedDevices() {
         </div>
         <div>
           <h3 className="text-lg font-semibold text-white">Connected Devices</h3>
-          <p className="text-sm text-gray-400">{mockDevices.length} active devices</p>
+          <p className="text-sm text-gray-400">{displayDevices.length} active devices</p>
         </div>
       </div>
 
       <div className="space-y-3">
-        {mockDevices.map((device) => (
+        {displayDevices.map((device) => (
           <div
             key={device.id}
             className="flex items-center justify-between rounded-lg bg-black/30 p-4"

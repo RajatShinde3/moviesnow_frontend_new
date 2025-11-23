@@ -92,7 +92,7 @@ export default function SegmentError({ error, reset }: Props) {
         {/* Message */}
         <h1 className="text-3xl font-bold sm:text-4xl">Something went wrong</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          We encountered an unexpected error. Don't worry, it's not your fault.
+          We encountered an unexpected error. Don&apos;t worry, it&apos;s not your fault.
         </p>
 
         {/* Error Reference */}

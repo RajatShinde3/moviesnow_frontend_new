@@ -38,6 +38,9 @@ export interface SubscriptionContextValue extends SubscriptionState {
   getMaxDevices: () => number;
   shouldShowAds: () => boolean;
   canDirectDownload: () => boolean;
+  upgrade: () => void;
+  cancel: () => Promise<void>;
+  reactivate: () => Promise<void>;
 }
 
 export type PremiumFeature =
@@ -48,7 +51,7 @@ export type PremiumFeature =
   | 'offline_viewing'
   | 'early_access';
 
-export type VideoQuality = '480p' | '720p' | '1080p' | '4k';
+export type VideoQuality = '480p' | '720p' | '1080p' | '4K';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Feature Configuration
@@ -65,7 +68,7 @@ const PREMIUM_FEATURES: Record<PremiumFeature, { free: boolean; premium: boolean
 
 const QUALITY_LIMITS: Record<SubscriptionTier, VideoQuality> = {
   free: '720p',
-  premium: '4k',
+  premium: '4K',
 };
 
 const DEVICE_LIMITS: Record<SubscriptionTier, number> = {
@@ -146,6 +149,32 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     shouldShowAds: () => !isPremium,
 
     canDirectDownload: () => isPremium,
+
+    upgrade: () => {
+      window.location.href = '/subscribe';
+    },
+
+    cancel: async () => {
+      const response = await fetch('/api/v1/subscriptions/cancel', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to cancel subscription');
+      }
+      await refetch();
+    },
+
+    reactivate: async () => {
+      const response = await fetch('/api/v1/subscriptions/reactivate', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to reactivate subscription');
+      }
+      await refetch();
+    },
   }), [isPremium, status, tier, data, isLoading, error, refetch]);
 
   return (

@@ -27,8 +27,11 @@ export default function DownloadsPage() {
 
   const handleDownload = async (bundleId: string) => {
     try {
-      const { download_url } = await api.downloads.getBundleDownloadUrl(bundleId);
-      window.open(download_url, "_blank");
+      const response = await api.downloads.getBundleDownloadUrl(bundleId);
+      const download_url = response?.download_url;
+      if (download_url) {
+        window.open(download_url, "_blank");
+      }
     } catch (error) {
       console.error("Failed to get download URL:", error);
     }

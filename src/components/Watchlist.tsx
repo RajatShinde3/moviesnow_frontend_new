@@ -1040,7 +1040,7 @@ function WatchlistGridCard({
         <h3 className="truncate font-semibold text-white">{item.title_name}</h3>
         <div className="mt-1 flex items-center gap-2 text-sm text-gray-400">
           <span className="capitalize">{item.title_type}</span>
-          {item.note && <FileText className="h-3 w-3" title="Has note" />}
+          {item.note && <span title="Has note"><FileText className="h-3 w-3" /></span>}
         </div>
         <p className="mt-1 text-xs text-gray-500">
           Added {new Date(item.created_at).toLocaleDateString()}
@@ -1119,7 +1119,7 @@ function WatchlistListRow({
           )}
         </div>
         {item.note && (
-          <p className="mt-1 truncate text-xs text-gray-500 italic">"{item.note}"</p>
+          <p className="mt-1 truncate text-xs text-gray-500 italic">&quot;{item.note}&quot;</p>
         )}
       </div>
 

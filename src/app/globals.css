@@ -123,7 +123,9 @@
 
 /* Netflix-Style Advanced Animations */
 @layer utilities {
-  /* Hide scrollbar but keep functionality */
+  /* =============================================================================
+   * SCROLLBAR CUSTOMIZATION
+   * ============================================================================= */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -132,84 +134,163 @@
     display: none;
   }
 
-  /* Custom animations */
+  /* Custom styled scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+  }
+
+  /* =============================================================================
+   * NETFLIX-STYLE KEYFRAME ANIMATIONS
+   * ============================================================================= */
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translate3d(0, 40px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translate3d(0, -40px, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes fadeInLeft {
+    from { opacity: 0; transform: translate3d(-40px, 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
+  }
+
+  @keyframes fadeInRight {
+    from { opacity: 0; transform: translate3d(40px, 0, 0); }
+    to { opacity: 1; transform: translate3d(0, 0, 0); }
   }
 
   @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-30px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes scaleIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes scaleUp {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
   }
 
   @keyframes shimmer {
-    0% {
-      background-position: -1000px 0;
-    }
-    100% {
-      background-position: 1000px 0;
-    }
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
   }
 
   @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.1); }
+    50% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.3); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  @keyframes netflix-zoom {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+  }
+
+  @keyframes card-expand {
+    0% { transform: scale(1); z-index: 1; }
+    100% { transform: scale(1.3); z-index: 50; }
+  }
+
+  @keyframes glow-pulse {
     0%, 100% {
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 5px rgba(229, 9, 20, 0.5),
+                  0 0 20px rgba(229, 9, 20, 0.3);
     }
     50% {
-      box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 10px rgba(229, 9, 20, 0.8),
+                  0 0 40px rgba(229, 9, 20, 0.5);
     }
   }
 
-  .animate-fadeIn {
-    animation: fadeIn 0.6s ease-out;
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 
-  .animate-slideUp {
-    animation: slideUp 0.6s ease-out;
+  @keyframes text-shine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
   }
 
-  .animate-slideDown {
-    animation: slideDown 0.6s ease-out;
+  @keyframes border-dance {
+    0%, 100% { border-color: rgba(229, 9, 20, 0.5); }
+    50% { border-color: rgba(229, 9, 20, 1); }
   }
 
-  .animate-scaleIn {
-    animation: scaleIn 0.4s ease-out;
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
+
+  @keyframes bounce-subtle {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
+  }
+
+  /* =============================================================================
+   * ANIMATION UTILITY CLASSES
+   * ============================================================================= */
+  .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+  .animate-fadeInUp { animation: fadeInUp 0.6s ease-out forwards; }
+  .animate-fadeInDown { animation: fadeInDown 0.6s ease-out forwards; }
+  .animate-fadeInLeft { animation: fadeInLeft 0.6s ease-out forwards; }
+  .animate-fadeInRight { animation: fadeInRight 0.6s ease-out forwards; }
+  .animate-slideUp { animation: slideUp 0.6s ease-out forwards; }
+  .animate-slideDown { animation: slideDown 0.6s ease-out forwards; }
+  .animate-scaleIn { animation: scaleIn 0.4s ease-out forwards; }
+  .animate-scaleUp { animation: scaleUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+  .animate-float { animation: float 3s ease-in-out infinite; }
+  .animate-netflix-zoom { animation: netflix-zoom 10s ease-in-out infinite alternate; }
+  .animate-glow-pulse { animation: glow-pulse 2s ease-in-out infinite; }
+  .animate-gradient-shift {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+  .animate-spin-slow { animation: spin-slow 3s linear infinite; }
+  .animate-bounce-subtle { animation: bounce-subtle 2s ease-in-out infinite; }
+  .animate-wiggle { animation: wiggle 0.3s ease-in-out; }
 
   .animate-shimmer {
     animation: shimmer 2s infinite linear;
@@ -222,60 +303,385 @@
     background-size: 1000px 100%;
   }
 
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
+  .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 
   /* Animation delays for staggered effects */
-  .animation-delay-100 {
-    animation-delay: 100ms;
-  }
+  .animation-delay-75 { animation-delay: 75ms; }
+  .animation-delay-100 { animation-delay: 100ms; }
+  .animation-delay-150 { animation-delay: 150ms; }
+  .animation-delay-200 { animation-delay: 200ms; }
+  .animation-delay-300 { animation-delay: 300ms; }
+  .animation-delay-400 { animation-delay: 400ms; }
+  .animation-delay-500 { animation-delay: 500ms; }
+  .animation-delay-600 { animation-delay: 600ms; }
+  .animation-delay-700 { animation-delay: 700ms; }
 
-  .animation-delay-200 {
-    animation-delay: 200ms;
-  }
+  /* Animation fill modes */
+  .animate-fill-forwards { animation-fill-mode: forwards; }
+  .animate-fill-backwards { animation-fill-mode: backwards; }
+  .animate-fill-both { animation-fill-mode: both; }
 
-  .animation-delay-300 {
-    animation-delay: 300ms;
-  }
+  /* =============================================================================
+   * TRANSITION UTILITIES
+   * ============================================================================= */
+  .transition-smooth { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  .transition-bounce { transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+  .transition-spring { transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); }
+  .transition-elastic { transition: all 0.6s cubic-bezier(0.68, -0.6, 0.32, 1.6); }
+  .transition-fast { transition: all 0.15s ease; }
+  .transition-medium { transition: all 0.3s ease; }
+  .transition-slow { transition: all 0.5s ease; }
 
-  .animation-delay-400 {
-    animation-delay: 400ms;
+  /* =============================================================================
+   * HOVER EFFECTS
+   * ============================================================================= */
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-
-  .animation-delay-500 {
-    animation-delay: 500ms;
-  }
-
-  /* Smooth transitions */
-  .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .transition-bounce {
-    transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  }
-
-  /* Hover effects */
   .hover-lift:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
   }
 
   .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
   }
 
-  /* Netflix-style gradient overlays */
+  .hover-netflix:hover {
+    box-shadow: 0 0 20px rgba(229, 9, 20, 0.6);
+  }
+
+  .hover-scale {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .hover-scale:hover {
+    transform: scale(1.05);
+  }
+
+  .hover-scale-lg:hover {
+    transform: scale(1.1);
+  }
+
+  .hover-rotate:hover {
+    transform: rotate(3deg);
+  }
+
+  .hover-3d {
+    transition: transform 0.3s ease;
+    transform-style: preserve-3d;
+  }
+  .hover-3d:hover {
+    transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+  }
+
+  /* =============================================================================
+   * GRADIENT UTILITIES
+   * ============================================================================= */
   .gradient-overlay-top {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
   }
 
   .gradient-overlay-bottom {
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, transparent 100%);
+  }
+
+  .gradient-overlay-left {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  }
+
+  .gradient-overlay-right {
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
   }
 
   .gradient-overlay-radial {
     background: radial-gradient(circle, transparent 0%, rgba(0, 0, 0, 0.8) 100%);
+  }
+
+  .gradient-netflix {
+    background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+  }
+
+  .gradient-premium {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+
+  .gradient-gold {
+    background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+  }
+
+  .gradient-dark {
+    background: linear-gradient(180deg, rgba(20, 20, 20, 0) 0%, rgba(20, 20, 20, 1) 100%);
+  }
+
+  .gradient-hero {
+    background: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0.9) 0%,
+      rgba(0, 0, 0, 0.6) 30%,
+      rgba(0, 0, 0, 0.3) 50%,
+      transparent 100%
+    );
+  }
+
+  .gradient-text {
+    background: linear-gradient(90deg, #fff 0%, #a0a0a0 50%, #fff 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-shine {
+    background: linear-gradient(90deg, #fff 0%, #e50914 50%, #fff 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: text-shine 3s linear infinite;
+  }
+
+  /* =============================================================================
+   * GLASS MORPHISM
+   * ============================================================================= */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .glass-card {
+    background: rgba(30, 30, 30, 0.8);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+  }
+
+  /* =============================================================================
+   * SHADOW UTILITIES
+   * ============================================================================= */
+  .shadow-netflix {
+    box-shadow: 0 10px 40px rgba(229, 9, 20, 0.3);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+  }
+
+  .shadow-card {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  }
+
+  .shadow-card-hover {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .shadow-inset-dark {
+    box-shadow: inset 0 2px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  /* =============================================================================
+   * TEXT EFFECTS
+   * ============================================================================= */
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+  }
+
+  .text-shadow-glow {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+
+  .text-netflix-glow {
+    text-shadow: 0 0 20px rgba(229, 9, 20, 0.8);
+  }
+
+  /* =============================================================================
+   * CARD STYLES
+   * ============================================================================= */
+  .card-netflix {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .card-netflix::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .card-netflix:hover {
+    transform: scale(1.05);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+  }
+
+  .card-expanded {
+    position: absolute;
+    z-index: 50;
+    transform: scale(1.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* =============================================================================
+   * BUTTON STYLES
+   * ============================================================================= */
+  .btn-netflix {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+    transition: all 0.3s ease;
+  }
+
+  .btn-netflix::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transition: left 0.5s ease;
+  }
+
+  .btn-netflix:hover::before {
+    left: 100%;
+  }
+
+  .btn-netflix:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(229, 9, 20, 0.4);
+  }
+
+  .btn-glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+  }
+
+  .btn-glass:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* =============================================================================
+   * FOCUS & ACCESSIBILITY
+   * ============================================================================= */
+  .focus-ring:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(229, 9, 20, 0.5);
+  }
+
+  .focus-ring-white:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5);
+  }
+
+  /* =============================================================================
+   * SKELETON LOADING
+   * ============================================================================= */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.05) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+
+  /* =============================================================================
+   * PROGRESS BAR
+   * ============================================================================= */
+  .progress-bar {
+    position: relative;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, #e50914 0%, #ff4545 100%);
+    border-radius: 2px;
+    width: var(--progress, 0%);
+    transition: width 0.3s ease;
+  }
+
+  /* =============================================================================
+   * BADGE STYLES
+   * ============================================================================= */
+  .badge-new {
+    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-top10 {
+    background: linear-gradient(135deg, #e50914 0%, #b20710 100%);
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .badge-hd {
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 9px;
+    font-weight: 600;
+  }
+
+  /* =============================================================================
+   * RESPONSIVE UTILITIES
+   * ============================================================================= */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

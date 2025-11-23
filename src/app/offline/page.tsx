@@ -23,9 +23,9 @@ export default function OfflinePage() {
         </div>
 
         {/* Message */}
-        <h1 className="text-3xl font-bold sm:text-4xl">You're Offline</h1>
+        <h1 className="text-3xl font-bold sm:text-4xl">You&apos;re Offline</h1>
         <p className="mt-4 text-lg text-muted-foreground">
-          It looks like you've lost your internet connection. But don't worry!
+          It looks like you&apos;ve lost your internet connection. But don&apos;t worry!
         </p>
 
         {/* Actions */}
@@ -49,12 +49,12 @@ export default function OfflinePage() {
 
         {/* Help Text */}
         <div className="mt-12 rounded-lg border bg-muted/50 p-6 text-left text-sm">
-          <h3 className="mb-3 font-semibold">While You're Offline:</h3>
+          <h3 className="mb-3 font-semibold">While You&apos;re Offline:</h3>
           <ul className="space-y-2 text-muted-foreground">
             <li>• Check your internet connection</li>
             <li>• Watch downloaded content</li>
             <li>• Browse cached pages</li>
-            <li>• Changes will sync when you're back online</li>
+            <li>• Changes will sync when you&apos;re back online</li>
           </ul>
         </div>
       </div>

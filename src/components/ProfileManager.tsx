@@ -399,7 +399,7 @@ export function ProfileManager() {
       {/* Header */}
       <div className="mb-8 text-center">
         <h1 className="text-3xl font-bold text-white sm:text-4xl">
-          {isManageMode ? "Manage Profiles" : "Who's Watching?"}
+          {isManageMode ? "Manage Profiles" : "Who&apos;s Watching?"}
         </h1>
         {isManageMode && (
           <p className="mt-2 text-gray-400">

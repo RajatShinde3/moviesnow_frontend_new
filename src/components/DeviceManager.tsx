@@ -186,7 +186,7 @@ export function DeviceManager() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white sm:text-4xl">Devices & Sessions</h1>
-          <p className="mt-2 text-gray-400">Manage where you're signed in</p>
+          <p className="mt-2 text-gray-400">Manage where you&apos;re signed in</p>
         </div>
 
         {/* Tabs */}
@@ -219,7 +219,7 @@ export function DeviceManager() {
               <div>
                 <p className="font-medium text-green-500">All sessions look secure</p>
                 <p className="text-sm text-green-400">
-                  We haven't detected any suspicious activity on your account.
+                  We haven&apos;t detected any suspicious activity on your account.
                 </p>
               </div>
             </div>

@@ -157,7 +157,7 @@ export function MFASetup({ onComplete }: { onComplete?: () => void }) {
   };
 
   // Render different steps
-  if (user?.two_factor_enabled && step === "intro") {
+  if (user?.is_2fa_enabled && step === "intro") {
     return <MFAAlreadyEnabled onDisable={() => disableMutation.mutate()} />;
   }
 
@@ -264,7 +264,7 @@ function IntroStep({ onStart, isLoading }: { onStart: () => void; isLoading: boo
           <div>
             <p className="font-medium text-white">Protect your account</p>
             <p className="text-sm text-gray-400">
-              Even if someone knows your password, they won't be able to access your account
+              Even if someone knows your password, they won&apos;t be able to access your account
             </p>
           </div>
         </div>
@@ -375,7 +375,7 @@ function SetupStep({ data, onNext }: { data: MFASetupData; onNext: () => void })
           </li>
           <li className="flex gap-2">
             <span className="font-semibold">3.</span>
-            <span>Click "Next" to verify your setup</span>
+            <span>Click &quot;Next&quot; to verify your setup</span>
           </li>
         </ol>
       </div>
@@ -471,7 +471,7 @@ function VerifyStep({
           <Smartphone className="h-5 w-5 flex-shrink-0 text-blue-400 mt-0.5" />
           <div className="text-sm text-blue-300">
             <p className="font-medium">Tip:</p>
-            <p>Make sure your device's time is synchronized correctly for accurate codes</p>
+            <p>Make sure your device&apos;s time is synchronized correctly for accurate codes</p>
           </div>
         </div>
       </div>
@@ -565,7 +565,7 @@ Do not share these codes with anyone!
           {downloaded ? (
             <>
               <Check className="h-5 w-5" />
-              I've Saved My Codes
+              I&apos;ve Saved My Codes
             </>
           ) : (
             "Download Codes First"
@@ -590,16 +590,16 @@ function CompleteStep() {
 
       <h2 className="mb-3 text-2xl font-bold text-white">Two-Factor Authentication Enabled!</h2>
       <p className="mb-8 text-gray-400">
-        Your account is now more secure. You'll need to enter a code from your authenticator app
+        Your account is now more secure. You&apos;ll need to enter a code from your authenticator app
         when you sign in.
       </p>
 
       <div className="rounded-lg bg-gray-800 p-4 text-left">
-        <p className="mb-2 font-medium text-white">What's next?</p>
+        <p className="mb-2 font-medium text-white">What&apos;s next?</p>
         <ul className="space-y-2 text-sm text-gray-300">
           <li className="flex gap-2">
             <span>•</span>
-            <span>You'll be asked for a code when you sign in on a new device</span>
+            <span>You&apos;ll be asked for a code when you sign in on a new device</span>
           </li>
           <li className="flex gap-2">
             <span>•</span>

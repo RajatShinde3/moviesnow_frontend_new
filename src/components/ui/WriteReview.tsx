@@ -37,11 +37,10 @@ export function WriteReview({ titleId, onClose, onSuccess }: WriteReviewProps) {
         throw new Error("Review must be at least 10 characters");
       }
 
-      return api.reviews.create({
-        title_id: titleId,
+      return api.reviews.create(titleId, {
         rating,
-        content: content.trim(),
-        contains_spoilers: containsSpoilers,
+        review_text: content.trim(),
+        is_spoiler: containsSpoilers,
       });
     },
     onSuccess: () => {

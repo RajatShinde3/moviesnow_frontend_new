@@ -36,7 +36,7 @@ import { PremiumUpgradeModal } from "@/components/subscription/PremiumUpgradeMod
 interface VideoPlayerWithAdsProps {
   titleId?: string;
   episodeId?: string;
-  quality?: "480p" | "720p" | "1080p" | "4k";
+  quality?: "480p" | "720p" | "1080p" | "4K";
   autoPlay?: boolean;
   onEnded?: () => void;
 }
@@ -59,9 +59,9 @@ export function VideoPlayerWithAds({
   // Determine actual quality based on subscription
   const effectiveQuality = React.useMemo(() => {
     const maxQuality = getMaxQuality();
-    const qualityOrder = ["480p", "720p", "1080p", "4k"] as const;
-    const requestedIndex = qualityOrder.indexOf(requestedQuality as any);
-    const maxIndex = qualityOrder.indexOf(maxQuality as any);
+    const qualityOrder = ["480p", "720p", "1080p", "4K"] as const;
+    const requestedIndex = qualityOrder.indexOf(requestedQuality as typeof qualityOrder[number]);
+    const maxIndex = qualityOrder.indexOf(maxQuality as typeof qualityOrder[number]);
 
     if (requestedIndex <= maxIndex) {
       return requestedQuality;
@@ -156,7 +156,7 @@ export function VideoPlayerWithAds({
 
         if (!mounted) return;
 
-        setSession(sessionData);
+        setSession(sessionData ?? null);
 
         if (episodeId && sessionData) {
           const markersData = await api.playback.getMarkers(episodeId);

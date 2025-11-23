@@ -168,7 +168,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               <Bell className="h-12 w-12 text-muted-foreground" />
               <p className="mt-4 font-medium">No notifications</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                We'll notify you when something new happens
+                We&apos;ll notify you when something new happens
               </p>
             </div>
           ) : (

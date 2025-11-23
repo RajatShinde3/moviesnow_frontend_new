@@ -86,7 +86,7 @@ export function ProfileSelectorModal({
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl font-medium text-white md:text-6xl">
-            Who's watching?
+            Who&apos;s watching?
           </h1>
         </div>
 

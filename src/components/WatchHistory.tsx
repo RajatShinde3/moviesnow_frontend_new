@@ -57,6 +57,7 @@ export function WatchHistoryPage() {
     queryFn: async () => {
       // Get user's active profile
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) return { items: [], total: 0 };
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
 
       if (!activeProfile) return { items: [], total: 0 };
@@ -106,6 +107,7 @@ export function WatchHistoryPage() {
     mutationFn: async (titleIds?: string[]) => {
       // Clear specific titles or all
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) throw new Error("No profiles found");
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
 
       const response = await fetch(
@@ -128,6 +130,7 @@ export function WatchHistoryPage() {
   // Export history
   const exportHistory = async () => {
     const profiles = await api.profiles.list();
+    if (!profiles || profiles.length === 0) return;
     const activeProfile = profiles.find(p => p.is_active) || profiles[0];
 
     const response = await fetch(

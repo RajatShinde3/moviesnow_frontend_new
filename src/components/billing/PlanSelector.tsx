@@ -27,7 +27,7 @@ import {
   Users,
   Monitor,
   Download,
-  Hd,
+  MonitorPlay,
 } from "lucide-react";
 
 interface Plan {
@@ -349,7 +349,7 @@ function PlanCard({
           <span>{plan.max_streams} {plan.max_streams === 1 ? 'screen' : 'screens'} at once</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-400">
-          <Hd className="h-4 w-4" />
+          <MonitorPlay className="h-4 w-4" />
           <span>{plan.video_quality}</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-gray-400">

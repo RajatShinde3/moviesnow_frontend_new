@@ -302,11 +302,11 @@ export default function SubscriptionSettingsPage() {
               Cancel Subscription?
             </h3>
             <p className="mt-2 text-sm text-gray-400">
-              You'll keep premium access until{' '}
+              You&apos;ll keep premium access until{' '}
               {expiresAt
                 ? new Date(expiresAt).toLocaleDateString()
                 : 'the end of your billing period'}
-              . After that, you'll be downgraded to the free plan.
+              . After that, you&apos;ll be downgraded to the free plan.
             </p>
             <div className="mt-6 flex gap-3">
               <button

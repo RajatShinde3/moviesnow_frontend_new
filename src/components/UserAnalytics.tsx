@@ -47,10 +47,11 @@ type TimePeriod = "week" | "month" | "year" | "all";
 export function UserAnalytics() {
   const [period, setPeriod] = React.useState<TimePeriod>("month");
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading } = useQuery<WatchStats | null>({
     queryKey: ["user-analytics", period],
-    queryFn: async () => {
+    queryFn: async (): Promise<WatchStats | null> => {
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) return null;
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
       if (!activeProfile) return null;
 

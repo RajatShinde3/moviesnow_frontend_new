@@ -125,11 +125,9 @@ function headersToRecord(h?: HeadersInit): Record<string, string> {
 }
 
 /** Compose Idempotency header. Use on **all mutating** auth operations. */
-export function withIdempotency(opts: RequestInit = {}, key: string = newIdemKey()): RequestInit {
+export function withIdempotency(key: string = newIdemKey()): Pick<FetchJsonOptions, 'headers'> {
   return {
-    ...opts,
     headers: {
-      ...headersToRecord(opts.headers),
       [IDEMPOTENCY_HEADER_NAME]: key,
     },
   };

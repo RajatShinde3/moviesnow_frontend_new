@@ -314,6 +314,8 @@ export interface Profile {
   name: string;
   avatar_url?: string;
   is_kids: boolean;
+  is_primary: boolean;
+  is_active?: boolean;
   language?: string;
   auto_play_next: boolean;
   created_at: string;
@@ -391,10 +393,18 @@ export interface UploadUrlResponse {
 
 export interface AnalyticsSummary {
   total_users: number;
+  active_users?: number;
   active_users_24h: number;
   total_titles: number;
   total_views_24h: number;
+  views_24h?: number;
   total_downloads_24h: number;
+  revenue_mtd?: number;
+  users_change?: number;
+  titles_change?: number;
+  views_change?: number;
+  downloads_change?: number;
+  revenue_change?: number;
   popular_titles: Array<{
     title: Title;
     view_count: number;

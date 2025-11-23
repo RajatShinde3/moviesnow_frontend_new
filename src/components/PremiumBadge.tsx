@@ -34,12 +34,7 @@ export function PremiumBadge({
 }: PremiumBadgeProps) {
   const { isPremium, status, expiresAt } = useSubscription();
 
-  // Don't show badge for free users unless explicitly requested
-  if (!isPremium && !showIfFree) {
-    return null;
-  }
-
-  // Calculate days remaining
+  // Calculate days remaining (must be before any early returns to comply with hooks rules)
   const daysRemaining = React.useMemo(() => {
     if (!expiresAt) return null;
     const expires = new Date(expiresAt);
@@ -47,6 +42,11 @@ export function PremiumBadge({
     const diff = expires.getTime() - now.getTime();
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }, [expiresAt]);
+
+  // Don't show badge for free users unless explicitly requested
+  if (!isPremium && !showIfFree) {
+    return null;
+  }
 
   // Variant: Compact (for headers/nav)
   if (variant === 'compact') {

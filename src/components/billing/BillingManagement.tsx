@@ -123,7 +123,7 @@ export function BillingManagement() {
     },
   });
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     active: "bg-green-500/20 text-green-400",
     cancelled: "bg-red-500/20 text-red-400",
     past_due: "bg-yellow-500/20 text-yellow-400",
@@ -231,7 +231,7 @@ export function BillingManagement() {
             </div>
           ) : (
             <div className="text-center">
-              <p className="mb-4 text-gray-400">You don't have an active subscription</p>
+              <p className="mb-4 text-gray-400">You don&apos;t have an active subscription</p>
               <button
                 onClick={() => router.push("/subscribe")}
                 className="rounded-lg bg-blue-600 px-6 py-3 font-semibold text-white transition-colors hover:bg-blue-700"

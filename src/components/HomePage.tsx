@@ -19,20 +19,39 @@ import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/services";
+import type { Genre, Title as ApiTitle } from "@/lib/api/types";
 import { cn } from "@/lib/cn";
 import { Play, Info, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Title {
   id: string;
-  title: string;
-  slug: string;
+  title?: string;
+  name?: string;
+  slug?: string;
   poster_url?: string;
   backdrop_url?: string;
   overview?: string;
   release_year?: number;
   rating?: number;
-  genres?: string[];
-  type: "movie" | "series";
+  genres?: string[] | Genre[];
+  type: "movie" | "series" | "MOVIE" | "SERIES";
+}
+
+// Type guard to convert ApiTitle to local Title
+function normalizeTitle(t: ApiTitle): Title {
+  return {
+    id: t.id,
+    title: t.name,
+    name: t.name,
+    slug: t.slug,
+    poster_url: t.poster_url,
+    backdrop_url: t.backdrop_url,
+    overview: t.overview,
+    release_year: t.release_year,
+    rating: t.vote_average,
+    genres: t.genres,
+    type: t.type.toLowerCase() as Title["type"],
+  };
 }
 
 /**
@@ -178,7 +197,7 @@ function TitleCard({ title, number }: { title: Title; number?: number }) {
           {title.poster_url ? (
             <img
               src={title.poster_url}
-              alt={title.title}
+              alt={title.title || title.name}
               className="h-full w-full object-cover"
               loading="lazy"
             />
@@ -198,7 +217,7 @@ function TitleCard({ title, number }: { title: Title; number?: number }) {
 
         {/* Title */}
         <div className="mt-2 px-1">
-          <p className="truncate text-sm font-medium text-white">{title.title}</p>
+          <p className="truncate text-sm font-medium text-white">{title.title || title.name}</p>
           {title.release_year && (
             <p className="text-xs text-gray-400">{title.release_year}</p>
           )}
@@ -239,7 +258,7 @@ function HeroBanner({ title }: { title?: Title }) {
       <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12 lg:p-16">
         <div className="max-w-2xl">
           <h1 className="mb-4 text-4xl font-bold text-white sm:text-5xl md:text-6xl">
-            {title.title}
+            {title.title || title.name}
           </h1>
 
           {title.overview && (
@@ -312,6 +331,7 @@ export function HomePage() {
     queryKey: ["continue-watching"],
     queryFn: async () => {
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) return [];
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
 
       if (!activeProfile) return [];
@@ -332,7 +352,7 @@ export function HomePage() {
   });
 
   // Get hero title (first trending item)
-  const heroTitle = trending?.[0];
+  const heroTitle = trending?.[0] ? normalizeTitle(trending[0]) : undefined;
 
   return (
     <div className="min-h-screen bg-black">

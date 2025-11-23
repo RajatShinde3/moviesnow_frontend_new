@@ -13,7 +13,7 @@ import { api } from "@/lib/api/services";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { Dialog } from "@/components/ui/Dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
 import { Plus, Edit, Trash2, User, Users } from "lucide-react";
 import type { Profile } from "@/lib/api/types";
 
@@ -47,7 +47,7 @@ export default function ProfilesPage() {
     }: {
       id: string;
       data: { name: string; avatar_url?: string };
-    }) => api.user.updateProfile(id, data),
+    }) => api.profiles.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
       setEditingProfile(null);
@@ -57,7 +57,7 @@ export default function ProfilesPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => api.user.deleteProfile(id),
+    mutationFn: (id: string) => api.profiles.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profiles"] });
     },
@@ -117,7 +117,7 @@ export default function ProfilesPage() {
         <div className="mx-auto max-w-screen-xl space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-3xl font-bold">Who's watching?</h1>
+            <h1 className="text-3xl font-bold">Who&apos;s watching?</h1>
             <p className="mt-2 text-muted-foreground">
               Manage profiles for personalized recommendations
             </p>
@@ -221,10 +221,13 @@ export default function ProfilesPage() {
       {/* Create/Edit Dialog */}
       <Dialog
         open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
-        title={editingProfile ? "Edit Profile" : "Create Profile"}
+        onOpenChange={setIsCreateOpen}
       >
-        <div className="space-y-6">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingProfile ? "Edit Profile" : "Create Profile"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
           {/* Avatar Selection */}
           <div>
             <label className="mb-3 block text-sm font-medium">
@@ -284,6 +287,7 @@ export default function ProfilesPage() {
             </Button>
           </div>
         </div>
+        </DialogContent>
       </Dialog>
     </div>
   );

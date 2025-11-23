@@ -827,7 +827,7 @@ export function SearchPage() {
                 </button>
               ) : allResults.length > PAGE_SIZE && (
                 <p className="text-sm text-gray-500">
-                  You've reached the end of the results
+                  You&apos;ve reached the end of the results
                 </p>
               )}
             </div>

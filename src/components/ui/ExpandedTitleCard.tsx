@@ -61,7 +61,7 @@ export function ExpandedTitleCard({ title, position, onClose }: ExpandedTitleCar
     ? Math.round(title.vote_average * 10)
     : Math.floor(Math.random() * 30) + 70; // 70-100%
 
-  const runtime = title.runtime || 120; // minutes
+  const runtime = title.runtime_minutes || 120; // minutes
   const hours = Math.floor(runtime / 60);
   const minutes = runtime % 60;
   const runtimeDisplay = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
@@ -192,26 +192,23 @@ export function ExpandedTitleCard({ title, position, onClose }: ExpandedTitleCar
               {title.content_rating || "PG-13"}
             </span>
             <span>{runtimeDisplay}</span>
-            {title.video_quality && (
-              <span className="rounded border border-white/40 px-1 text-xs">
-                {title.video_quality}
-              </span>
-            )}
           </div>
 
           {/* Description */}
           <p className="mt-3 line-clamp-3 text-sm text-white/80">
-            {title.description || title.synopsis || "No description available."}
+            {title.overview || "No description available."}
           </p>
 
           {/* Cast */}
-          {title.cast && title.cast.length > 0 && (
+          {title.credits && title.credits.length > 0 && (
             <div className="mt-4 text-sm">
               <span className="text-white/60">Cast: </span>
               <span className="text-white/90">
-                {title.cast
+                {title.credits
+                  .filter(c => c.kind === "CAST")
                   .slice(0, 3)
-                  .map((c) => c.name)
+                  .map((c) => c.person?.name || c.character || "")
+                  .filter(Boolean)
                   .join(", ")}
               </span>
             </div>
@@ -231,13 +228,6 @@ export function ExpandedTitleCard({ title, position, onClose }: ExpandedTitleCar
             </div>
           )}
 
-          {/* Awards/Recognition (if available) */}
-          {title.awards && title.awards.length > 0 && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-yellow-400">
-              <span>🏆</span>
-              <span>{title.awards[0]}</span>
-            </div>
-          )}
         </div>
       </div>
     </>

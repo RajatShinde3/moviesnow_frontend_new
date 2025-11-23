@@ -60,10 +60,14 @@ export default function AdminUploadPage() {
 
       // Request presigned URL
       const key = `uploads/${upload.type}/${Date.now()}-${upload.file.name}`;
-      const { upload_url } = await requestUploadUrl.mutateAsync({
+      const response = await requestUploadUrl.mutateAsync({
         key,
         contentType: upload.file.type,
       });
+      const upload_url = response?.upload_url;
+      if (!upload_url) {
+        throw new Error("Failed to get upload URL");
+      }
 
       // Upload to S3
       const xhr = new XMLHttpRequest();

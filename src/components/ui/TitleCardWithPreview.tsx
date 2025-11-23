@@ -33,7 +33,7 @@ export function TitleCardWithPreview({
   const [showPreview, setShowPreview] = React.useState(false);
   const [isInWatchlist, setIsInWatchlist] = React.useState(false);
   const [userRating, setUserRating] = React.useState<"like" | "dislike" | null>(null);
-  const hoverTimerRef = React.useRef<NodeJS.Timeout>();
+  const hoverTimerRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   // Hover delay timer
@@ -79,7 +79,8 @@ export function TitleCardWithPreview({
   const removeFromWatchlist = useMutation({
     mutationFn: async () => {
       const items = await api.watchlist.get();
-      const item = items.find((i) => i.title.id === title.id);
+      if (!items) return;
+      const item = items.find((i) => i.title?.id === title.id);
       if (item) {
         await api.watchlist.remove(item.id);
       }

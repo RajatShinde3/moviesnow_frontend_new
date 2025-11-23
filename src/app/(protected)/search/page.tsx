@@ -38,7 +38,7 @@ export default function SearchPage() {
             {query && (
               <div className="text-center">
                 <h1 className="text-2xl font-bold">
-                  {data?.total ? `${data.total.toLocaleString()} results` : "No results"} for "{query}"
+                  {data?.total ? `${data.total.toLocaleString()} results` : "No results"} for &quot;{query}&quot;
                 </h1>
               </div>
             )}

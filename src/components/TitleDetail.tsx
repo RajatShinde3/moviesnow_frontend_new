@@ -96,6 +96,7 @@ export function TitleDetail({ slug }: { slug: string }) {
     queryFn: async () => {
       if (!title?.id) return false;
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) return false;
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
       if (!activeProfile) return false;
 
@@ -114,6 +115,7 @@ export function TitleDetail({ slug }: { slug: string }) {
   const watchlistMutation = useMutation({
     mutationFn: async () => {
       const profiles = await api.profiles.list();
+      if (!profiles || profiles.length === 0) throw new Error("No profiles found");
       const activeProfile = profiles.find(p => p.is_active) || profiles[0];
 
       const method = inWatchlist ? "DELETE" : "POST";
