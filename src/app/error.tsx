@@ -39,7 +39,6 @@ export default function SegmentError({ error, reset }: Props) {
     // Your reporter could be Sentry, LogRocket, etc.
     // window.__reportError?.(error);
     // Always log to console in dev
-    // eslint-disable-next-line no-console
     console.error(error);
   }, [error]);
 

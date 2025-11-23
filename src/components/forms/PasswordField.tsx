@@ -134,7 +134,6 @@ export const PasswordField = React.forwardRef<HTMLInputElement, PasswordFieldPro
       if (!isControlled && (defaultValue || defaultValue === "")) {
         setInternalValue(String(defaultValue));
       }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [defaultValue, isControlled]);
 
     // Compose described-by with any incoming value (prefer error > hint > strength)

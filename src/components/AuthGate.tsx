@@ -143,9 +143,10 @@ export default function AuthGate({
     isLoading && minLoadingMs > 0 && Date.now() - loadedAt < minLoadingMs;
 
   // Build login URL (support custom function)
-  const buildUrl: BuildLoginUrl =
-    buildLoginUrl ??
-    ((intd) => `${loginPath}?redirect=${encodeURIComponent(intd)}`);
+  const buildUrl: BuildLoginUrl = React.useMemo(
+    () => buildLoginUrl ?? ((intd) => `${loginPath}?redirect=${encodeURIComponent(intd)}`),
+    [buildLoginUrl, loginPath]
+  );
 
   // Skip adding redirect loop if we're already on the login route
   const onLoginRoute =

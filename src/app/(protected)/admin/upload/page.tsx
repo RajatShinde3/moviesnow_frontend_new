@@ -13,7 +13,7 @@ import { api } from "@/lib/api/services";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useMutation } from "@tanstack/react-query";
-import { Upload, CheckCircle, XCircle, Loader2, Film, Image, FileText } from "lucide-react";
+import { Upload, CheckCircle, XCircle, Loader2, Film, Image as ImageIcon, FileText } from "lucide-react";
 
 type UploadType = "video" | "poster" | "backdrop" | "subtitle";
 
@@ -136,7 +136,7 @@ export default function AdminUploadPage() {
         return Film;
       case "poster":
       case "backdrop":
-        return Image;
+        return ImageIcon;
       case "subtitle":
         return FileText;
     }
@@ -196,7 +196,7 @@ export default function AdminUploadPage() {
             <div className="rounded-lg border bg-card p-6">
               <div className="flex items-center gap-3">
                 <div className="rounded-full bg-purple-500/10 p-3">
-                  <Image className="h-6 w-6 text-purple-500" />
+                  <ImageIcon className="h-6 w-6 text-purple-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Posters</h3>
@@ -224,7 +224,7 @@ export default function AdminUploadPage() {
             <div className="rounded-lg border bg-card p-6">
               <div className="flex items-center gap-3">
                 <div className="rounded-full bg-blue-500/10 p-3">
-                  <Image className="h-6 w-6 text-blue-500" />
+                  <ImageIcon className="h-6 w-6 text-blue-500" />
                 </div>
                 <div>
                   <h3 className="font-semibold">Backdrops</h3>

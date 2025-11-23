@@ -278,7 +278,6 @@ export function env(): Readonly<PublicEnv> {
   }
 
   // Dev/Test fallback: log loudly and fall back to defaults.
-  // eslint-disable-next-line no-console
   console.error(message);
 
   const fallback = PublicEnvSchema.parse({

@@ -311,7 +311,7 @@ export function VideoPlayerWithAds({
   };
 
   // Control handlers
-  const togglePlayPause = () => {
+  const togglePlayPause = React.useCallback(() => {
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -319,14 +319,14 @@ export function VideoPlayerWithAds({
         videoRef.current.play();
       }
     }
-  };
+  }, [isPlaying]);
 
-  const toggleMute = () => {
+  const toggleMute = React.useCallback(() => {
     if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
-  };
+  }, [isMuted]);
 
   const handleVolumeChange = (value: number) => {
     if (videoRef.current) {
@@ -351,7 +351,7 @@ export function VideoPlayerWithAds({
     }
   };
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = React.useCallback(() => {
     if (!containerRef.current) return;
 
     if (!isFullscreen) {
@@ -363,7 +363,7 @@ export function VideoPlayerWithAds({
         document.exitFullscreen();
       }
     }
-  };
+  }, [isFullscreen]);
 
   // Fullscreen change listener
   React.useEffect(() => {
@@ -415,7 +415,7 @@ export function VideoPlayerWithAds({
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [isPlaying, currentTime, duration, volume, showAd]);
+  }, [isPlaying, currentTime, duration, volume, showAd, togglePlayPause, toggleMute, toggleFullscreen]);
 
   // Format time
   const formatTime = (seconds: number) => {

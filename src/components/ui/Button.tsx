@@ -164,9 +164,23 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    const Comp = asChild ? Slot : "button";
+    // When asChild is true, we render the Slot with just the children
+    // The child element receives all the button's props and styling
+    if (asChild) {
+      return (
+        <Slot
+          className={cn(buttonVariants({ variant, size, className }))}
+          ref={ref}
+          {...props}
+        >
+          {children}
+        </Slot>
+      );
+    }
+
+    // Regular button rendering with all features
     return (
-      <Comp
+      <button
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || loading}
@@ -237,7 +251,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             )}
           />
         )}
-      </Comp>
+      </button>
     );
   }
 );

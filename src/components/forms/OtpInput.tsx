@@ -209,19 +209,20 @@ const OtpInput = React.forwardRef<OtpInputHandle, OtpInputProps>(function OtpInp
     [rendered, update]
   );
 
-  function focusIndex(i?: number) {
+  const focusIndex = React.useCallback((i?: number) => {
     // If index omitted: focus the first empty, else 0
-    let idx =
+    const idx =
       typeof i === "number"
         ? clamp(i, 0, length - 1)
         : Math.max(0, Math.min(rendered.length, length - 1));
     refs.current[idx]?.focus();
     refs.current[idx]?.select?.();
-  }
-  function blur() {
+  }, [length, rendered.length]);
+
+  const blur = React.useCallback(() => {
     const el = document.activeElement as HTMLElement | null;
     if (el && refs.current.includes(el as HTMLInputElement)) el.blur();
-  }
+  }, []);
 
   // Imperative handle
   React.useImperativeHandle(
@@ -233,7 +234,7 @@ const OtpInput = React.forwardRef<OtpInputHandle, OtpInputProps>(function OtpInp
       setValue: (v: string) => update(v),
       getValue: () => rendered,
     }),
-    [rendered, update]
+    [rendered, update, focusIndex, blur]
   );
 
   // Handlers per cell

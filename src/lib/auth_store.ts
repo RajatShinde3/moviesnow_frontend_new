@@ -74,7 +74,6 @@ function createStore(): Store {
 
 // Keep a single instance across HMR in development.
 declare global {
-  // eslint-disable-next-line no-var
   var __AUTH_STORE__: Store | undefined;
 }
 
@@ -319,10 +318,8 @@ export function waitForToken(opts: {
       cleanup();
       // DOMException may not exist in some runtimes; fall back to Error
       try {
-        // eslint-disable-next-line no-throw-literal
         throw new DOMException("Aborted", "AbortError");
       } catch {
-        // eslint-disable-next-line prefer-promise-reject-errors
         reject(new Error("AbortError"));
         return;
       }

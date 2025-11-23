@@ -61,31 +61,27 @@ export default async function GenrePage({ params, searchParams }: PageProps) {
             {/* Pagination */}
             {titles.total_pages > 1 && (
               <div className="flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  disabled={page === 1}
-                  asChild={page > 1}
-                >
-                  {page > 1 ? (
+                {page > 1 ? (
+                  <Button variant="outline" asChild>
                     <Link href={`/genre/${slug}?page=${page - 1}`}>Previous</Link>
-                  ) : (
-                    <span>Previous</span>
-                  )}
-                </Button>
+                  </Button>
+                ) : (
+                  <Button variant="outline" disabled>
+                    Previous
+                  </Button>
+                )}
                 <span className="text-sm text-muted-foreground">
                   Page {page} of {titles.total_pages}
                 </span>
-                <Button
-                  variant="outline"
-                  disabled={page >= titles.total_pages}
-                  asChild={page < titles.total_pages}
-                >
-                  {page < titles.total_pages ? (
+                {page < titles.total_pages ? (
+                  <Button variant="outline" asChild>
                     <Link href={`/genre/${slug}?page=${page + 1}`}>Next</Link>
-                  ) : (
-                    <span>Next</span>
-                  )}
-                </Button>
+                  </Button>
+                ) : (
+                  <Button variant="outline" disabled>
+                    Next
+                  </Button>
+                )}
               </div>
             )}
           </div>

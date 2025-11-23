@@ -271,10 +271,21 @@ export const discoveryService = {
   /**
    * Search titles
    */
-  search: async (query: string, params?: Omit<T.DiscoveryParams, "q">) =>
-    fetchJson<T.TitleListResponse>(ENDPOINTS.DISCOVERY.SEARCH, {
-      searchParams: { q: query, ...params } as Record<string, string | number | boolean>,
-    }),
+  search: async (query: string, params?: Omit<T.DiscoveryParams, "q">) => {
+    const searchParams: Record<string, string | number | boolean> = { q: query };
+    if (params) {
+      if (params.type) searchParams.type = params.type;
+      if (params.genres) searchParams.genres = params.genres.join(",");
+      if (params.year) searchParams.year = params.year;
+      if (params.min_rating) searchParams.min_rating = params.min_rating;
+      if (params.language) searchParams.language = params.language;
+      if (params.sort_by) searchParams.sort_by = params.sort_by;
+      if (params.sort_order) searchParams.sort_order = params.sort_order;
+      if (params.page) searchParams.page = params.page;
+      if (params.page_size) searchParams.page_size = params.page_size;
+    }
+    return fetchJson<T.TitleListResponse>(ENDPOINTS.DISCOVERY.SEARCH, { searchParams });
+  },
 
   /**
    * Get search suggestions

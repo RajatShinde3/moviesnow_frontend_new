@@ -322,6 +322,24 @@ export interface Profile {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   SUBSCRIPTION
+   ══════════════════════════════════════════════════════════════ */
+
+export interface Subscription {
+  id: string;
+  user_id: string;
+  plan_id: string;
+  plan_name?: string;
+  status: "active" | "cancelled" | "expired" | "trial";
+  is_premium: boolean;
+  expires_at: string | null;
+  cancelled_at: string | null;
+  next_billing_date?: string | null;
+  amount?: number;
+  created_at: string;
+}
+
+/* ══════════════════════════════════════════════════════════════
    DISCOVERY & SEARCH
    ══════════════════════════════════════════════════════════════ */
 
