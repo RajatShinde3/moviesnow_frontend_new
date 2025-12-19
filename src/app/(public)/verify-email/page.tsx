@@ -91,7 +91,7 @@ function VerifyEmailGate() {
 
   const token = params?.get("token") || params?.get("t") || null;
   const nextPath = React.useMemo(
-    () => sanitizeNextPath(params?.get("next"), "/"),
+    () => sanitizeNextPath(params?.get("next"), "/login"),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [params?.get("next")]
   );

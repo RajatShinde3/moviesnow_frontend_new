@@ -42,6 +42,7 @@ import {
 import { api } from "@/lib/api/services";
 import { useQuery } from "@tanstack/react-query";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationCenter } from "./NotificationCenter";
 
 interface NetflixNavigationProps {
   onProfileSwitch?: () => void;
@@ -102,6 +103,8 @@ export function NetflixNavigation({ onProfileSwitch }: NetflixNavigationProps) {
     { name: "Watch History", href: "/history", icon: History },
     { name: "Watchlist", href: "/watchlist", icon: Star },
     { name: "Downloads", href: "/downloads", icon: Download },
+    { name: "My Stats", href: "/stats", icon: TrendingUp },
+    { name: "Notifications", href: "/settings/notifications", icon: Bell },
     { name: "Account Settings", href: "/settings/account", icon: Settings },
   ];
 
@@ -425,6 +428,11 @@ export function NetflixNavigation({ onProfileSwitch }: NetflixNavigationProps) {
           ))}
         </div>
       </div>
+
+      {/* Notification Center Modal */}
+      {notificationsOpen && (
+        <NotificationCenter onClose={() => setNotificationsOpen(false)} />
+      )}
     </>
   );
 }

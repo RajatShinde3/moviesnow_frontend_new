@@ -19,8 +19,11 @@
 import * as React from "react";
 import Hls from "hls.js";
 import { api } from "@/lib/api/services";
-import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, SkipForward } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, SkipForward, Languages, Type } from "lucide-react";
 import type { PlaybackSession, SceneMarker } from "@/lib/api/types";
+import { ThumbnailPreview } from "./ThumbnailPreview";
+import { AudioTrackSelector, type AudioTrack } from "./AudioTrackSelector";
+import { SubtitleCustomizer, type SubtitleSettings } from "./SubtitleCustomizer";
 
 interface VideoPlayerProps {
   titleId?: string;
@@ -56,6 +59,44 @@ export function VideoPlayer({
   const [error, setError] = React.useState<string | null>(null);
   const [showSkipIntro, setShowSkipIntro] = React.useState(false);
   const [selectedQuality, setSelectedQuality] = React.useState(quality);
+  const [showAudioSelector, setShowAudioSelector] = React.useState(false);
+  const [showSubtitleCustomizer, setShowSubtitleCustomizer] = React.useState(false);
+  const [showThumbnailPreview, setShowThumbnailPreview] = React.useState(false);
+  const [thumbnailHoverTime, setThumbnailHoverTime] = React.useState(0);
+  const [thumbnailPosition, setThumbnailPosition] = React.useState(0);
+
+  // Audio tracks state (mock data - replace with actual API call)
+  const [audioTracks] = React.useState<AudioTrack[]>([
+    { id: "1", label: "English", language: "English", languageCode: "en", type: "main", channels: 6 },
+    { id: "2", label: "Spanish", language: "Spanish", languageCode: "es", type: "main", channels: 6 },
+    { id: "3", label: "French", language: "French", languageCode: "fr", type: "main", channels: 2 },
+    { id: "4", label: "English (Audio Description)", language: "English", languageCode: "en", type: "description", channels: 2 },
+  ]);
+  const [currentAudioTrack, setCurrentAudioTrack] = React.useState<string>("1");
+
+  // Subtitle settings state (load from localStorage)
+  const [subtitleSettings, setSubtitleSettings] = React.useState<SubtitleSettings>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('subtitle_settings');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {
+          // Fall through to default
+        }
+      }
+    }
+    return {
+      fontSize: 100,
+      fontFamily: 'Arial, sans-serif',
+      color: '#FFFFFF',
+      backgroundColor: '#000000',
+      backgroundOpacity: 75,
+      position: 'bottom',
+      edgeStyle: 'drop-shadow',
+      edgeColor: '#000000',
+    };
+  });
 
   // Initialize playback session
   React.useEffect(() => {
@@ -263,6 +304,34 @@ export function VideoPlayer({
     }
   };
 
+  const handleAudioTrackChange = (trackId: string) => {
+    setCurrentAudioTrack(trackId);
+    // In a real implementation, this would switch the HLS audio track
+    // For HLS.js: hlsRef.current?.audioTrack = parseInt(trackId);
+    console.log("Audio track changed to:", trackId);
+  };
+
+  const handleSubtitleSettingsChange = (settings: SubtitleSettings) => {
+    setSubtitleSettings(settings);
+    // Save to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('subtitle_settings', JSON.stringify(settings));
+    }
+  };
+
+  const handleProgressBarHover = (e: React.MouseEvent<HTMLInputElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const position = (e.clientX - rect.left) / rect.width;
+    const time = position * duration;
+    setThumbnailHoverTime(time);
+    setThumbnailPosition(position);
+    setShowThumbnailPreview(true);
+  };
+
+  const handleProgressBarLeave = () => {
+    setShowThumbnailPreview(false);
+  };
+
   const toggleFullscreen = React.useCallback(() => {
     if (!containerRef.current) return;
 
@@ -394,14 +463,29 @@ export function VideoPlayer({
           showControls || !isPlaying ? "opacity-100" : "opacity-0"
         }`}
       >
-        {/* Progress Bar */}
-        <div className="mb-4">
+        {/* Progress Bar with Thumbnail Preview */}
+        <div className="relative mb-4">
+          {/* Thumbnail Preview - Only show if thumbnail sprite is available */}
+          <ThumbnailPreview
+            visible={showThumbnailPreview && duration > 0}
+            spriteUrl="/api/placeholder-sprite.jpg"
+            timestamp={thumbnailHoverTime}
+            duration={duration}
+            positionX={thumbnailPosition * 100}
+            spriteColumns={10}
+            spriteRows={10}
+            thumbnailWidth={160}
+            thumbnailHeight={90}
+          />
+
           <input
             type="range"
             min={0}
             max={duration || 100}
             value={currentTime}
             onChange={(e) => handleSeek(Number(e.target.value))}
+            onMouseMove={handleProgressBarHover}
+            onMouseLeave={handleProgressBarLeave}
             className="h-1 w-full cursor-pointer appearance-none rounded-full bg-white/30 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
             style={{
               background: `linear-gradient(to right, rgb(var(--primary)) 0%, rgb(var(--primary)) ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) ${(currentTime / duration) * 100}%, rgba(255,255,255,0.3) 100%)`,
@@ -439,6 +523,43 @@ export function VideoPlayer({
 
           {/* Right Controls */}
           <div className="flex items-center gap-4">
+            {/* Audio Track Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setShowAudioSelector(!showAudioSelector)}
+                className="hover:text-primary"
+                aria-label="Audio tracks"
+              >
+                <Languages className="h-5 w-5" />
+              </button>
+              {showAudioSelector && (
+                <AudioTrackSelector
+                  tracks={audioTracks}
+                  selectedTrackId={currentAudioTrack}
+                  onSelectTrack={handleAudioTrackChange}
+                  isOpen={showAudioSelector}
+                  onClose={() => setShowAudioSelector(false)}
+                />
+              )}
+            </div>
+
+            {/* Subtitle Customizer */}
+            <div className="relative">
+              <button
+                onClick={() => setShowSubtitleCustomizer(!showSubtitleCustomizer)}
+                className="hover:text-primary"
+                aria-label="Subtitle settings"
+              >
+                <Type className="h-5 w-5" />
+              </button>
+              <SubtitleCustomizer
+                settings={subtitleSettings}
+                onChange={handleSubtitleSettingsChange}
+                isOpen={showSubtitleCustomizer}
+                onClose={() => setShowSubtitleCustomizer(false)}
+              />
+            </div>
+
             <button className="hover:text-primary">
               <Settings className="h-5 w-5" />
             </button>

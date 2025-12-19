@@ -1,3 +1,5 @@
+"use client";
+
 // app/(protected)/title/[slug]/page.tsx
 /**
  * =============================================================================
@@ -8,55 +10,89 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/api/services";
 import { Button } from "@/components/ui/Button";
 import { TitleRow } from "@/components/ui/TitleRow";
-import { Play, Plus, Check, Download, Share2, Info } from "lucide-react";
+import { Play, Plus, Check, Download, Share2, Info, Loader2 } from "lucide-react";
 import type { Title, Season } from "@/lib/api/types";
 import { AddToWatchlistButton } from "./AddToWatchlistButton";
 import { SeasonsSection } from "./SeasonsSection";
 import { CastSection } from "./CastSection";
 import { ReviewsSection } from "./ReviewsSection";
 
-export const dynamic = "force-dynamic";
+export default function TitleDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const slug = params.slug as string;
 
-interface PageProps {
-  params: Promise<{ slug: string }>;
-}
+  const [title, setTitle] = React.useState<any>(null);
+  const [seasons, setSeasons] = React.useState<any>(null);
+  const [reviews, setReviews] = React.useState<any>(null);
+  const [similar, setSimilar] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState<string | null>(null);
 
-async function getTitleData(slug: string) {
-  try {
-    const title = await api.discovery.getTitleBySlug(slug);
-    if (!title) return null;
+  React.useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-    const [seasons, reviews] = await Promise.all([
-      title.type === "SERIES" ? api.discovery.getSeasons(title.id) : Promise.resolve(null),
-      api.reviews.getByTitle(title.id, 1, 10),
-    ]);
+        const titleData = await api.discovery.getTitleBySlug(slug);
 
-    // Fetch similar titles
-    const similar = await api.discovery.browse({
-      genres: title.genres?.map((g) => g.slug) || [],
-      page_size: 20,
-    });
+        if (!titleData) {
+          setError("Title not found");
+          return;
+        }
 
-    return { title, seasons, reviews, similar: similar?.items || [] };
-  } catch (error) {
-    console.error("Failed to fetch title:", error);
-    return null;
+        setTitle(titleData);
+
+        const [seasonsData, reviewsData] = await Promise.all([
+          titleData.type === "SERIES" ? api.discovery.getSeasons(titleData.id) : Promise.resolve(null),
+          api.reviews.getByTitle(titleData.id, 1, 10),
+        ]);
+
+        setSeasons(seasonsData);
+        setReviews(reviewsData);
+
+        // Fetch similar titles
+        const similarData = await api.discovery.browse({
+          genres: titleData.genres?.map((g: any) => g.slug) || [],
+          page_size: 20,
+        });
+
+        setSimilar(similarData?.items || []);
+      } catch (err) {
+        console.error("Failed to fetch title:", err);
+        setError("Failed to load title");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (slug) loadData();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Loader2 className="w-12 h-12 text-white animate-spin" />
+      </div>
+    );
   }
-}
 
-export default async function TitleDetailPage({ params }: PageProps) {
-  const { slug } = await params;
-  const data = await getTitleData(slug);
-
-  if (!data) {
-    notFound();
+  if (error || !title) {
+    return (
+      <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+        <h1 className="text-3xl font-bold text-white mb-2">Oops!</h1>
+        <p className="text-white/70 mb-4">{error || "Title not found"}</p>
+        <Button onClick={() => router.push("/home")} variant="play">
+          Go Home
+        </Button>
+      </div>
+    );
   }
-
-  const { title, seasons, reviews, similar } = data;
 
   return (
     <div className="min-h-screen">

@@ -10,6 +10,7 @@ import { api } from "@/lib/api/services";
 import { HeroSection } from "@/components/ui/HeroSection";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { HeroSkeleton, TitleRowSkeleton } from "@/components/ui/Skeletons";
+import { ContinueWatchingRow } from "@/components/home/ContinueWatchingRow";
 
 export const dynamic = "force-dynamic";
 
@@ -61,16 +62,7 @@ export default async function HomePage() {
       {/* Content Rows */}
       <div className="space-y-8 px-4 py-8 sm:px-6 lg:px-8">
         {/* Continue Watching */}
-        {homeData?.continue_watching && homeData.continue_watching.length > 0 && (
-          <TitleRow
-            title="Continue Watching"
-            titles={homeData.continue_watching.map((p) => ({
-              ...p,
-              // Map progress to title - adjust based on your actual API response
-            })) as any}
-            viewAllHref="/history"
-          />
-        )}
+        <ContinueWatchingRow />
 
         {/* Trending Now */}
         {trending && trending.length > 0 && (
