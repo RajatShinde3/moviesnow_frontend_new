@@ -40,7 +40,11 @@ interface Notification {
   created_at: string;
 }
 
-export function NotificationCenter() {
+interface NotificationCenterProps {
+  onClose?: () => void;
+}
+
+export function NotificationCenter({ onClose }: NotificationCenterProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = React.useState(false);
@@ -51,11 +55,12 @@ export function NotificationCenter() {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setIsOpen(false);
+        onClose?.();
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [onClose]);
 
   // Fetch notifications
   const { data: notifications, isLoading } = useQuery({

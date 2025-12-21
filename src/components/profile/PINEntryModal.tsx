@@ -45,7 +45,7 @@ export function PINEntryModal({
   const [error, setError] = useState<string | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const MAX_ATTEMPTS = 3;
   const LOCKOUT_TIME = 30; // seconds
@@ -178,7 +178,7 @@ export function PINEntryModal({
             {pin.map((digit, index) => (
               <input
                 key={index}
-                ref={(el) => (inputRefs.current[index] = el)}
+                ref={(el) => { inputRefs.current[index] = el; }}
                 type="password"
                 inputMode="numeric"
                 maxLength={1}

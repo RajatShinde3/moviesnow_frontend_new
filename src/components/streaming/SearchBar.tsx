@@ -55,7 +55,7 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-function useClickOutside(ref: React.RefObject<HTMLElement>, handler: () => void) {
+function useClickOutside(ref: React.RefObject<HTMLElement | null>, handler: () => void) {
   React.useEffect(() => {
     const listener = (event: MouseEvent | TouchEvent) => {
       if (!ref.current || ref.current.contains(event.target as Node)) {
@@ -112,9 +112,9 @@ export function SearchBar({ onSearch, placeholder = 'Search movies, series, anim
 
         // Mock suggestions for demo
         const mockSuggestions: SearchSuggestion[] = [
-          { id: '1', name: 'Attack on Titan', type: 'SERIES', slug: 'attack-on-titan', year: 2013 },
-          { id: '2', name: 'One Piece', type: 'SERIES', slug: 'one-piece', year: 1999 },
-          { id: '3', name: 'Demon Slayer', type: 'SERIES', slug: 'demon-slayer', year: 2019 },
+          { id: '1', name: 'Attack on Titan', type: 'SERIES' as const, slug: 'attack-on-titan', year: 2013 },
+          { id: '2', name: 'One Piece', type: 'SERIES' as const, slug: 'one-piece', year: 1999 },
+          { id: '3', name: 'Demon Slayer', type: 'SERIES' as const, slug: 'demon-slayer', year: 2019 },
         ].filter(s => s.name.toLowerCase().includes(debouncedQuery.toLowerCase()));
 
         setSuggestions(mockSuggestions);

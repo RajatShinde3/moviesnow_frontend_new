@@ -93,7 +93,8 @@ export function useLogin() {
     // Keep cache consistent after successful credential login
     onSuccess: async (result) => {
       if (isLoginSuccess(result)) {
-        await qc.invalidateQueries({ queryKey: ["auth", "me"] });
+        // Force refetch to ensure we get fresh user data immediately
+        await qc.refetchQueries({ queryKey: ["user", "me"], type: "active" });
       }
     },
   });

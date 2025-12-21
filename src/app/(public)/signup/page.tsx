@@ -30,6 +30,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { cn } from '@/lib/cn'
 import { PATHS } from '@/lib/env'
@@ -121,6 +122,7 @@ function SignupForm() {
   const [hp, setHp] = React.useState('')
 
   const { mutateAsync: signup, isPending } = useSignup()
+  const queryClient = useQueryClient()
 
   // Prefill from ?email= when arriving from other flows
   React.useEffect(() => {
@@ -189,6 +191,9 @@ function SignupForm() {
         handoffToVerify(form.email.trim().toLowerCase())
         return
       }
+
+      // Invalidate and refetch the user data to ensure auth state is ready
+      await queryClient.invalidateQueries({ queryKey: ['user', 'me'] })
 
       toast({
         variant: 'success',

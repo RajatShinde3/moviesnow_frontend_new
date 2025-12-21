@@ -60,8 +60,18 @@ type Store = {
 };
 
 function createStore(): Store {
+  // Try to restore token from sessionStorage on init (survives page reloads within tab)
+  let initialToken: string | null = null;
+  try {
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      initialToken = sessionStorage.getItem('__access_token__');
+    }
+  } catch {
+    // Ignore storage errors
+  }
+
   return {
-    token: null,
+    token: initialToken,
     listeners: new Set<TokenChangeListener>(),
     bc: null,
     bcBound: false,
@@ -182,6 +192,19 @@ function applyAccessToken(token: string | null, opts: { broadcast?: boolean } = 
   const changed = prev !== token;
 
   store.token = token;
+
+  // Persist to sessionStorage (survives page reloads within tab)
+  if (changed && isBrowser()) {
+    try {
+      if (token) {
+        sessionStorage.setItem('__access_token__', token);
+      } else {
+        sessionStorage.removeItem('__access_token__');
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }
 
   // Notify subscribers only on change; guard against listener exceptions.
   if (changed) {

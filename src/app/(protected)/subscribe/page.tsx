@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { PlanCard } from '@/components/billing/PlanCard';
-import { useAuth } from '@/hooks/useAuth';
+import { useMe } from '@/lib/useMe';
 import { toast } from 'sonner';
 
 interface Plan {
@@ -43,7 +43,7 @@ interface SubscriptionStatus {
 
 export default function SubscribePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { data: user } = useMe();
   const [interval, setInterval] = React.useState<'monthly' | 'yearly'>('monthly');
 
   // Fetch available plans

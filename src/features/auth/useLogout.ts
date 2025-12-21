@@ -60,7 +60,7 @@ export function useLogout() {
         qc.cancelQueries({ queryKey: ["user"] }),
       ]);
       // Snap common “me” view to logged-out state right away.
-      qc.setQueryData(["auth", "me"], null);
+      qc.setQueryData(["user", "me"], null);
     },
 
     mutationFn: async () => {

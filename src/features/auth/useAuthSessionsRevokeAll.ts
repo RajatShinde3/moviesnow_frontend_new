@@ -125,7 +125,7 @@ export function useAuthSessionsRevokeAll() {
       // Ensure any session list or related views refresh.
       await qc.invalidateQueries({ queryKey: SESSIONS_QK });
       // If you cache "me", you can also invalidate it here:
-      // await qc.invalidateQueries({ queryKey: ["auth", "me"] });
+      // await qc.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });
 }

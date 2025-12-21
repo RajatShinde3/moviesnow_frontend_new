@@ -79,12 +79,13 @@ export function useMe(options?: UseMeOptions) {
     // v5 queryFn receives an AbortSignal
     queryFn: async ({ signal }) => {
       try {
-        // `fetchJson` returns `undefined` for 204/empty → treat as `null`
+        // `fetchJson` automatically refreshes access token on 401 via refresh cookie
+        // So this call will either succeed with a token, or fail if not authenticated
         const data = await fetchJson<unknown>(PATHS.me, { method: "GET", signal });
         if (data == null) return null;
         return MeSchema.parse(data);
       } catch (err) {
-        // Auth denials are "not signed in", not failures
+        // Auth denials mean user is not signed in or refresh failed
         if (isAppError(err)) {
           const s = err.status ?? 0;
           if (s === 401 || s === 403) return null;
@@ -94,10 +95,20 @@ export function useMe(options?: UseMeOptions) {
     },
 
     // Cache behavior tuned for session lookups
-    staleTime: 60_000,          // 60s fresh window
+    staleTime: 30_000,          // 30s fresh window (reduced from 60s for better security)
     gcTime: 5 * 60_000,         // 5m cache retention
-    retry: false,               // client handles transient retries already
-    refetchOnWindowFocus: false, // avoid flapping on focus; token events handle revalidation
+    retry: (failureCount, error) => {
+      // Don't retry auth failures (user needs to login)
+      if (isAppError(error)) {
+        const s = error.status ?? 0;
+        if (s === 401 || s === 403) return false;
+      }
+      // Retry network errors and server errors up to 2 times
+      // This prevents logout on transient failures
+      return failureCount < 2;
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff: 1s, 2s, 4s (max 30s)
+    refetchOnWindowFocus: true,  // Revalidate on focus for better security
     enabled: options?.enabled ?? true,
 
     // Shallow-ish merge for tiny identity objects

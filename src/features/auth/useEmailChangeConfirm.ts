@@ -88,7 +88,7 @@ export function useEmailChangeConfirm() {
     },
     onSuccess: async () => {
       // Ensure profile reflects the new email
-      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
+      await qc.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });
 }

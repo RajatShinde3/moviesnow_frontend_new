@@ -17,8 +17,8 @@ export const AUTH = {
   LOGIN: `${API_V1}/auth/login`,
   SIGNUP: `${API_V1}/auth/signup`,
   LOGOUT: `${API_V1}/auth/logout`,
-  REFRESH: `${API_V1}/auth/refresh`,
-  ME: `${API_V1}/auth/me`,
+  REFRESH: `${API_V1}/auth/refresh-token`,  // NOTE: Backend uses /refresh-token, not /refresh
+  ME: `${API_V1}/user/me`,  // NOTE: /me endpoint is under /user, not /auth
 
   // MFA
   MFA_ENABLE: `${API_V1}/auth/mfa/enable`,

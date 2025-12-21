@@ -41,6 +41,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { PATHS } from "@/lib/env";
 import { cn } from "@/lib/cn";
@@ -148,6 +149,7 @@ function LoginForm() {
   const router = useRouter();
   const params = useSearchParams();
   const toast = useToast();
+  const queryClient = useQueryClient();
 
   // Prefill email from query (?email, ?e, ?u) if provided.
   const prefillEmail =
@@ -205,12 +207,16 @@ function LoginForm() {
 
       // Success: token returned → signed in.
       if (res && typeof res.access_token === "string") {
+        // Note: useLogin hook already refetches user data in onSuccess
         toast({
           variant: "success",
           title: "Signed in",
           description: "Welcome back!",
           duration: 2500,
         });
+
+        // Wait a tick for the query to refetch before navigating
+        await new Promise(resolve => setTimeout(resolve, 100));
         router.replace(postLoginPathRef.current);
         return;
       }

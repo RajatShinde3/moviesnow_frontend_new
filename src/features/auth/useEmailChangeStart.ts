@@ -99,7 +99,7 @@ export function useEmailChangeStart() {
     },
     onSuccess: async () => {
       // Ensure the profile reflects any pending email
-      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
+      await qc.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });
 }

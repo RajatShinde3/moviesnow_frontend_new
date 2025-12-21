@@ -153,7 +153,7 @@ export function useRecoveryCodeRedeem() {
     onSuccess: async (result) => {
       // If tokens were issued, refresh auth-bound views
       if ("access_token" in result) {
-        await qc.invalidateQueries({ queryKey: ["auth", "me"] });
+        await qc.invalidateQueries({ queryKey: ["user", "me"] });
       }
     },
   });

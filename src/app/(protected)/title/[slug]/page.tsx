@@ -186,7 +186,7 @@ export default function TitleDetailPage() {
                   {/* Genres */}
                   {title.genres && title.genres.length > 0 && (
                     <div className="flex flex-wrap gap-2">
-                      {title.genres.map((genre) => (
+                      {title.genres.map((genre: any) => (
                         <Link
                           key={genre.id}
                           href={`/genre/${genre.slug}`}

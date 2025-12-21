@@ -70,7 +70,7 @@ export function UltraPremiumCard({
   const [isHovering, setIsHovering] = React.useState(false);
   const [showPreview, setShowPreview] = React.useState(false);
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout | undefined>(undefined);
 
   // Intersection observer for lazy loading
   const { ref: inViewRef, inView } = useInView({

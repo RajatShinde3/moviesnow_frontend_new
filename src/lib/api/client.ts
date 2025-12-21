@@ -329,8 +329,16 @@ async function refreshAccessTokenSingleFlight(): Promise<string | null> {
           cache: "no-store",
         });
 
+        // SECURITY: Only clear tokens on authentication failures (401/403)
+        // Network errors (timeout, offline) should NOT clear the token
         if (!res.ok) {
-          setAccessToken(null);
+          if (res.status === 401 || res.status === 403) {
+            // Refresh token expired or invalid - user needs to re-authenticate
+            setAccessToken(null);
+            return null;
+          }
+          // Other errors (500, 502, etc.) - keep trying with existing token
+          // This prevents logout on transient backend issues
           return null;
         }
 
@@ -343,8 +351,13 @@ async function refreshAccessTokenSingleFlight(): Promise<string | null> {
         }
         // Some backends rely solely on the cookie; keep current token if any.
         return getAccessToken() ?? null;
-      } catch {
-        setAccessToken(null);
+      } catch (err) {
+        // Network errors, timeouts, aborts should NOT clear the token
+        // The token might still be valid, we just couldn't reach the server
+        // Log the error for debugging but keep user logged in
+        if (typeof console !== 'undefined' && console.debug) {
+          console.debug('[Auth] Token refresh failed (network error):', err);
+        }
         return null;
       } finally {
         refreshPromise = null; // release single-flight lock

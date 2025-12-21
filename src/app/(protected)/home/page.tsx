@@ -1,4 +1,6 @@
 // app/(protected)/home/page.tsx
+"use client";
+
 /**
  * =============================================================================
  * Home Page - Netflix-style discovery with hero and content rows
@@ -11,30 +13,36 @@ import { HeroSection } from "@/components/ui/HeroSection";
 import { TitleRow } from "@/components/ui/TitleRow";
 import { HeroSkeleton, TitleRowSkeleton } from "@/components/ui/Skeletons";
 import { ContinueWatchingRow } from "@/components/home/ContinueWatchingRow";
+import type { Title } from "@/lib/api/types";
 
-export const dynamic = "force-dynamic";
+export default function HomePage() {
+  const [data, setData] = React.useState<any>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-async function getHomeData() {
-  try {
-    const [homeData, trending, popular, newReleases, genres] = await Promise.all([
-      api.discovery.getHome(),
-      api.discovery.getTrending(20),
-      api.discovery.getPopular(20),
-      api.discovery.getNewReleases(20),
-      api.discovery.getGenres(),
-    ]);
+  React.useEffect(() => {
+    async function fetchHomeData() {
+      try {
+        const [homeData, trending, popular, newReleases, genres] = await Promise.all([
+          api.discovery.getHome(),
+          api.discovery.getTrending(20),
+          api.discovery.getPopular(20),
+          api.discovery.getNewReleases(20),
+          api.discovery.getGenres(),
+        ]);
 
-    return { homeData, trending, popular, newReleases, genres };
-  } catch (error) {
-    console.error("Failed to fetch home data:", error);
-    return null;
-  }
-}
+        setData({ homeData, trending, popular, newReleases, genres });
+      } catch (error) {
+        console.error("Failed to fetch home data:", error);
+        setData(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-export default async function HomePage() {
-  const data = await getHomeData();
+    fetchHomeData();
+  }, []);
 
-  if (!data) {
+  if (isLoading || !data) {
     return (
       <div className="min-h-screen space-y-8 p-4 sm:p-6 lg:p-8">
         <HeroSkeleton />
@@ -104,14 +112,14 @@ export default async function HomePage() {
           <TitleRow
             key={genreName}
             title={genreName}
-            titles={titles}
+            titles={titles as Title[]}
             viewAllHref={`/genre/${genreName.toLowerCase()}`}
           />
         ))}
 
         {/* Fallback genres if popular_by_genre is empty */}
         {(!homeData?.popular_by_genre || Object.keys(homeData.popular_by_genre).length === 0) &&
-          genres?.slice(0, 5).map((genre) => (
+          genres?.slice(0, 5).map((genre: any) => (
             <GenreRow key={genre.id} genre={genre} />
           ))}
       </div>
@@ -120,20 +128,35 @@ export default async function HomePage() {
 }
 
 // Client component for dynamic genre fetching
-async function GenreRow({ genre }: { genre: { id: string; slug: string; name: string } }) {
-  try {
-    const titles = await api.discovery.getTitlesByGenre(genre.slug, { page_size: 20 });
+function GenreRow({ genre }: { genre: { id: string; slug: string; name: string } }) {
+  const [titles, setTitles] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-    if (!titles?.items || titles.items.length === 0) return null;
+  React.useEffect(() => {
+    async function fetchTitles() {
+      try {
+        const result = await api.discovery.getTitlesByGenre(genre.slug, { page_size: 20 });
+        if (result?.items && result.items.length > 0) {
+          setTitles(result.items);
+        }
+      } catch (error) {
+        console.error(`Failed to fetch titles for genre ${genre.name}:`, error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return (
-      <TitleRow
-        title={genre.name}
-        titles={titles.items}
-        viewAllHref={`/genre/${genre.slug}`}
-      />
-    );
-  } catch (error) {
-    return null;
-  }
+    fetchTitles();
+  }, [genre.slug, genre.name]);
+
+  if (isLoading) return <TitleRowSkeleton />;
+  if (titles.length === 0) return null;
+
+  return (
+    <TitleRow
+      title={genre.name}
+      titles={titles}
+      viewAllHref={`/genre/${genre.slug}`}
+    />
+  );
 }

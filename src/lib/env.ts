@@ -79,9 +79,9 @@ const PublicEnvSchema = z
     NEXT_PUBLIC_MFA_VERIFY_PATH:          z.string().optional().transform((v) => (v ? stripLeading(v) : undefined)),
 
     NEXT_PUBLIC_SIGNUP_PATH:              z.string().optional().transform((v) => stripLeading(v ?? "auth/signup")),
-    NEXT_PUBLIC_REFRESH_PATH:             z.string().optional().transform((v) => stripLeading(v ?? "auth/refresh")),
+    NEXT_PUBLIC_REFRESH_PATH:             z.string().optional().transform((v) => stripLeading(v ?? "auth/refresh-token")),
     NEXT_PUBLIC_LOGOUT_PATH:              z.string().optional().transform((v) => stripLeading(v ?? "auth/logout")),
-    NEXT_PUBLIC_ME_PATH:                  z.string().optional().transform((v) => stripLeading(v ?? "auth/me")),
+    NEXT_PUBLIC_ME_PATH:                  z.string().optional().transform((v) => stripLeading(v ?? "user/me")),
 
     /* Email verification */
     NEXT_PUBLIC_VERIFY_EMAIL_PATH:        z.string().optional().transform((v) => stripLeading(v ?? "auth/verify-email")),
@@ -308,7 +308,7 @@ export const IS_ABSOLUTE_API_BASE: boolean = isAbsoluteApiBase();
  * Guards against double slashes and works for both absolute and "/api/v1" bases.
  *
  * @example
- *   apiUrl(PATHS.me) // "/api/v1/auth/me" (dev via rewrite) or "https://…/auth/me"
+ *   apiUrl(PATHS.me) // "/api/v1/user/me" (dev via rewrite) or "https://…/user/me"
  */
 export function apiUrl(relativePath: string): string {
   return `${API_BASE}/${stripLeading(relativePath)}`;

@@ -14,7 +14,7 @@
 
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { API_ENDPOINTS } from "@/lib/env";
+import { API_BASE } from "@/lib/env";
 
 interface VerificationStatusResponse {
   is_verified: boolean;
@@ -43,7 +43,7 @@ export function useVerificationStatus({
         throw new Error("Email is required");
       }
 
-      const url = new URL(`${API_ENDPOINTS.BASE_URL}/api/v1/auth/verify-email/status`);
+      const url = new URL(`${API_BASE}/auth/verify-email/status`);
       url.searchParams.set("email", email);
 
       const response = await fetch(url.toString(), {
