@@ -21,7 +21,7 @@
  */
 
 import * as React from "react";
-import { Navigation } from "@/components/Navigation";
+import { ModernNavigation } from "@/components/ModernNavigation";
 import AuthGate from "@/components/AuthGate";
 
 export const revalidate = 0;
@@ -41,10 +41,10 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
       </a>
 
       {/* Global navigation */}
-      <Navigation />
+      <ModernNavigation />
 
       {/* Main content area - full width for OTT layout */}
-      <main id="protected-content" className="w-full">
+      <main id="protected-content" className="w-full overflow-x-hidden">
         <React.Suspense fallback={<ContentSkeleton />}>{children}</React.Suspense>
       </main>
 
