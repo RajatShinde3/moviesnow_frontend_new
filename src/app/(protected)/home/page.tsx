@@ -405,8 +405,8 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
         <motion.div
           className="relative rounded-md overflow-hidden bg-zinc-900 shadow-2xl"
           animate={{
-            scale: isHovered ? 1.8 : 1,
-            y: isHovered ? 80 : 0,
+            scale: isHovered ? 1.5 : 1,
+            y: isHovered ? 50 : 0,
           }}
           transition={{
             type: "spring",
@@ -451,10 +451,10 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.3, delay: 0.3 }}
                 className="relative w-full bg-gradient-to-b from-[#1a1a1a] via-[#141414] to-[#0f0f0f] rounded-lg shadow-2xl ring-1 ring-white/10 overflow-visible"
-                style={{ aspectRatio: '16/13' }}
+                style={{ aspectRatio: '16/14' }}
               >
-                {/* Backdrop Preview - 45% height for full image visibility */}
-                <div className="relative w-full h-[45%]">
+                {/* Backdrop Preview - 42% height for full image visibility */}
+                <div className="relative w-full h-[42%]">
                   <Image
                     src={backdrop || image}
                     alt={title}
@@ -475,9 +475,9 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                       transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 20 }}
                       whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(255,255,255,0.6)" }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-12 h-12 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-2xl backdrop-blur-sm transition-all"
+                      className="w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-2xl backdrop-blur-sm transition-all"
                     >
-                      <Play className="w-6 h-6 text-black ml-0.5" fill="black" />
+                      <Play className="w-5 h-5 text-black ml-0.5" fill="black" />
                     </motion.button>
                   </div>
 
@@ -487,55 +487,55 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 backdrop-blur-sm border border-white/30 hover:border-white/60 hover:bg-black/90 flex items-center justify-center transition-all group"
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 backdrop-blur-sm border border-white/30 hover:border-white/60 hover:bg-black/90 flex items-center justify-center transition-all group"
                   >
-                    <Info className="w-3.5 h-3.5 text-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
+                    <Info className="w-3 h-3 text-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
                   </motion.button>
                 </div>
 
-                {/* Info Section - 55% height with perfect spacing */}
+                {/* Info Section - 58% height with perfect spacing */}
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="h-[55%] px-4 py-4 flex flex-col justify-between"
+                  className="h-[58%] px-3 py-3 flex flex-col justify-between"
                 >
                   {/* Top Section - Title & Metadata */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {/* Title */}
                     <motion.h3
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.45 }}
-                      className="text-white font-bold text-sm leading-tight line-clamp-1"
+                      className="text-white font-bold text-xs leading-tight line-clamp-2"
                     >
                       {title}
                     </motion.h3>
 
                     {/* Metadata Row */}
-                    <div className="flex items-center flex-wrap gap-2.5">
+                    <div className="flex items-center flex-wrap gap-1.5">
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.5, type: "spring" }}
-                        className="text-[#46d369] font-bold text-xs leading-none"
+                        className="text-[#46d369] font-bold text-[10px] leading-none"
                       >
                         {(rating * 10).toFixed(0)}% Match
                       </motion.span>
 
-                      <span className="text-white/90 font-semibold text-[10px] leading-none">{year}</span>
+                      <span className="text-white/90 font-semibold text-[9px] leading-none">{year}</span>
 
                       {maturity && (
-                        <span className="px-1.5 py-0.5 border border-white/50 text-white text-[8px] font-bold leading-none">
+                        <span className="px-1 py-0.5 border border-white/50 text-white text-[7px] font-bold leading-none">
                           {maturity}
                         </span>
                       )}
 
                       {duration && (
-                        <span className="text-white/80 font-medium text-[10px] leading-none">{duration}</span>
+                        <span className="text-white/80 font-medium text-[9px] leading-none">{duration}</span>
                       )}
 
-                      <span className="px-1.5 py-0.5 bg-white/20 text-white text-[8px] font-black leading-none ml-auto">
+                      <span className="px-1 py-0.5 bg-white/20 text-white text-[7px] font-black leading-none ml-auto">
                         HD
                       </span>
                     </div>
@@ -546,12 +546,12 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.6 }}
-                        className="flex flex-wrap items-center gap-1.5"
+                        className="flex flex-wrap items-center gap-1"
                       >
                         {genres.slice(0, 3).map((genre, i) => (
                           <span
                             key={i}
-                            className="px-2.5 py-1 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white text-[9px] font-medium border border-white/20 transition-all cursor-pointer leading-none"
+                            className="px-2 py-0.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full text-white text-[8px] font-medium border border-white/20 transition-all cursor-pointer leading-none"
                           >
                             {genre}
                           </span>
@@ -565,13 +565,13 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.7 }}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-1.5"
                   >
                     <button
                       onClick={handleCardClick}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-md bg-white hover:bg-gray-100 text-black font-bold text-xs transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-md bg-white hover:bg-gray-100 text-black font-bold text-[10px] transition-all shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95"
                     >
-                      <Play className="w-4 h-4" fill="black" />
+                      <Play className="w-3 h-3" fill="black" />
                       <span>Play</span>
                     </button>
 
@@ -580,16 +580,16 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                         e.stopPropagation();
                         setInWatchlist(!inWatchlist);
                       }}
-                      className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
                         inWatchlist
                           ? "bg-white border-white shadow-lg"
                           : "bg-[#2a2a2a] border-white/50 hover:border-white hover:bg-[#3a3a3a]"
                       }`}
                     >
                       {inWatchlist ? (
-                        <Check className="w-4 h-4 text-black" strokeWidth={3} />
+                        <Check className="w-3 h-3 text-black" strokeWidth={3} />
                       ) : (
-                        <Plus className="w-4 h-4 text-white" strokeWidth={3} />
+                        <Plus className="w-3 h-3 text-white" strokeWidth={3} />
                       )}
                     </button>
 
@@ -598,14 +598,14 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                         e.stopPropagation();
                         setIsLiked(!isLiked);
                       }}
-                      className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
+                      className={`w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110 active:scale-95 ${
                         isLiked
                           ? "bg-white border-white shadow-lg"
                           : "bg-[#2a2a2a] border-white/50 hover:border-white hover:bg-[#3a3a3a]"
                       }`}
                     >
                       <ThumbsUp
-                        className={`w-4 h-4 ${isLiked ? "text-black" : "text-white"}`}
+                        className={`w-3 h-3 ${isLiked ? "text-black" : "text-white"}`}
                         strokeWidth={2.5}
                         fill={isLiked ? "black" : "none"}
                       />
@@ -613,15 +613,15 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
 
                     <button
                       onClick={handleCardClick}
-                      className="w-9 h-9 rounded-full border-2 bg-[#2a2a2a] border-white/50 hover:border-white hover:bg-[#3a3a3a] flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                      className="w-7 h-7 rounded-full border-2 bg-[#2a2a2a] border-white/50 hover:border-white hover:bg-[#3a3a3a] flex items-center justify-center transition-all hover:scale-110 active:scale-95"
                     >
-                      <ChevronDown className="w-4 h-4 text-white" strokeWidth={2.5} />
+                      <ChevronDown className="w-3 h-3 text-white" strokeWidth={2.5} />
                     </button>
                   </motion.div>
                 </motion.div>
 
                 {/* Bottom Accent Line */}
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-red-600 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-red-600 to-transparent" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -703,18 +703,18 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
   }, []);
 
   return (
-    <section className="relative group/row mb-20">
+    <section className="relative group/row mb-8">
       {/* Section Title with Underline Effect */}
       <motion.h2
         initial={{ opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.05 }}
-        className="text-white text-lg md:text-xl lg:text-2xl font-bold mb-5 px-6 md:px-12 lg:px-16 hover:text-gray-300 transition-colors cursor-pointer group relative w-fit"
+        className="text-white text-base md:text-lg lg:text-xl font-bold mb-3 px-6 md:px-12 lg:px-16 hover:text-gray-300 transition-colors cursor-pointer group relative w-fit"
       >
         {title}
         <motion.div
-          className="absolute bottom-0 left-0 h-[3px] bg-gradient-to-r from-red-600 to-red-700 rounded-full"
+          className="absolute bottom-0 left-0 h-[2px] bg-gradient-to-r from-red-600 to-red-700 rounded-full"
           initial={{ width: 0 }}
           whileHover={{ width: "100%" }}
           transition={{ duration: 0.3 }}
@@ -757,7 +757,7 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
       {/* Cards Container - Optimized Spacing */}
       <div
         ref={scrollRef}
-        className="flex gap-2 md:gap-2.5 overflow-x-auto overflow-y-visible scrollbar-hide px-6 md:px-12 lg:px-16 scroll-smooth pb-[280px] pt-3"
+        className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide px-6 md:px-12 lg:px-16 scroll-smooth pb-[250px] pt-2"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {items.map((item, idx) => (
@@ -767,7 +767,7 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ delay: idx * 0.05 }}
-            className="flex-shrink-0 w-[200px] md:w-[260px] lg:w-[320px]"
+            className="flex-shrink-0 w-[180px] md:w-[220px] lg:w-[260px]"
           >
             <UltraPremiumCard
               {...item}
@@ -813,7 +813,7 @@ function CinematicHero() {
   }, [showVideo]);
 
   return (
-    <motion.div style={{ opacity }} className="relative h-[92vh] overflow-hidden">
+    <motion.div style={{ opacity }} className="relative h-[85vh] overflow-hidden">
       <motion.div style={{ scale }} className="absolute inset-0">
         {/* Video Background */}
         <AnimatePresence>
@@ -855,7 +855,7 @@ function CinematicHero() {
       </motion.div>
 
       <div className="relative z-10 h-full flex items-end">
-        <div className="px-6 md:px-12 lg:px-16 pb-24 md:pb-28 max-w-4xl">
+        <div className="px-6 md:px-12 lg:px-16 pb-16 md:pb-20 max-w-4xl">
           {/* Trending Badge */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -970,7 +970,7 @@ function CinematicHero() {
       </div>
 
       {/* Enhanced Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none" />
 
       {/* Age Rating Badge */}
       <motion.div
@@ -996,12 +996,12 @@ export default function UltraPremiumHome() {
       <CinematicHero />
 
       {/* Content Rows Section */}
-      <div className="relative -mt-28 z-20 overflow-x-hidden bg-black">
+      <div className="relative -mt-16 z-20 overflow-x-hidden bg-black pt-4">
         {/* Top gradient blend for seamless transition */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
 
         {/* Content Grid */}
-        <div className="relative space-y-6 pb-12">
+        <div className="relative pb-12">
           <EnhancedContentRow title="Trending Now" items={demoMovies} index={0} />
           <EnhancedContentRow title="Popular on MoviesNow" items={demoSeries} index={1} />
           <EnhancedContentRow title="Action Blockbusters" items={demoMovies} index={2} />
