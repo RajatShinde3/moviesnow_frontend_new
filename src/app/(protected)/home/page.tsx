@@ -11,6 +11,7 @@ import * as React from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 import { Play, Info, ChevronLeft, ChevronRight, Plus, Check, Volume2, VolumeX, ThumbsUp, ChevronDown, Star, X, Download, Share2 } from "lucide-react";
+import { getTitles, getTrendingTitles, getPopularTitles, getNewReleases, getTopRated, getTitlesByGenre, normalizeRating, formatRuntime, type TitleSummary } from "@/lib/api/titles";
 
 // ============================================================================
 // TYPES
@@ -32,198 +33,143 @@ interface ContentItem {
   trailerUrl?: string;
 }
 
+// Helper: Convert backend TitleSummary to frontend ContentItem
+function mapTitleToContentItem(title: TitleSummary): ContentItem {
+  return {
+    id: title.id,
+    title: title.name,
+    slug: title.slug,
+    image: title.poster_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(title.name)}&size=400&background=1a1a2e&color=fff&bold=true&font-size=0.3`,
+    backdrop: title.backdrop_url || undefined,
+    rating: normalizeRating(title.rating_average),
+    year: title.release_year || new Date().getFullYear(),
+    type: title.type,
+    overview: title.overview || "",
+    genres: title.genres || [],
+    maturity: title.content_rating || "NR",
+    duration: title.type === "MOVIE" ? formatRuntime(title.runtime_minutes) : undefined,
+    trailerUrl: title.trailer_url || undefined,
+  };
+}
+
 // ============================================================================
-// DEMO DATA
+// MAIN COMPONENT
 // ============================================================================
 
-const featuredContent = {
-  title: "The Dark Knight",
-  slug: "the-dark-knight",
-  overview: "When the menace known as the Joker wreaks havoc on Gotham, Batman must accept one of the greatest psychological tests of his ability to fight injustice.",
-  backdrop: "https://image.tmdb.org/t/p/original/hkBaDkMWbLaf8B1lsWsKX7Ew3Xq.jpg",
-  videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  rating: 9.0,
-  year: 2008,
-  maturity: "PG-13",
-  duration: "2h 32m",
-  genres: ["Action", "Crime", "Drama"],
-  tagline: "Why So Serious?",
-};
+export default function UltraPremiumHome() {
+  const [trending, setTrending] = React.useState<ContentItem[]>([]);
+  const [popular, setPopular] = React.useState<ContentItem[]>([]);
+  const [newReleases, setNewReleases] = React.useState<ContentItem[]>([]);
+  const [topRated, setTopRated] = React.useState<ContentItem[]>([]);
+  const [actionMovies, setActionMovies] = React.useState<ContentItem[]>([]);
+  const [dramaMovies, setDramaMovies] = React.useState<ContentItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
-const demoMovies: ContentItem[] = [
-  {
-    id: "1",
-    title: "The Dark Knight",
-    slug: "the-dark-knight",
-    image: "https://ui-avatars.com/api/?name=TDK&size=400&background=1a1a2e&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/hkBaDkMWbLaf8B1lsWsKX7Ew3Xq.jpg",
-    rating: 9.0,
-    year: 2008,
-    type: "MOVIE",
-    overview: "Batman faces his greatest challenge as the Joker creates chaos across Gotham City.",
-    genres: ["Action", "Crime", "Drama"],
-    maturity: "PG-13",
-    duration: "2h 32m",
-    trailerUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  },
-  {
-    id: "2",
-    title: "Inception",
-    slug: "inception",
-    image: "https://ui-avatars.com/api/?name=IN&size=400&background=2d4263&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
-    rating: 8.8,
-    year: 2010,
-    type: "MOVIE",
-    overview: "A skilled thief who can enter people's dreams and steal their secrets must plant an idea into a target's subconscious.",
-    genres: ["Sci-Fi", "Action", "Thriller"],
-    maturity: "PG-13",
-    duration: "2h 28m",
-  },
-  {
-    id: "3",
-    title: "Interstellar",
-    slug: "interstellar",
-    image: "https://ui-avatars.com/api/?name=IN&size=400&background=191919&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/rAiYTfKGqDCRIIqo664sY9XZIvQ.jpg",
-    rating: 8.6,
-    year: 2014,
-    type: "MOVIE",
-    overview: "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
-    genres: ["Sci-Fi", "Drama", "Adventure"],
-    maturity: "PG-13",
-    duration: "2h 49m",
-  },
-  {
-    id: "4",
-    title: "The Matrix",
-    slug: "the-matrix",
-    image: "https://ui-avatars.com/api/?name=TM&size=400&background=003d00&color=0f0&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/icmmSD4vTTDKOq2vvdulafOGw93.jpg",
-    rating: 8.7,
-    year: 1999,
-    type: "MOVIE",
-    overview: "A computer hacker learns about the true nature of his reality and his role in the war against its controllers.",
-    genres: ["Sci-Fi", "Action"],
-    maturity: "R",
-    duration: "2h 16m",
-  },
-  {
-    id: "5",
-    title: "Pulp Fiction",
-    slug: "pulp-fiction",
-    image: "https://ui-avatars.com/api/?name=PF&size=400&background=8b0000&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/4cDFJr4HnXN5AdPw4AKrmLlMWdO.jpg",
-    rating: 8.9,
-    year: 1994,
-    type: "MOVIE",
-    overview: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine in four tales of violence and redemption.",
-    genres: ["Crime", "Drama"],
-    maturity: "R",
-    duration: "2h 34m",
-  },
-  {
-    id: "6",
-    title: "Oppenheimer",
-    slug: "oppenheimer",
-    image: "https://ui-avatars.com/api/?name=OP&size=400&background=654321&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/fm6KqXpk3M2HVveHwCrBSSBaO0V.jpg",
-    rating: 8.4,
-    year: 2023,
-    type: "MOVIE",
-    overview: "The story of American scientist J. Robert Oppenheimer and his role in the development of the atomic bomb.",
-    genres: ["Drama", "History", "Biography"],
-    maturity: "R",
-    duration: "3h 0m",
-  },
-  {
-    id: "7",
-    title: "Dune: Part Two",
-    slug: "dune-part-two",
-    image: "https://ui-avatars.com/api/?name=DT&size=400&background=c19a6b&color=000&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
-    rating: 8.6,
-    year: 2024,
-    type: "MOVIE",
-    overview: "Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family.",
-    genres: ["Sci-Fi", "Adventure", "Action"],
-    maturity: "PG-13",
-    duration: "2h 46m",
-  },
-];
+  // Featured content (first item from trending or popular)
+  const [featuredContent, setFeaturedContent] = React.useState<ContentItem | null>(null);
 
-const demoSeries: ContentItem[] = [
-  {
-    id: "10",
-    title: "Breaking Bad",
-    slug: "breaking-bad",
-    image: "https://ui-avatars.com/api/?name=BB&size=400&background=006400&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/eSzpy96DwBujGFj0xMbXBcGcfxX.jpg",
-    rating: 9.5,
-    year: 2008,
-    type: "SERIES",
-    overview: "A high school chemistry teacher turned methamphetamine producer partners with a former student.",
-    genres: ["Drama", "Crime", "Thriller"],
-    maturity: "TV-MA",
-    duration: "5 Seasons",
-  },
-  {
-    id: "11",
-    title: "Stranger Things",
-    slug: "stranger-things",
-    image: "https://ui-avatars.com/api/?name=ST&size=400&background=8b0000&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/56v2KjBlU4XaOv9rVYEQypROD7P.jpg",
-    rating: 8.7,
-    year: 2016,
-    type: "SERIES",
-    overview: "When a young boy disappears, his mother, a police chief and his friends must confront terrifying supernatural forces.",
-    genres: ["Sci-Fi", "Horror", "Drama"],
-    maturity: "TV-14",
-    duration: "4 Seasons",
-  },
-  {
-    id: "12",
-    title: "Game of Thrones",
-    slug: "game-of-thrones",
-    image: "https://ui-avatars.com/api/?name=GOT&size=400&background=2c2c2c&color=gold&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/2OMB0ynKlyIenMJWI2Dy9IWT4c.jpg",
-    rating: 9.3,
-    year: 2011,
-    type: "SERIES",
-    overview: "Nine noble families fight for control over the lands of Westeros, while an ancient enemy returns.",
-    genres: ["Fantasy", "Drama", "Adventure"],
-    maturity: "TV-MA",
-    duration: "8 Seasons",
-  },
-  {
-    id: "13",
-    title: "Attack on Titan",
-    slug: "attack-on-titan",
-    image: "https://ui-avatars.com/api/?name=AOT&size=400&background=4a4a4a&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/rqbCbjB19amtOtFQbb3K2lgm2zv.jpg",
-    rating: 9.0,
-    year: 2013,
-    type: "SERIES",
-    overview: "After his hometown is destroyed, young Eren Jaeger vows to cleanse the earth of the giant humanoid Titans.",
-    genres: ["Anime", "Action", "Fantasy"],
-    maturity: "TV-MA",
-    duration: "4 Seasons",
-  },
-  {
-    id: "14",
-    title: "Death Note",
-    slug: "death-note",
-    image: "https://ui-avatars.com/api/?name=DN&size=400&background=000000&color=fff&bold=true&font-size=0.5",
-    backdrop: "https://image.tmdb.org/t/p/original/qkWAYP3XhQ0vvMKNyISxcgfvpMK.jpg",
-    rating: 9.0,
-    year: 2006,
-    type: "SERIES",
-    overview: "A high school student discovers a supernatural notebook that allows him to kill anyone by writing their name.",
-    genres: ["Anime", "Thriller", "Mystery"],
-    maturity: "TV-14",
-    duration: "1 Season",
-  },
-];
+  // Fetch data on mount
+  // Best Practice: Use Promise.all for parallel API calls to minimize loading time
+  React.useEffect(() => {
+    async function fetchData() {
+      try {
+        setLoading(true);
+
+        // Fetch all content categories in parallel (faster than sequential)
+        const [
+          trendingData,
+          popularData,
+          newReleasesData,
+          topRatedData,
+          actionData,
+          dramaData,
+        ] = await Promise.all([
+          getTrendingTitles("US", "24h"),
+          getPopularTitles(1, 20),
+          getNewReleases(1, 20),
+          getTopRated(1, 20),
+          getTitlesByGenre("Action", 1, 20),
+          getTitlesByGenre("Drama", 1, 20),
+        ]);
+
+        // Map backend data to frontend format
+        const trendingItems = trendingData?.items?.map(mapTitleToContentItem) || [];
+        const popularItems = popularData?.items?.map(mapTitleToContentItem) || [];
+        const newReleaseItems = newReleasesData?.items?.map(mapTitleToContentItem) || [];
+        const topRatedItems = topRatedData?.items?.map(mapTitleToContentItem) || [];
+        const actionItems = actionData?.items?.map(mapTitleToContentItem) || [];
+        const dramaItems = dramaData?.items?.map(mapTitleToContentItem) || [];
+
+        setTrending(trendingItems);
+        setPopular(popularItems);
+        setNewReleases(newReleaseItems);
+        setTopRated(topRatedItems);
+        setActionMovies(actionItems);
+        setDramaMovies(dramaItems);
+
+        // Set featured content (first trending or popular item)
+        const featured = trendingItems[0] || popularItems[0];
+        if (featured) {
+          setFeaturedContent(featured);
+        }
+      } catch (error) {
+        console.error("Failed to fetch content:", error);
+        // Keep empty arrays on error
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchData();
+  }, []);
+
+  // Show loading state with spinner
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-[#e50914] border-t-transparent rounded-full animate-spin"></div>
+          <div className="text-white text-xl">Loading your content...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no content
+  if (!featuredContent && trending.length === 0 && popular.length === 0) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white text-2xl mb-4">No content available yet</div>
+          <div className="text-gray-400">Check back soon for new releases!</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-black overflow-x-hidden scroll-smooth">
+      {/* Cinematic Hero Section */}
+      {featuredContent && <CinematicHeroWithData content={featuredContent} />}
+
+      {/* Content Rows Section */}
+      <div className="relative -mt-16 z-20 overflow-x-hidden bg-black pt-4">
+        {/* Top gradient blend for seamless transition */}
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
+
+        {/* Content Grid */}
+        <div className="relative pb-12">
+          {trending.length > 0 && <EnhancedContentRow title="Trending Now" items={trending} index={0} />}
+          {popular.length > 0 && <EnhancedContentRow title="Popular on MoviesNow" items={popular} index={1} />}
+          {actionMovies.length > 0 && <EnhancedContentRow title="Action Blockbusters" items={actionMovies} index={2} />}
+          {topRated.length > 0 && <EnhancedContentRow title="Top Rated" items={topRated} index={3} />}
+          {newReleases.length > 0 && <EnhancedContentRow title="New Releases" items={newReleases} index={4} />}
+          {dramaMovies.length > 0 && <EnhancedContentRow title="Award-Winning Drama" items={dramaMovies} index={5} />}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ============================================================================
 // PREVIEW MODAL - NETFLIX STYLE
@@ -406,16 +352,16 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
           className="relative rounded-md overflow-hidden bg-zinc-900 shadow-2xl"
           animate={{
             scale: isHovered ? 1.5 : 1,
-            y: isHovered ? 50 : 0,
+            y: isHovered ? 0 : 0,
           }}
           transition={{
             type: "spring",
             stiffness: 260,
             damping: 25,
-            delay: isHovered ? 0.3 : 0,
+            delay: isHovered ? 0 : 0,
           }}
           style={{
-            transformOrigin: "center top",
+            transformOrigin: "top center",
             zIndex: isHovered ? 50 : 1,
             position: "relative",
           }}
@@ -449,7 +395,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
+                transition={{ duration: 0.2 }}
                 className="relative w-full bg-gradient-to-b from-[#1a1a1a] via-[#141414] to-[#0f0f0f] rounded-lg shadow-2xl ring-1 ring-white/10 overflow-visible"
                 style={{ aspectRatio: '16/14' }}
               >
@@ -472,7 +418,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                       onClick={handleCardClick}
                       initial={{ scale: 0, rotate: -180 }}
                       animate={{ scale: 1, rotate: 0 }}
-                      transition={{ delay: 0.4, type: "spring", stiffness: 300, damping: 20 }}
+                      transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 20 }}
                       whileHover={{ scale: 1.1, boxShadow: "0 0 40px rgba(255,255,255,0.6)" }}
                       whileTap={{ scale: 0.95 }}
                       className="w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-2xl backdrop-blur-sm transition-all"
@@ -486,7 +432,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                     onClick={handleCardClick}
                     initial={{ opacity: 0, scale: 0 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.15 }}
                     className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 backdrop-blur-sm border border-white/30 hover:border-white/60 hover:bg-black/90 flex items-center justify-center transition-all group"
                   >
                     <Info className="w-3 h-3 text-white group-hover:scale-110 transition-transform" strokeWidth={2.5} />
@@ -497,7 +443,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
+                  transition={{ delay: 0.1 }}
                   className="h-[58%] px-3 py-3 flex flex-col justify-between"
                 >
                   {/* Top Section - Title & Metadata */}
@@ -506,7 +452,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                     <motion.h3
                       initial={{ opacity: 0, y: 5 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.45 }}
+                      transition={{ delay: 0.15 }}
                       className="text-white font-bold text-xs leading-tight line-clamp-2"
                     >
                       {title}
@@ -517,7 +463,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ delay: 0.5, type: "spring" }}
+                        transition={{ delay: 0.2, type: "spring" }}
                         className="text-[#46d369] font-bold text-[10px] leading-none"
                       >
                         {(rating * 10).toFixed(0)}% Match
@@ -545,7 +491,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.6 }}
+                        transition={{ delay: 0.25 }}
                         className="flex flex-wrap items-center gap-1"
                       >
                         {genres.slice(0, 3).map((genre, i) => (
@@ -564,7 +510,7 @@ function UltraPremiumCard({ title, image, backdrop, rating, year, slug, overview
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7 }}
+                    transition={{ delay: 0.3 }}
                     className="flex items-center gap-1.5"
                   >
                     <button
@@ -785,10 +731,10 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
 }
 
 // ============================================================================
-// CINEMATIC HERO WITH VIDEO BACKGROUND
+// CINEMATIC HERO WITH VIDEO BACKGROUND (DYNAMIC DATA)
 // ============================================================================
 
-function CinematicHero() {
+function CinematicHeroWithData({ content }: { content: ContentItem }) {
   const { scrollY } = useScroll();
   const opacity = useTransform(scrollY, [0, 400], [1, 0]);
   const scale = useTransform(scrollY, [0, 400], [1, 1.1]);
@@ -805,19 +751,21 @@ function CinematicHero() {
   }, []);
 
   React.useEffect(() => {
-    if (videoRef.current && showVideo) {
+    if (videoRef.current && showVideo && content.trailerUrl) {
       videoRef.current.play().catch(() => {
         // Autoplay blocked, that's okay
       });
     }
-  }, [showVideo]);
+  }, [showVideo, content.trailerUrl]);
+
+  const backdropUrl = content.backdrop || content.image;
 
   return (
     <motion.div style={{ opacity }} className="relative h-[85vh] overflow-hidden">
       <motion.div style={{ scale }} className="absolute inset-0">
         {/* Video Background */}
         <AnimatePresence>
-          {showVideo && (
+          {showVideo && content.trailerUrl && (
             <motion.video
               ref={videoRef}
               initial={{ opacity: 0 }}
@@ -829,22 +777,23 @@ function CinematicHero() {
               muted={isMuted}
               playsInline
               className="absolute inset-0 w-full h-full object-cover"
-              poster={featuredContent.backdrop}
+              poster={backdropUrl}
             >
-              <source src={featuredContent.videoUrl} type="video/mp4" />
+              <source src={content.trailerUrl} type="video/mp4" />
             </motion.video>
           )}
         </AnimatePresence>
 
         {/* Fallback Image */}
-        {!showVideo && (
+        {(!showVideo || !content.trailerUrl) && (
           <Image
-            src={featuredContent.backdrop}
-            alt={featuredContent.title}
+            src={backdropUrl}
+            alt={content.title}
             fill
             className="object-cover"
             priority
             quality={90}
+            unoptimized
           />
         )}
 
@@ -864,7 +813,7 @@ function CinematicHero() {
             className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-red-600 to-red-700 mb-5 shadow-2xl ring-2 ring-red-500/30"
           >
             <div className="w-2 h-2 rounded-full bg-white animate-pulse shadow-lg" />
-            <span className="text-white text-xs font-bold uppercase tracking-widest">#1 in Movies Today</span>
+            <span className="text-white text-xs font-bold uppercase tracking-widest">#1 Trending Today</span>
           </motion.div>
 
           {/* Title */}
@@ -877,19 +826,8 @@ function CinematicHero() {
               textShadow: "0 4px 40px rgba(0,0,0,0.95), 0 2px 20px rgba(0,0,0,0.9), 0 0 60px rgba(229, 9, 20, 0.4)",
             }}
           >
-            {featuredContent.title}
+            {content.title}
           </motion.h1>
-
-          {/* Tagline */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-red-400 text-lg md:text-xl font-bold italic mb-5"
-            style={{ textShadow: "0 2px 10px rgba(0,0,0,0.8)" }}
-          >
-            "{featuredContent.tagline}"
-          </motion.p>
 
           {/* Metadata Row */}
           <motion.div
@@ -900,28 +838,34 @@ function CinematicHero() {
           >
             <div className="flex items-center gap-2">
               <Star className="w-5 h-5 md:w-6 md:h-6 text-yellow-400 fill-yellow-400 drop-shadow-lg" />
-              <span className="text-white font-bold text-xl md:text-2xl">{featuredContent.rating}</span>
+              <span className="text-white font-bold text-xl md:text-2xl">{content.rating.toFixed(1)}</span>
             </div>
             <span className="text-gray-400 text-lg">•</span>
-            <span className="text-white font-semibold text-base md:text-lg">{featuredContent.year}</span>
+            <span className="text-white font-semibold text-base md:text-lg">{content.year}</span>
             <span className="text-gray-400 text-lg">•</span>
             <span className="px-2.5 py-1 border-2 border-white/70 text-white font-bold text-xs md:text-sm rounded shadow-lg">
-              {featuredContent.maturity}
+              {content.maturity}
             </span>
-            <span className="text-gray-400 text-lg">•</span>
-            <span className="text-white text-base md:text-lg font-medium">{featuredContent.duration}</span>
+            {content.duration && (
+              <>
+                <span className="text-gray-400 text-lg">•</span>
+                <span className="text-white text-base md:text-lg font-medium">{content.duration}</span>
+              </>
+            )}
           </motion.div>
 
           {/* Overview */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="text-white/95 text-base md:text-lg leading-relaxed mb-7 max-w-2xl line-clamp-3"
-            style={{ textShadow: "0 2px 15px rgba(0,0,0,0.9)" }}
-          >
-            {featuredContent.overview}
-          </motion.p>
+          {content.overview && (
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="text-white/95 text-base md:text-lg leading-relaxed mb-7 max-w-2xl line-clamp-3"
+              style={{ textShadow: "0 2px 15px rgba(0,0,0,0.9)" }}
+            >
+              {content.overview}
+            </motion.p>
+          )}
 
           {/* Action Buttons */}
           <motion.div
@@ -930,7 +874,7 @@ function CinematicHero() {
             transition={{ delay: 0.8 }}
             className="flex items-center flex-wrap gap-3 md:gap-4"
           >
-            <a href={`/title/${featuredContent.slug}`}>
+            <a href={`/title/${content.slug}`}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -941,7 +885,7 @@ function CinematicHero() {
               </motion.button>
             </a>
 
-            <a href={`/title/${featuredContent.slug}`}>
+            <a href={`/title/${content.slug}`}>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -952,19 +896,21 @@ function CinematicHero() {
               </motion.button>
             </a>
 
-            {/* Mute Button */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setIsMuted(!isMuted)}
-              className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-transparent border-2 border-white/60 hover:border-white hover:bg-white/10 flex items-center justify-center transition-all shadow-lg"
-            >
-              {isMuted ? (
-                <VolumeX className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={2.5} />
-              ) : (
-                <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={2.5} />
-              )}
-            </motion.button>
+            {/* Mute Button (only show if trailer available) */}
+            {content.trailerUrl && (
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsMuted(!isMuted)}
+                className="w-12 h-12 md:w-14 md:h-14 rounded-full bg-transparent border-2 border-white/60 hover:border-white hover:bg-white/10 flex items-center justify-center transition-all shadow-lg"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={2.5} />
+                ) : (
+                  <Volume2 className="w-5 h-5 md:w-6 md:h-6 text-white" strokeWidth={2.5} />
+                )}
+              </motion.button>
+            )}
           </motion.div>
         </div>
       </div>
@@ -979,38 +925,9 @@ function CinematicHero() {
         transition={{ delay: 1 }}
         className="absolute top-20 md:top-24 right-4 md:right-8 px-3 md:px-4 py-1.5 md:py-2 border-3 md:border-4 border-white/80 text-white font-black text-lg md:text-2xl rounded shadow-2xl backdrop-blur-sm bg-black/20"
       >
-        {featuredContent.maturity}
+        {content.maturity}
       </motion.div>
     </motion.div>
   );
 }
 
-// ============================================================================
-// MAIN
-// ============================================================================
-
-export default function UltraPremiumHome() {
-  return (
-    <div className="min-h-screen bg-black overflow-x-hidden scroll-smooth">
-      {/* Cinematic Hero Section */}
-      <CinematicHero />
-
-      {/* Content Rows Section */}
-      <div className="relative -mt-16 z-20 overflow-x-hidden bg-black pt-4">
-        {/* Top gradient blend for seamless transition */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
-
-        {/* Content Grid */}
-        <div className="relative pb-12">
-          <EnhancedContentRow title="Trending Now" items={demoMovies} index={0} />
-          <EnhancedContentRow title="Popular on MoviesNow" items={demoSeries} index={1} />
-          <EnhancedContentRow title="Action Blockbusters" items={demoMovies} index={2} />
-          <EnhancedContentRow title="Award-Winning Series" items={demoSeries} index={3} />
-          <EnhancedContentRow title="New Releases" items={demoMovies} index={4} />
-          <EnhancedContentRow title="Top Rated Anime" items={demoSeries} index={5} />
-          <EnhancedContentRow title="Critically Acclaimed" items={demoMovies} index={6} />
-        </div>
-      </div>
-    </div>
-  );
-}
