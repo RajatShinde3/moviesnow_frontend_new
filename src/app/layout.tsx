@@ -18,14 +18,17 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import * as React from "react";
 import { headers } from "next/headers";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Bebas_Neue, JetBrains_Mono } from "next/font/google";
 
 import { cn } from "@/lib/cn";
 import Providers from "./providers";
 import RouteAnnouncer from "@/components/RouteAnnouncer";
 
 // ————————————————————————————————————————————————————————————————
-// Fonts (variables → use in your Tailwind theme as var(--font-sans/mono))
+// Fonts (Netflix-inspired typography for premium streaming experience)
+// Primary: Inter (clean, modern sans-serif for body text)
+// Display: Bebas Neue (bold, impactful for hero titles)
+// Mono: JetBrains Mono (code/technical elements)
 // Subset optimization for performance, swap for FOUT prevention
 // ————————————————————————————————————————————————————————————————
 const fontSans = Inter({
@@ -33,7 +36,17 @@ const fontSans = Inter({
   variable: "--font-sans",
   display: "swap",
   preload: true,
+  weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
+
+const fontDisplay = Bebas_Neue({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+  preload: true,
+  weight: ["400"],
+});
+
 const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
@@ -141,6 +154,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           "min-h-dvh bg-background text-foreground antialiased",
           "selection:bg-primary/10 selection:text-foreground",
           fontSans.variable,
+          fontDisplay.variable,
           fontMono.variable
         )}
       >

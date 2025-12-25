@@ -211,8 +211,9 @@ const config: Config = {
         'neon-lg': '0 0 40px rgba(139, 92, 246, 0.6)',
       },
       fontFamily: {
-        sans: ['var(--font-geist-sans)', 'system-ui', 'sans-serif'],
-        mono: ['var(--font-geist-mono)', 'monospace'],
+        sans: ['var(--font-sans)', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Bebas Neue', 'Impact', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
       },
       transitionDuration: {
         '400': '400ms',

@@ -237,16 +237,19 @@ export default function UltraPremiumHome() {
 
   return (
     <div className="min-h-screen bg-black overflow-x-hidden scroll-smooth">
+      {/* Spacer for navbar (adjust height to match your navbar) */}
+      <div className="h-16 md:h-20 bg-transparent" />
+
       {/* Cinematic Hero Section */}
       {featuredContent && <CinematicHeroWithData content={featuredContent} />}
 
       {/* Content Rows Section */}
-      <div className="relative -mt-20 z-20 overflow-x-hidden bg-black pt-4">
+      <div className="relative -mt-24 md:-mt-32 z-20 overflow-x-hidden bg-black pt-4">
         {/* Seamless gradient blend */}
-        <div className="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none z-10" />
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none z-10" />
 
         {/* Content Grid with stagger animations */}
-        <div className="relative pb-16 space-y-2">
+        <div className="relative pb-16 space-y-4 md:space-y-6">
           {trending.length > 0 && <EnhancedContentRow title="Trending Now" items={trending} index={0} />}
           {popular.length > 0 && <EnhancedContentRow title="Popular on MoviesNow" items={popular} index={1} />}
           {actionMovies.length > 0 && <EnhancedContentRow title="Action Blockbusters" items={actionMovies} index={2} />}
@@ -482,7 +485,7 @@ function UltraPremiumCard({
   const [imageLoaded, setImageLoaded] = React.useState(false);
   const hoverTimeoutRef = React.useRef<NodeJS.Timeout>();
   const cardRef = React.useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = false; // useReducedMotion hook removed for compatibility
 
   const isHovered = hoveredCard === id;
 
@@ -635,6 +638,11 @@ function UltraPremiumCard({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.15 }}
                       className="text-white font-bold text-xs leading-tight line-clamp-2"
+                      style={{
+                        fontFamily: 'var(--font-sans)',
+                        fontWeight: '700',
+                        letterSpacing: '-0.015em'
+                      }}
                     >
                       {title}
                     </motion.h3>
@@ -849,14 +857,18 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
   }, [checkScroll]);
 
   return (
-    <section className="relative group/row mb-10" role="region" aria-label={title}>
+    <section className="relative group/row mb-12 md:mb-16 overflow-visible" role="region" aria-label={title}>
       {/* Section Title */}
       <motion.h2
         initial={prefersReducedMotion ? {} : { opacity: 0, x: -20 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.05 }}
-        className="text-white text-base md:text-lg lg:text-xl xl:text-2xl font-bold mb-4 px-6 md:px-12 lg:px-16 hover:text-gray-300 transition-colors cursor-pointer group relative w-fit"
+        className="text-white text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold mb-5 md:mb-6 px-6 md:px-12 lg:px-16 hover:text-gray-300 transition-colors cursor-pointer group relative w-fit tracking-tight z-10"
+        style={{
+          fontFamily: 'var(--font-sans)',
+          letterSpacing: '-0.02em'
+        }}
       >
         {title}
         <motion.div
@@ -902,11 +914,18 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
         )}
       </AnimatePresence>
 
-      {/* Cards Container */}
+      {/* Cards Container - Fixed overflow for hover cards */}
       <div
         ref={scrollRef}
-        className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible scrollbar-hide px-6 md:px-12 lg:px-16 scroll-smooth pb-[280px] pt-2"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible px-6 md:px-12 lg:px-16 scroll-smooth"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+          paddingBottom: "200px",
+          paddingTop: "50px",
+          marginTop: "-50px",
+          marginBottom: "-200px"
+        }}
       >
         {items.map((item, idx) => (
           <motion.div
@@ -1026,8 +1045,11 @@ function CinematicHeroWithData({ content }: { content: ContentItem }) {
             initial={prefersReducedMotion ? {} : { opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white mb-6 leading-none tracking-tight"
+            className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black text-white mb-6 leading-[0.95] tracking-tighter"
             style={{
+              fontFamily: 'var(--font-sans)',
+              fontWeight: '900',
+              letterSpacing: '-0.04em',
               textShadow: "0 4px 40px rgba(0,0,0,0.95), 0 2px 20px rgba(0,0,0,0.9), 0 0 60px rgba(229, 9, 20, 0.4)",
             }}
           >
@@ -1069,8 +1091,13 @@ function CinematicHeroWithData({ content }: { content: ContentItem }) {
               initial={prefersReducedMotion ? {} : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="text-white/95 text-base md:text-lg lg:text-xl leading-relaxed mb-8 max-w-2xl line-clamp-3"
-              style={{ textShadow: "0 2px 15px rgba(0,0,0,0.9)" }}
+              className="text-white/95 text-base md:text-lg lg:text-xl leading-relaxed mb-8 max-w-2xl line-clamp-3 font-normal"
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontWeight: '400',
+                letterSpacing: '-0.01em',
+                textShadow: "0 2px 15px rgba(0,0,0,0.9)"
+              }}
             >
               {content.overview}
             </motion.p>
@@ -1087,7 +1114,12 @@ function CinematicHeroWithData({ content }: { content: ContentItem }) {
               <motion.button
                 whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
                 whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
-                className="flex items-center gap-2.5 px-8 md:px-12 py-3.5 md:py-4 rounded-md bg-white hover:bg-gray-100 text-black font-bold text-base md:text-lg shadow-2xl transition-all"
+                className="flex items-center gap-2.5 px-8 md:px-12 py-3.5 md:py-4 rounded-lg bg-white hover:bg-gray-100 text-black font-bold text-base md:text-lg shadow-2xl transition-all"
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: '700',
+                  letterSpacing: '-0.01em'
+                }}
               >
                 <Play className="w-6 h-6 md:w-7 md:h-7" fill="black" />
                 <span>Play</span>
@@ -1098,7 +1130,12 @@ function CinematicHeroWithData({ content }: { content: ContentItem }) {
               <motion.button
                 whileHover={prefersReducedMotion ? {} : { scale: 1.05 }}
                 whileTap={prefersReducedMotion ? {} : { scale: 0.95 }}
-                className="flex items-center gap-2.5 px-7 md:px-10 py-3.5 md:py-4 rounded-md bg-gray-700/70 hover:bg-gray-700/90 backdrop-blur-sm text-white font-bold text-base md:text-lg border-2 border-white/50 hover:border-white/70 transition-all shadow-xl"
+                className="flex items-center gap-2.5 px-7 md:px-10 py-3.5 md:py-4 rounded-lg bg-gray-700/70 hover:bg-gray-700/90 backdrop-blur-sm text-white font-bold text-base md:text-lg border-2 border-white/50 hover:border-white/70 transition-all shadow-xl"
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontWeight: '700',
+                  letterSpacing: '-0.01em'
+                }}
               >
                 <Info className="w-6 h-6 md:w-7 md:h-7" />
                 <span>More Info</span>
