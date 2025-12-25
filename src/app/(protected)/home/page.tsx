@@ -236,7 +236,7 @@ export default function UltraPremiumHome() {
   }
 
   return (
-    <div className="min-h-screen bg-black overflow-x-hidden scroll-smooth">
+    <div className="min-h-screen bg-black overflow-x-hidden overflow-y-auto scroll-smooth">
       {/* Spacer for navbar (adjust height to match your navbar) */}
       <div className="h-16 md:h-20 bg-transparent" />
 
@@ -244,7 +244,7 @@ export default function UltraPremiumHome() {
       {featuredContent && <CinematicHeroWithData content={featuredContent} />}
 
       {/* Content Rows Section */}
-      <div className="relative -mt-24 md:-mt-32 z-20 overflow-x-hidden bg-black pt-4">
+      <div className="relative -mt-24 md:-mt-32 z-20 overflow-x-hidden overflow-y-visible bg-black pt-4">
         {/* Seamless gradient blend */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black via-black/90 to-transparent pointer-events-none z-10" />
 
@@ -518,28 +518,34 @@ function UltraPremiumCard({
     <>
       <motion.div
         ref={cardRef}
-        className="relative cursor-pointer group"
+        className="relative cursor-pointer"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: index * 0.05 }}
+        style={{
+          minHeight: "100%",
+          display: "flex",
+          flexDirection: "column"
+        }}
       >
         <motion.div
           className="relative rounded-lg overflow-hidden bg-zinc-900 shadow-2xl"
           animate={{
             scale: isHovered && !prefersReducedMotion ? 1.5 : 1,
-            y: isHovered && !prefersReducedMotion ? -10 : 0,
           }}
           transition={{
             type: "spring",
-            stiffness: 260,
-            damping: 25,
+            stiffness: 300,
+            damping: 30,
+            mass: 0.8,
           }}
           style={{
             transformOrigin: "center center",
             zIndex: isHovered ? 50 : 1,
             position: "relative",
+            willChange: "transform",
           }}
         >
           {/* Poster - Base State */}
@@ -917,14 +923,12 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
       {/* Cards Container - Fixed overflow for hover cards */}
       <div
         ref={scrollRef}
-        className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible px-6 md:px-12 lg:px-16 scroll-smooth"
+        className="flex gap-3 md:gap-4 overflow-x-auto overflow-y-visible px-6 md:px-12 lg:px-16 scroll-smooth scrollbar-hide"
         style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          paddingBottom: "200px",
-          paddingTop: "50px",
-          marginTop: "-50px",
-          marginBottom: "-200px"
+          paddingBottom: "120px",
+          paddingTop: "120px",
+          marginTop: "-120px",
+          marginBottom: "-120px"
         }}
       >
         {items.map((item, idx) => (
@@ -935,6 +939,10 @@ function EnhancedContentRow({ title, items, index }: { title: string; items: Con
             viewport={{ once: true }}
             transition={{ delay: idx * 0.05 }}
             className="flex-shrink-0 w-[180px] md:w-[220px] lg:w-[260px]"
+            style={{
+              position: "relative",
+              minHeight: "270px"
+            }}
           >
             <UltraPremiumCard
               {...item}

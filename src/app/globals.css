@@ -145,6 +145,12 @@
   /* =============================================================================
    * SCROLLBAR CUSTOMIZATION
    * ============================================================================= */
+
+  /* Hide horizontal scrollbar globally */
+  html, body {
+    overflow-x: hidden;
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
