@@ -93,6 +93,25 @@ export default function UltraPremiumHome() {
           getTitlesByGenre("Drama", 1, 20),
         ]);
 
+        // Debug logging
+        console.log('[HOME] Raw API Responses:', {
+          trendingData,
+          popularData,
+          newReleasesData,
+          topRatedData,
+          actionData,
+          dramaData,
+        });
+
+        console.log('[HOME] API Responses:', {
+          trending: trendingData ? `${trendingData.items?.length || 0} items` : 'undefined',
+          popular: popularData ? `${popularData.items?.length || 0} items` : 'undefined',
+          newReleases: newReleasesData ? `${newReleasesData.items?.length || 0} items` : 'undefined',
+          topRated: topRatedData ? `${topRatedData.items?.length || 0} items` : 'undefined',
+          action: actionData ? `${actionData.items?.length || 0} items` : 'undefined',
+          drama: dramaData ? `${dramaData.items?.length || 0} items` : 'undefined',
+        });
+
         // Map backend data to frontend format
         const trendingItems = trendingData?.items?.map(mapTitleToContentItem) || [];
         const popularItems = popularData?.items?.map(mapTitleToContentItem) || [];
@@ -100,6 +119,15 @@ export default function UltraPremiumHome() {
         const topRatedItems = topRatedData?.items?.map(mapTitleToContentItem) || [];
         const actionItems = actionData?.items?.map(mapTitleToContentItem) || [];
         const dramaItems = dramaData?.items?.map(mapTitleToContentItem) || [];
+
+        console.log('[HOME] Mapped items:', {
+          trending: trendingItems.length,
+          popular: popularItems.length,
+          newReleases: newReleaseItems.length,
+          topRated: topRatedItems.length,
+          action: actionItems.length,
+          drama: dramaItems.length,
+        });
 
         setTrending(trendingItems);
         setPopular(popularItems);

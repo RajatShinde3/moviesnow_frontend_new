@@ -719,4 +719,23 @@
       transition-duration: 0.01ms !important;
     }
   }
+
+  /* =============================================================================
+   * OVERFLOW FIX FOR HOVER CARDS
+   * ============================================================================= */
+  /* Ensure content rows don't clip expanded cards */
+  .group\/row {
+    overflow: visible !important;
+  }
+
+  /* Prevent horizontal overflow on page container */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Allow vertical overflow for hover cards */
+  main {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
 }

@@ -44,7 +44,7 @@ export default function ProtectedLayout({ children }: Readonly<{ children: React
       <ModernNavigation />
 
       {/* Main content area - full width for OTT layout */}
-      <main id="protected-content" className="w-full overflow-x-hidden">
+      <main id="protected-content" className="w-full">
         <React.Suspense fallback={<ContentSkeleton />}>{children}</React.Suspense>
       </main>
 

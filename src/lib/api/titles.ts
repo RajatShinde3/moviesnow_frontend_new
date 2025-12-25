@@ -8,9 +8,6 @@
 
 import { fetchJson } from "./client";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-const API_V1 = `${API_BASE}/api/v1`;
-
 /* ══════════════════════════════════════════════════════════════
    TYPES
    ══════════════════════════════════════════════════════════════ */
@@ -73,59 +70,29 @@ export async function getTitles(params: TitleListParams = {}): Promise<Paginated
 
   // Sorting
   if (params.sort) searchParams.set("sort", params.sort);
-  if (params.order) searchParams.set("order", params.order);
 
   // Filters
   if (params.q) searchParams.set("q", params.q);
   if (params.genres && params.genres.length > 0) {
-    params.genres.forEach(g => searchParams.append("genres", g));
+    searchParams.set("genre", params.genres[0]); // Backend uses single genre filter
   }
   if (params.year_gte) searchParams.set("year_gte", String(params.year_gte));
   if (params.year_lte) searchParams.set("year_lte", String(params.year_lte));
-  if (params.rating_gte) searchParams.set("rating_gte", String(params.rating_gte));
-  if (params.rating_lte) searchParams.set("rating_lte", String(params.rating_lte));
-  if (params.cast && params.cast.length > 0) {
-    params.cast.forEach(c => searchParams.append("cast", c));
+
+  try {
+    return await fetchJson<PaginatedTitles>(`/catalog/titles`, {
+      method: "GET",
+      searchParams,
+    });
+  } catch (error) {
+    console.error("Failed to fetch titles:", error);
+    return {
+      items: [],
+      page: params.page || 1,
+      page_size: params.page_size || 24,
+      total: 0,
+    };
   }
-
-  // TEMPORARY: Use catalog endpoint which is working
-  const catalogData = await fetchJson<Array<{
-    id: string;
-    name: string;
-    slug: string;
-    type: string;
-    overview: string | null;
-    release_year: number | null;
-    rating_average: number | null;
-    content_rating: string | null;
-  }>>(`${API_V1}/catalog/titles`, {
-    method: "GET",
-    searchParams,
-  });
-
-  // Transform catalog response to PaginatedTitles format
-  return {
-    items: catalogData.map(title => ({
-      id: title.id,
-      name: title.name,
-      slug: title.slug,
-      type: title.type,
-      overview: title.overview,
-      tagline: null,
-      release_year: title.release_year,
-      rating_average: title.rating_average,
-      content_rating: title.content_rating,
-      runtime_minutes: null,
-      poster_url: null,
-      backdrop_url: null,
-      trailer_url: null,
-      genres: [],
-    })),
-    page: params.page || 1,
-    page_size: params.page_size || 24,
-    total: catalogData.length,
-    facets: { genres: [] },
-  };
 }
 
 /**
@@ -135,18 +102,24 @@ export async function getTrendingTitles(
   region: string = "US",
   window: "6h" | "24h" | "72h" | "168h" = "24h"
 ): Promise<{ region: string; window: string; items: TitleSummary[] } | undefined> {
-  const searchParams = new URLSearchParams({
-    region,
-    window,
-  });
+  const searchParams = new URLSearchParams({ region, window, page_size: "20" });
 
-  return fetchJson<{ region: string; window: string; items: TitleSummary[] }>(
-    `${API_V1}/trending`,
-    {
-      method: "GET",
-      searchParams,
-    }
-  );
+  try {
+    return await fetchJson<{ region: string; window: string; items: TitleSummary[] }>(
+      `/browse/trending`,
+      {
+        method: "GET",
+        searchParams,
+      }
+    );
+  } catch (error) {
+    console.error("Failed to fetch trending titles:", error);
+    return {
+      region,
+      window,
+      items: [],
+    };
+  }
 }
 
 /**
@@ -155,7 +128,7 @@ export async function getTrendingTitles(
 export async function getTop10Titles(region: string = "US"): Promise<{ region: string; items: TitleSummary[] } | undefined> {
   const searchParams = new URLSearchParams({ region });
 
-  return fetchJson<{ region: string; items: TitleSummary[] }>(`${API_V1}/top10`, {
+  return fetchJson<{ region: string; items: TitleSummary[] }>(`/top10`, {
     method: "GET",
     searchParams,
   });
@@ -165,50 +138,89 @@ export async function getTop10Titles(region: string = "US"): Promise<{ region: s
  * Helper: Get popular titles (sorted by popularity)
  */
 export async function getPopularTitles(page: number = 1, page_size: number = 24): Promise<PaginatedTitles | undefined> {
-  return getTitles({
-    page,
-    page_size,
-    sort: "popularity",
-    order: "desc",
-  });
+  const searchParams = new URLSearchParams({ page: String(page), page_size: String(page_size) });
+
+  try {
+    return await fetchJson<PaginatedTitles>(`/browse/popular`, {
+      method: "GET",
+      searchParams,
+    });
+  } catch (error) {
+    console.error("Failed to fetch popular titles:", error);
+    return {
+      items: [],
+      page,
+      page_size,
+      total: 0,
+    };
+  }
 }
 
 /**
  * Helper: Get new releases (sorted by release date)
  */
 export async function getNewReleases(page: number = 1, page_size: number = 24): Promise<PaginatedTitles | undefined> {
-  return getTitles({
-    page,
-    page_size,
-    sort: "released_at",
-    order: "desc",
-  });
+  const searchParams = new URLSearchParams({ page: String(page), page_size: String(page_size) });
+
+  try {
+    return await fetchJson<PaginatedTitles>(`/browse/new-releases`, {
+      method: "GET",
+      searchParams,
+    });
+  } catch (error) {
+    console.error("Failed to fetch new releases:", error);
+    return {
+      items: [],
+      page,
+      page_size,
+      total: 0,
+    };
+  }
 }
 
 /**
  * Helper: Get top rated titles (sorted by rating)
  */
 export async function getTopRated(page: number = 1, page_size: number = 24): Promise<PaginatedTitles | undefined> {
-  return getTitles({
-    page,
-    page_size,
-    sort: "rating",
-    order: "desc",
-    rating_gte: 7.0,
-  });
+  const searchParams = new URLSearchParams({ page: String(page), page_size: String(page_size) });
+
+  try {
+    return await fetchJson<PaginatedTitles>(`/browse/top-rated`, {
+      method: "GET",
+      searchParams,
+    });
+  } catch (error) {
+    console.error("Failed to fetch top rated titles:", error);
+    return {
+      items: [],
+      page,
+      page_size,
+      total: 0,
+    };
+  }
 }
 
 /**
  * Helper: Get titles by genre
  */
 export async function getTitlesByGenre(genre: string, page: number = 1, page_size: number = 24): Promise<PaginatedTitles | undefined> {
-  return getTitles({
-    page,
-    page_size,
-    genres: [genre],
-    sort: "popularity",
-    order: "desc",
-  });
+  const searchParams = new URLSearchParams({ page: String(page), page_size: String(page_size) });
+  const genreSlug = genre.toLowerCase().replace(/ /g, "-");
+
+  try {
+    return await fetchJson<PaginatedTitles>(`/browse/by-genre/${genreSlug}`, {
+      method: "GET",
+      searchParams,
+    });
+  } catch (error) {
+    console.error(`Failed to fetch titles for genre ${genre}:`, error);
+    return {
+      items: [],
+      page,
+      page_size,
+      total: 0,
+    };
+  }
 }
 
 /**
