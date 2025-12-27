@@ -691,6 +691,685 @@ export const healthService = {
 };
 
 /* ══════════════════════════════════════════════════════════════
+   TITLE AVAILABILITY SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const titleAvailabilityService = {
+  /**
+   * Get availability windows for a title
+   */
+  getAvailability: async (titleId: string) =>
+    fetchJson<T.AvailabilityWindow[]>(`/api/v1/admin/titles/${titleId}/availability`),
+
+  /**
+   * Set availability windows for a title
+   */
+  setAvailability: async (titleId: string, data: T.AvailabilityWindow[]) =>
+    fetchJson<T.AvailabilityWindow[]>(`/api/v1/admin/titles/${titleId}/availability`, {
+      method: "PUT",
+      json: data,
+    }),
+
+  /**
+   * Get regional availability for a title
+   */
+  getRegionalAvailability: async (titleId: string) =>
+    fetchJson<T.RegionalAvailability[]>(`/api/v1/admin/titles/${titleId}/availability/regions`),
+
+  /**
+   * Set regional availability for a title
+   */
+  setRegionalAvailability: async (titleId: string, data: T.RegionalAvailability[]) =>
+    fetchJson<T.RegionalAvailability[]>(`/api/v1/admin/titles/${titleId}/availability/regions`, {
+      method: "PUT",
+      json: data,
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   STREAM VARIANTS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const streamVariantsService = {
+  /**
+   * Add stream quality variant
+   */
+  addVariant: async (titleId: string, data: T.CreateStreamVariantRequest) =>
+    fetchJson<T.StreamVariant>(`/api/v1/admin/titles/${titleId}/stream-variants`, {
+      method: "POST",
+      json: data,
+    }),
+
+  /**
+   * Bulk add stream variants
+   */
+  bulkAddVariants: async (titleId: string, data: T.CreateStreamVariantRequest[]) =>
+    fetchJson<T.StreamVariant[]>(`/api/v1/admin/titles/${titleId}/stream-variants/bulk`, {
+      method: "POST",
+      json: data,
+    }),
+
+  /**
+   * List stream variants for a title
+   */
+  listVariants: async (titleId: string) =>
+    fetchJson<T.StreamVariant[]>(`/api/v1/admin/titles/${titleId}/stream-variants`),
+
+  /**
+   * Update stream variant
+   */
+  updateVariant: async (titleId: string, variantId: string, data: Partial<T.StreamVariant>) =>
+    fetchJson<T.StreamVariant>(`/api/v1/admin/titles/${titleId}/stream-variants/${variantId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  /**
+   * Get variant analytics
+   */
+  getVariantAnalytics: async (titleId: string, variantId: string) =>
+    fetchJson<T.QualityAnalytics>(`/api/v1/admin/titles/${titleId}/stream-variants/${variantId}/analytics`),
+
+  /**
+   * Admin quality controls
+   */
+  adminControls: async (titleId: string, variantId: string, data: T.AdminQualityControls) =>
+    fetchJson<T.StreamVariant>(`/api/v1/admin/titles/${titleId}/stream-variants/${variantId}/admin-controls`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  /**
+   * Test quality fallback logic
+   */
+  testFallback: async (titleId: string) =>
+    fetchJson<T.FallbackTestResult>(`/api/v1/admin/titles/${titleId}/test-fallback`, {
+      method: "POST",
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ASSET MANAGEMENT SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const assetsService = {
+  // Artwork Management
+  uploadArtwork: async (data: FormData) =>
+    fetchJson<T.Artwork>(`/api/v1/admin/assets/artwork/upload`, {
+      method: "POST",
+      body: data,
+    }),
+
+  getArtwork: async (titleId: string) =>
+    fetchJson<T.Artwork[]>(`/api/v1/admin/assets/artwork/${titleId}`),
+
+  updateArtwork: async (artworkId: string, data: Partial<T.Artwork>) =>
+    fetchJson<T.Artwork>(`/api/v1/admin/assets/artwork/${artworkId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteArtwork: async (artworkId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/assets/artwork/${artworkId}`, {
+      method: "DELETE",
+    }),
+
+  // Subtitle Management
+  uploadSubtitle: async (data: FormData) =>
+    fetchJson<T.Subtitle>(`/api/v1/admin/assets/subtitles/upload`, {
+      method: "POST",
+      body: data,
+    }),
+
+  getSubtitles: async (titleId: string) =>
+    fetchJson<T.Subtitle[]>(`/api/v1/admin/assets/subtitles/${titleId}`),
+
+  updateSubtitle: async (subtitleId: string, data: Partial<T.Subtitle>) =>
+    fetchJson<T.Subtitle>(`/api/v1/admin/assets/subtitles/${subtitleId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteSubtitle: async (subtitleId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/assets/subtitles/${subtitleId}`, {
+      method: "DELETE",
+    }),
+
+  // Trailer Management
+  uploadTrailer: async (data: FormData) =>
+    fetchJson<T.Trailer>(`/api/v1/admin/assets/trailers/upload`, {
+      method: "POST",
+      body: data,
+    }),
+
+  getTrailers: async (titleId: string) =>
+    fetchJson<T.Trailer[]>(`/api/v1/admin/assets/trailers/${titleId}`),
+
+  deleteTrailer: async (trailerId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/assets/trailers/${trailerId}`, {
+      method: "DELETE",
+    }),
+
+  // CDN Management
+  invalidateCache: async (data: T.CacheInvalidationRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/assets/cdn/invalidate`, {
+      method: "POST",
+      json: data,
+    }),
+
+  getCdnStats: async () =>
+    fetchJson<T.CDNStats>(`/api/v1/admin/assets/cdn/stats`),
+
+  // Asset Validation
+  validateAsset: async (data: T.AssetValidationRequest) =>
+    fetchJson<T.ValidationResult>(`/api/v1/admin/assets/validation/check`, {
+      method: "POST",
+      json: data,
+    }),
+
+  getValidationStatus: async (assetId: string) =>
+    fetchJson<T.ValidationResult>(`/api/v1/admin/assets/validation/${assetId}`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MONETIZATION SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const monetizationService = {
+  // Ad Configuration
+  listAdConfigs: async () =>
+    fetchJson<T.AdConfig[]>(`/api/v1/admin/monetization/ads`),
+
+  createAdConfig: async (data: T.CreateAdConfigRequest) =>
+    fetchJson<T.AdConfig>(`/api/v1/admin/monetization/ads`, {
+      method: "POST",
+      json: data,
+    }),
+
+  updateAdConfig: async (configId: string, data: Partial<T.AdConfig>) =>
+    fetchJson<T.AdConfig>(`/api/v1/admin/monetization/ads/${configId}`, {
+      method: "PUT",
+      json: data,
+    }),
+
+  deleteAdConfig: async (configId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/monetization/ads/${configId}`, {
+      method: "DELETE",
+    }),
+
+  // Download Redirects
+  listDownloadRedirects: async () =>
+    fetchJson<T.DownloadRedirect[]>(`/api/v1/admin/monetization/download-redirects`),
+
+  createDownloadRedirect: async (data: T.CreateDownloadRedirectRequest) =>
+    fetchJson<T.DownloadRedirect>(`/api/v1/admin/monetization/download-redirects`, {
+      method: "POST",
+      json: data,
+    }),
+
+  updateDownloadRedirect: async (redirectId: string, data: Partial<T.DownloadRedirect>) =>
+    fetchJson<T.DownloadRedirect>(`/api/v1/admin/monetization/download-redirects/${redirectId}`, {
+      method: "PUT",
+      json: data,
+    }),
+
+  deleteDownloadRedirect: async (redirectId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/monetization/download-redirects/${redirectId}`, {
+      method: "DELETE",
+    }),
+
+  verifyRedirect: async (redirectId: string) =>
+    fetchJson<T.RedirectVerificationResult>(`/api/v1/admin/monetization/download-redirects/${redirectId}/verify`, {
+      method: "POST",
+    }),
+
+  // Subscription Plans
+  listPlans: async () =>
+    fetchJson<T.SubscriptionPlan[]>(`/api/v1/admin/monetization/plans`),
+
+  createPlan: async (data: T.CreateSubscriptionPlanRequest) =>
+    fetchJson<T.SubscriptionPlan>(`/api/v1/admin/monetization/plans`, {
+      method: "POST",
+      json: data,
+    }),
+
+  updatePlan: async (planSlug: string, data: Partial<T.SubscriptionPlan>) =>
+    fetchJson<T.SubscriptionPlan>(`/api/v1/admin/monetization/plans/${planSlug}`, {
+      method: "PUT",
+      json: data,
+    }),
+
+  deletePlan: async (planSlug: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/monetization/plans/${planSlug}`, {
+      method: "DELETE",
+    }),
+
+  // Coupons
+  listCoupons: async () =>
+    fetchJson<T.Coupon[]>(`/api/v1/admin/monetization/coupons`),
+
+  createCoupon: async (data: T.CreateCouponRequest) =>
+    fetchJson<T.Coupon>(`/api/v1/admin/monetization/coupons`, {
+      method: "POST",
+      json: data,
+    }),
+
+  deleteCoupon: async (couponId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/monetization/coupons/${couponId}`, {
+      method: "DELETE",
+    }),
+
+  // Subscription Management
+  getSubscriptionStats: async () =>
+    fetchJson<T.SubscriptionStats>(`/api/v1/admin/monetization/subscriptions/stats`),
+
+  listSubscriptions: async (params?: T.SubscriptionFilterParams) =>
+    fetchJson<T.PaginatedResponse<T.Subscription>>(`/api/v1/admin/monetization/subscriptions`, {
+      searchParams: params as Record<string, string | number | boolean>,
+    }),
+
+  grantTrial: async (subscriptionId: string, data: T.GrantTrialRequest) =>
+    fetchJson<T.Subscription>(`/api/v1/admin/monetization/subscriptions/${subscriptionId}/grant-trial`, {
+      method: "POST",
+      json: data,
+    }),
+
+  extendSubscription: async (subscriptionId: string, data: T.ExtendSubscriptionRequest) =>
+    fetchJson<T.Subscription>(`/api/v1/admin/monetization/subscriptions/${subscriptionId}/extend`, {
+      method: "POST",
+      json: data,
+    }),
+
+  cancelSubscription: async (subscriptionId: string) =>
+    fetchJson<T.Subscription>(`/api/v1/admin/monetization/subscriptions/${subscriptionId}/cancel`, {
+      method: "POST",
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ADVANCED ANALYTICS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const advancedAnalyticsService = {
+  // Quality Analytics
+  qualityUsage: async () =>
+    fetchJson<T.QualityUsageAnalytics>(`/api/v1/admin/analytics/quality/usage`),
+
+  qualityOverrides: async () =>
+    fetchJson<T.QualityOverrideAnalytics>(`/api/v1/admin/analytics/quality/overrides`),
+
+  costOptimization: async () =>
+    fetchJson<T.CostOptimizationAnalytics>(`/api/v1/admin/analytics/cost/optimization`),
+
+  userPreferences: async (userId: string) =>
+    fetchJson<T.UserQualityPreferences>(`/api/v1/admin/analytics/users/${userId}/preferences`),
+
+  // Download Analytics
+  downloadAnalytics: async () =>
+    fetchJson<T.DownloadAnalytics>(`/api/v1/admin/analytics/downloads`),
+
+  // Device Analytics
+  deviceInsights: async () =>
+    fetchJson<T.DeviceAnalytics>(`/api/v1/admin/analytics/devices`),
+
+  // Real-Time Metrics
+  realTimeMetrics: async () =>
+    fetchJson<T.RealTimeMetrics>(`/api/v1/admin/analytics/real-time`),
+
+  // Title Performance
+  titlePerformance: async (titleId: string) =>
+    fetchJson<T.TitlePerformance>(`/api/v1/admin/analytics/titles/${titleId}/performance`),
+
+  // Cost Analytics Dashboard
+  costAnalyticsDashboard: async () =>
+    fetchJson<T.CostAnalyticsDashboard>(`/api/v1/admin/cost-analytics/dashboard`),
+
+  // Dashboard Summary
+  dashboardSummary: async () =>
+    fetchJson<T.AnalyticsDashboard>(`/api/v1/admin/analytics/dashboard`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   SERIES & SEASONS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const seriesService = {
+  // Season Management
+  createSeason: async (titleId: string, data: T.CreateSeasonRequest) =>
+    fetchJson<T.Season>(`/api/v1/admin/titles/${titleId}/seasons`, {
+      method: "POST",
+      json: data,
+    }),
+
+  listSeasons: async (titleId: string) =>
+    fetchJson<T.Season[]>(`/api/v1/admin/titles/${titleId}/seasons`),
+
+  getSeason: async (seasonId: string) =>
+    fetchJson<T.Season>(`/api/v1/admin/seasons/${seasonId}`),
+
+  updateSeason: async (seasonId: string, data: Partial<T.Season>) =>
+    fetchJson<T.Season>(`/api/v1/admin/seasons/${seasonId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteSeason: async (seasonId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/seasons/${seasonId}`, {
+      method: "DELETE",
+    }),
+
+  // Episode Management
+  createEpisode: async (seasonId: string, data: T.CreateEpisodeRequest) =>
+    fetchJson<T.Episode>(`/api/v1/admin/seasons/${seasonId}/episodes`, {
+      method: "POST",
+      json: data,
+    }),
+
+  listEpisodes: async (seasonId: string) =>
+    fetchJson<T.Episode[]>(`/api/v1/admin/seasons/${seasonId}/episodes`),
+
+  getEpisode: async (episodeId: string) =>
+    fetchJson<T.Episode>(`/api/v1/admin/episodes/${episodeId}`),
+
+  updateEpisode: async (episodeId: string, data: Partial<T.Episode>) =>
+    fetchJson<T.Episode>(`/api/v1/admin/episodes/${episodeId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteEpisode: async (episodeId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/episodes/${episodeId}`, {
+      method: "DELETE",
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ANIME ARCS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const animeArcsService = {
+  createArc: async (data: T.CreateAnimeArcRequest) =>
+    fetchJson<T.AnimeArc>(`/api/v1/admin/series/arcs`, {
+      method: "POST",
+      json: data,
+    }),
+
+  listArcs: async (params?: T.AnimeArcFilterParams) =>
+    fetchJson<T.AnimeArc[]>(`/api/v1/admin/series/arcs`, {
+      searchParams: params as Record<string, string | number | boolean>,
+    }),
+
+  getArc: async (arcId: string) =>
+    fetchJson<T.AnimeArc>(`/api/v1/admin/series/arcs/${arcId}`),
+
+  updateArc: async (arcId: string, data: Partial<T.AnimeArc>) =>
+    fetchJson<T.AnimeArc>(`/api/v1/admin/series/arcs/${arcId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteArc: async (arcId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/series/arcs/${arcId}`, {
+      method: "DELETE",
+    }),
+
+  getArcEpisodes: async (arcId: string) =>
+    fetchJson<T.Episode[]>(`/api/v1/admin/series/arcs/${arcId}/episodes`),
+
+  bulkUpdateStatus: async (data: T.BulkArcStatusUpdate) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/series/arcs/bulk-update-status`, {
+      method: "POST",
+      json: data,
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   AUDIO TRACKS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const audioTracksService = {
+  uploadTracks: async (data: FormData) =>
+    fetchJson<T.AudioTrackUpload>(`/api/v1/admin/audio-tracks/upload`, {
+      method: "POST",
+      body: data,
+    }),
+
+  processTracks: async (uploadId: string) =>
+    fetchJson<T.AudioTrackProcessing>(`/api/v1/admin/audio-tracks/process/${uploadId}`, {
+      method: "POST",
+    }),
+
+  getTitleTracks: async (titleId: string) =>
+    fetchJson<T.AudioTrack[]>(`/api/v1/admin/audio-tracks/${titleId}`),
+
+  getSeasonTracks: async (titleId: string, seasonId: string) =>
+    fetchJson<T.AudioTrack[]>(`/api/v1/admin/audio-tracks/${titleId}/seasons/${seasonId}`),
+
+  getEpisodeTracks: async (titleId: string, episodeId: string) =>
+    fetchJson<T.AudioTrack[]>(`/api/v1/admin/audio-tracks/${titleId}/episodes/${episodeId}`),
+
+  getProcessingStatus: async (uploadId: string) =>
+    fetchJson<T.AudioTrackProcessingStatus>(`/api/v1/admin/audio-tracks/processing-status/${uploadId}`),
+
+  deleteBundle: async (bundleId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/audio-tracks/${bundleId}`, {
+      method: "DELETE",
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   COMPLIANCE SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const complianceService = {
+  addCertification: async (titleId: string, data: T.CreateCertificationRequest) =>
+    fetchJson<T.Certification>(`/api/v1/admin/taxonomy/titles/${titleId}/certifications`, {
+      method: "POST",
+      json: data,
+    }),
+
+  dmcaTakedown: async (titleId: string, data: T.DMCATakedownRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/taxonomy/titles/${titleId}/dmca`, {
+      method: "POST",
+      json: data,
+    }),
+
+  getComplianceFlags: async () =>
+    fetchJson<T.ComplianceFlags>(`/api/v1/admin/compliance/flags`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   USER MANAGEMENT SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const userManagementService = {
+  searchUsers: async (params: T.UserSearchParams) =>
+    fetchJson<T.PaginatedResponse<T.User>>(`/api/v1/admin/users`, {
+      searchParams: params as Record<string, string | number | boolean>,
+    }),
+
+  getUserById: async (userId: string) =>
+    fetchJson<T.User>(`/api/v1/admin/users/${userId}`),
+
+  updateUser: async (userId: string, data: Partial<T.User>) =>
+    fetchJson<T.User>(`/api/v1/admin/users/${userId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deactivateUser: async (userId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/users/${userId}/deactivate`, {
+      method: "POST",
+    }),
+
+  reactivateUser: async (userId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/users/${userId}/reactivate`, {
+      method: "POST",
+    }),
+
+  deleteUser: async (userId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/users/${userId}`, {
+      method: "DELETE",
+    }),
+
+  getUserSessions: async (userId: string) =>
+    fetchJson<T.UserSession[]>(`/api/v1/admin/users/${userId}/sessions`),
+
+  adminResetPassword: async (userId: string, data: T.AdminPasswordResetRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/users/${userId}/reset-password-admin`, {
+      method: "POST",
+      json: data,
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   PERMISSIONS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const permissionsService = {
+  createGroup: async (data: T.CreatePermissionGroupRequest) =>
+    fetchJson<T.PermissionGroup>(`/api/v1/admin/permissions/groups`, {
+      method: "POST",
+      json: data,
+    }),
+
+  listGroups: async () =>
+    fetchJson<T.PermissionGroup[]>(`/api/v1/admin/permissions/groups`),
+
+  updateGroup: async (groupId: string, data: Partial<T.PermissionGroup>) =>
+    fetchJson<T.PermissionGroup>(`/api/v1/admin/permissions/groups/${groupId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  assignPermissions: async (data: T.AssignPermissionsRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/permissions/assign`, {
+      method: "POST",
+      json: data,
+    }),
+
+  getUserPermissions: async (userId: string) =>
+    fetchJson<T.UserPermissions>(`/api/v1/admin/permissions/users/${userId}`),
+
+  grantUserPermission: async (userId: string, data: T.GrantPermissionRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/permissions/users/${userId}/grant`, {
+      method: "POST",
+      json: data,
+    }),
+
+  assignUserToGroup: async (userId: string, data: T.AssignGroupRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/permissions/users/${userId}/assign-group`, {
+      method: "POST",
+      json: data,
+    }),
+
+  removeUserFromGroup: async (userId: string, data: T.RemoveGroupRequest) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/permissions/users/${userId}/remove-group`, {
+      method: "POST",
+      json: data,
+    }),
+
+  getEffectivePermissions: async (userId: string) =>
+    fetchJson<T.EffectivePermissions>(`/api/v1/admin/permissions/effective/${userId}`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ANIME DISCOVERY SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const animeDiscoveryService = {
+  getSeasonal: async () =>
+    fetchJson<T.Title[]>(`/api/v1/anime/seasonal`),
+
+  getTop: async () =>
+    fetchJson<T.Title[]>(`/api/v1/anime/top`),
+
+  getAiring: async () =>
+    fetchJson<T.Title[]>(`/api/v1/anime/airing`),
+
+  getUpcoming: async () =>
+    fetchJson<T.Title[]>(`/api/v1/anime/upcoming`),
+
+  getPopular: async () =>
+    fetchJson<T.Title[]>(`/api/v1/anime/popular`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   SCHEDULE SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const scheduleService = {
+  getReleases: async () =>
+    fetchJson<T.ScheduledRelease[]>(`/api/v1/schedule/releases`),
+
+  getEpisodes: async () =>
+    fetchJson<T.ScheduledEpisode[]>(`/api/v1/schedule/episodes`),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   USER DATA EXPORT SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const userDataExportService = {
+  exportActivity: async (profileId: string) =>
+    fetchJson<Blob>(`/api/v1/user/history/${profileId}/activity/export`, {
+      headers: {
+        Accept: "application/zip",
+      },
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   CDN MANAGEMENT SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const cdnManagementService = {
+  generateSignedCookie: async (data: T.SignedCookieRequest) =>
+    fetchJson<T.SignedCookieResponse>(`/api/v1/admin/cdn-cookies/generate`, {
+      method: "POST",
+      json: data,
+    }),
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MEDIA UPLOADS SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+export const mediaUploadsService = {
+  listUploads: async (params?: T.MediaUploadFilterParams) =>
+    fetchJson<T.PaginatedResponse<T.MediaUpload>>(`/api/v1/admin/media-uploads/`, {
+      searchParams: params as Record<string, string | number | boolean>,
+    }),
+
+  getUploadDetails: async (uploadId: string) =>
+    fetchJson<T.MediaUpload>(`/api/v1/admin/media-uploads/${uploadId}`),
+
+  getUploadProgress: async (uploadId: string) =>
+    fetchJson<T.UploadProgress>(`/api/v1/admin/media-uploads/${uploadId}/progress`),
+
+  getUploadLogs: async (uploadId: string) =>
+    fetchJson<T.ProcessingLog[]>(`/api/v1/admin/media-uploads/${uploadId}/logs`),
+
+  cancelUpload: async (uploadId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/media-uploads/${uploadId}/cancel`, {
+      method: "POST",
+    }),
+
+  retryUpload: async (uploadId: string) =>
+    fetchJson<T.MediaUpload>(`/api/v1/admin/media-uploads/${uploadId}/retry`, {
+      method: "POST",
+    }),
+
+  deleteUpload: async (uploadId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/media-uploads/${uploadId}`, {
+      method: "DELETE",
+    }),
+
+  getStatistics: async () =>
+    fetchJson<T.UploadStatistics>(`/api/v1/admin/media-uploads/statistics`),
+};
+
+/* ══════════════════════════════════════════════════════════════
    IMPORT ADVANCED SERVICES
    ══════════════════════════════════════════════════════════════ */
 
@@ -705,6 +1384,7 @@ import { sessionsService } from './services/sessions';
    ══════════════════════════════════════════════════════════════ */
 
 export const api = {
+  // Core Services
   auth: authService,
   user: userService,
   profiles: profileService,
@@ -716,12 +1396,39 @@ export const api = {
   reviews: reviewService,
   admin: adminService,
   health: healthService,
-  // Advanced Services
+
+  // Content Management Services
+  titleAvailability: titleAvailabilityService,
+  streamVariants: streamVariantsService,
+  assets: assetsService,
+  series: seriesService,
+  animeArcs: animeArcsService,
+  audioTracks: audioTracksService,
+
+  // Monetization Services
+  monetization: monetizationService,
+
+  // Analytics Services
   analytics: analyticsService,
+  advancedAnalytics: advancedAnalyticsService,
+
+  // Admin Services
   staff: staffService,
+  userManagement: userManagementService,
+  permissions: permissionsService,
+  compliance: complianceService,
+  cdn: cdnManagementService,
+  mediaUploads: mediaUploadsService,
+
+  // Discovery Services
+  animeDiscovery: animeDiscoveryService,
+  schedule: scheduleService,
+
+  // Advanced Services
   playbackIntelligence: playbackIntelligenceService,
   preferences: preferencesService,
   sessions: sessionsService,
+  userDataExport: userDataExportService,
 } as const;
 
 export default api;
