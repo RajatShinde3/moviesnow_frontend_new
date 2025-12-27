@@ -17,6 +17,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import Hls from "hls.js";
 import { api } from "@/lib/api/services";
 import { Play, Pause, Volume2, VolumeX, Maximize, Minimize, Settings, SkipForward, Languages, Type } from "lucide-react";
@@ -24,6 +25,7 @@ import type { PlaybackSession, SceneMarker } from "@/lib/api/types";
 import { ThumbnailPreview } from "./ThumbnailPreview";
 import { AudioTrackSelector, type AudioTrack } from "./AudioTrackSelector";
 import { SubtitleCustomizer, type SubtitleSettings } from "./SubtitleCustomizer";
+import { AdPlayer } from "./AdPlayer";
 
 interface VideoPlayerProps {
   titleId?: string;
@@ -40,6 +42,7 @@ export function VideoPlayer({
   autoPlay = false,
   onEnded,
 }: VideoPlayerProps) {
+  const router = useRouter();
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const hlsRef = React.useRef<Hls | null>(null);
@@ -49,6 +52,18 @@ export function VideoPlayer({
   const [markers, setMarkers] = React.useState<SceneMarker[]>([]);
   const [isPlaying, setIsPlaying] = React.useState(false);
   const [isMuted, setIsMuted] = React.useState(false);
+
+  // Ad integration states
+  const [showPreRollAd, setShowPreRollAd] = React.useState(false);
+  const [showMidRollAd, setShowMidRollAd] = React.useState(false);
+  const [isPremiumUser, setIsPremiumUser] = React.useState(true); // Default to true, will fetch from API
+  const [midRollTriggered, setMidRollTriggered] = React.useState(false);
+  const [adConfig] = React.useState({
+    provider: 'google_adsense',
+    ad_unit_id: 'ca-pub-moviesnow-preroll',
+    duration_seconds: 30,
+    skip_after_seconds: 5,
+  });
   const [volume, setVolume] = React.useState(1);
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
@@ -98,6 +113,40 @@ export function VideoPlayer({
     };
   });
 
+  // Check subscription status and show pre-roll ad for free users
+  React.useEffect(() => {
+    let mounted = true;
+
+    async function checkSubscription() {
+      try {
+        const user = await api.auth.getCurrentUser();
+        const hasPremium = user?.subscription_tier === 'premium' || user?.subscription_tier === 'premium_yearly';
+
+        if (mounted) {
+          setIsPremiumUser(hasPremium);
+
+          // Show pre-roll ad for free users
+          if (!hasPremium) {
+            setShowPreRollAd(true);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to check subscription:", err);
+        // Assume free user on error
+        if (mounted) {
+          setIsPremiumUser(false);
+          setShowPreRollAd(true);
+        }
+      }
+    }
+
+    checkSubscription();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // Initialize playback session
   React.useEffect(() => {
     let mounted = true;
@@ -138,12 +187,15 @@ export function VideoPlayer({
       }
     }
 
-    initSession();
+    // Only init session after pre-roll ad is complete (or if premium user)
+    if (isPremiumUser || !showPreRollAd) {
+      initSession();
+    }
 
     return () => {
       mounted = false;
     };
-  }, [titleId, episodeId, selectedQuality]);
+  }, [titleId, episodeId, selectedQuality, isPremiumUser, showPreRollAd]);
 
   // Initialize HLS.js
   React.useEffect(() => {
@@ -237,6 +289,23 @@ export function VideoPlayer({
     checkIntro();
   }, [currentTime, markers]);
 
+  // Mid-roll ad detection (show ad at 50% for free users)
+  React.useEffect(() => {
+    if (!isPremiumUser && duration > 0 && !midRollTriggered) {
+      const midPoint = duration / 2;
+
+      // Trigger mid-roll ad when reaching halfway point
+      if (currentTime >= midPoint && currentTime < midPoint + 1) {
+        setMidRollTriggered(true);
+        setShowMidRollAd(true);
+        // Pause the main video
+        if (videoRef.current) {
+          videoRef.current.pause();
+        }
+      }
+    }
+  }, [currentTime, duration, isPremiumUser, midRollTriggered]);
+
   // Video event handlers
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
@@ -317,6 +386,38 @@ export function VideoPlayer({
     if (typeof window !== 'undefined') {
       localStorage.setItem('subtitle_settings', JSON.stringify(settings));
     }
+  };
+
+  // Ad handlers
+  const handlePreRollAdComplete = () => {
+    setShowPreRollAd(false);
+    // Video will auto-init via useEffect dependency
+  };
+
+  const handlePreRollAdSkip = () => {
+    setShowPreRollAd(false);
+    // Video will auto-init via useEffect dependency
+  };
+
+  const handleMidRollAdComplete = () => {
+    setShowMidRollAd(false);
+    // Resume video playback
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
+
+  const handleMidRollAdSkip = () => {
+    setShowMidRollAd(false);
+    // Resume video playback
+    if (videoRef.current) {
+      videoRef.current.play();
+    }
+  };
+
+  const handleUpgradeClick = () => {
+    // Navigate to subscription page
+    router.push('/subscribe?source=ad_removal');
   };
 
   const handleProgressBarHover = (e: React.MouseEvent<HTMLInputElement>) => {
@@ -444,6 +545,26 @@ export function VideoPlayer({
         <div className="absolute inset-0 flex items-center justify-center bg-black">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-white border-t-transparent" />
         </div>
+      )}
+
+      {/* Pre-Roll Ad (shown before video starts for free users) */}
+      {showPreRollAd && (
+        <AdPlayer
+          adConfig={adConfig}
+          onAdComplete={handlePreRollAdComplete}
+          onSkip={handlePreRollAdSkip}
+          onUpgradeClick={handleUpgradeClick}
+        />
+      )}
+
+      {/* Mid-Roll Ad (shown halfway through video for free users) */}
+      {showMidRollAd && (
+        <AdPlayer
+          adConfig={adConfig}
+          onAdComplete={handleMidRollAdComplete}
+          onSkip={handleMidRollAdSkip}
+          onUpgradeClick={handleUpgradeClick}
+        />
       )}
 
       {/* Skip Intro Button */}

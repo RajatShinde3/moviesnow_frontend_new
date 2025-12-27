@@ -15,8 +15,10 @@
  */
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { api } from '@/lib/api/services';
 import { CinematicHero } from '@/components/streaming/CinematicHero';
 import { ContentRail } from '@/components/streaming/ContentRail';
@@ -28,6 +30,8 @@ import { colors, animation } from '@/lib/design-system';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export default function StreamingHomePage() {
+  const router = useRouter();
+
   // Fetch trending titles for hero
   const { data: trending, isLoading: trendingLoading } = useQuery({
     queryKey: ['trending'],
@@ -61,18 +65,22 @@ export default function StreamingHomePage() {
 
   // Handle play
   const handlePlay = (titleId: string) => {
-    // TODO: Navigate to player or start session
-    console.log('Play:', titleId);
+    // Navigate to watch page
+    router.push(`/watch/${titleId}`);
   };
 
   // Handle add to list
   const handleAddToList = async (titleId: string) => {
     try {
       await api.watchlist.add(titleId);
-      // TODO: Show success toast
-      console.log('Added to list:', titleId);
+      toast.success('Added to your watchlist', {
+        description: 'You can find it in My List',
+      });
     } catch (error) {
       console.error('Failed to add to list:', error);
+      toast.error('Failed to add to watchlist', {
+        description: 'Please try again later',
+      });
     }
   };
 

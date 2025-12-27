@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, TrendingUp, Clock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { colors, shadows, animation } from '@/lib/design-system';
+import { api } from '@/lib/api/services';
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // TYPES
@@ -107,17 +108,18 @@ export function SearchBar({ onSearch, placeholder = 'Search movies, series, anim
     const fetchSuggestions = async () => {
       setIsLoading(true);
       try {
-        // TODO: Replace with actual API call
-        // const results = await api.discovery.getSuggestions(debouncedQuery);
+        const results = await api.discovery.getSuggestions(debouncedQuery);
 
-        // Mock suggestions for demo
-        const mockSuggestions: SearchSuggestion[] = [
-          { id: '1', name: 'Attack on Titan', type: 'SERIES' as const, slug: 'attack-on-titan', year: 2013 },
-          { id: '2', name: 'One Piece', type: 'SERIES' as const, slug: 'one-piece', year: 1999 },
-          { id: '3', name: 'Demon Slayer', type: 'SERIES' as const, slug: 'demon-slayer', year: 2019 },
-        ].filter(s => s.name.toLowerCase().includes(debouncedQuery.toLowerCase()));
+        // Map API results to SearchSuggestion format
+        const mappedSuggestions: SearchSuggestion[] = results.map((result: any) => ({
+          id: result.id || result.title_id,
+          name: result.title || result.name,
+          type: (result.type?.toUpperCase() || 'MOVIE') as 'MOVIE' | 'SERIES',
+          slug: result.slug,
+          year: result.release_year || result.year,
+        }));
 
-        setSuggestions(mockSuggestions);
+        setSuggestions(mappedSuggestions);
       } catch (error) {
         console.error('Failed to fetch suggestions:', error);
         setSuggestions([]);

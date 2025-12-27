@@ -691,6 +691,16 @@ export const healthService = {
 };
 
 /* ══════════════════════════════════════════════════════════════
+   IMPORT ADVANCED SERVICES
+   ══════════════════════════════════════════════════════════════ */
+
+import { analyticsService } from './services/analytics';
+import { staffService } from './services/staff';
+import { playbackIntelligenceService } from './services/playback-intelligence';
+import { preferencesService } from './services/preferences';
+import { sessionsService } from './services/sessions';
+
+/* ══════════════════════════════════════════════════════════════
    EXPORT ALL SERVICES
    ══════════════════════════════════════════════════════════════ */
 
@@ -706,6 +716,12 @@ export const api = {
   reviews: reviewService,
   admin: adminService,
   health: healthService,
+  // Advanced Services
+  analytics: analyticsService,
+  staff: staffService,
+  playbackIntelligence: playbackIntelligenceService,
+  preferences: preferencesService,
+  sessions: sessionsService,
 } as const;
 
 export default api;

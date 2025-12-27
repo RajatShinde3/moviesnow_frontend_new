@@ -8,13 +8,28 @@
 "use client";
 
 import * as React from "react";
+import { useState } from "react";
 import { api } from "@/lib/api/services";
+import { bundleService } from "@/lib/api/services/bundles";
 import { Button } from "@/components/ui/Button";
 import { useQuery } from "@tanstack/react-query";
-import { Download, Trash2, ExternalLink } from "lucide-react";
+import { Download, Trash2, ExternalLink, Settings, Film, TvIcon } from "lucide-react";
 import Link from "next/link";
+import FormatSelectionModal, { DownloadFormat } from "@/components/downloads/FormatSelectionModal";
+import EpisodeSelectionModal from "@/components/downloads/EpisodeSelectionModal";
+
+interface DownloadFlow {
+  bundleId: string;
+  titleName: string;
+  titleType: 'movie' | 'series';
+  step: 'format' | 'episodes' | null;
+  selectedFormat?: DownloadFormat;
+  estimatedSize?: number;
+}
 
 export default function DownloadsPage() {
+  const [downloadFlow, setDownloadFlow] = useState<DownloadFlow | null>(null);
+
   const { data: downloads, isLoading } = useQuery({
     queryKey: ["downloads"],
     queryFn: () => api.downloads.getAll(),
@@ -25,16 +40,92 @@ export default function DownloadsPage() {
     queryFn: () => api.downloads.getBundles(),
   });
 
-  const handleDownload = async (bundleId: string) => {
+  // Fetch episodes when episode selection step is active
+  const { data: bundleEpisodes, isLoading: episodesLoading } = useQuery({
+    queryKey: ['bundle-episodes', downloadFlow?.bundleId],
+    queryFn: () => bundleService.getBundleEpisodes(downloadFlow!.bundleId),
+    enabled: downloadFlow?.step === 'episodes' && !!downloadFlow.bundleId,
+  });
+
+  // Start download flow with format selection
+  const handleStartDownload = (bundle: any) => {
+    setDownloadFlow({
+      bundleId: bundle.id,
+      titleName: bundle.name || 'Content',
+      titleType: bundle.content_type || 'movie',
+      step: 'format',
+      estimatedSize: bundle.size_bytes,
+    });
+  };
+
+  // Handle format selection completion
+  const handleFormatSelected = (format: DownloadFormat) => {
+    if (!downloadFlow) return;
+
+    // If it's a series, show episode selection next
+    if (downloadFlow.titleType === 'series') {
+      setDownloadFlow({
+        ...downloadFlow,
+        selectedFormat: format,
+        step: 'episodes',
+      });
+    } else {
+      // For movies, proceed directly to download
+      proceedToDownload(downloadFlow.bundleId, format, []);
+    }
+  };
+
+  // Handle episode selection completion
+  const handleEpisodesSelected = (episodeIds: string[]) => {
+    if (!downloadFlow || !downloadFlow.selectedFormat) return;
+    proceedToDownload(downloadFlow.bundleId, downloadFlow.selectedFormat, episodeIds);
+  };
+
+  // Final download execution
+  const proceedToDownload = async (bundleId: string, format: DownloadFormat, episodeIds: string[]) => {
     try {
+      // Get download URL with format and episode selection
       const response = await api.downloads.getBundleDownloadUrl(bundleId);
       const download_url = response?.download_url;
+
       if (download_url) {
-        window.open(download_url, "_blank");
+        // Check if user has premium subscription
+        const user = await api.auth.getCurrentUser();
+
+        // Build URL with format and episode parameters
+        const params = new URLSearchParams();
+        params.append('bundle', bundleId);
+        params.append('format', format);
+        if (episodeIds.length > 0) {
+          params.append('episodes', episodeIds.join(','));
+        }
+
+        if (user?.subscription_tier === 'free') {
+          // Redirect to ad page for free users with all parameters
+          window.location.href = `/download-redirect?${params.toString()}`;
+        } else {
+          // Direct download for premium users
+          // Append format and episodes to download URL if needed
+          const downloadUrlWithParams = new URL(download_url, window.location.origin);
+          downloadUrlWithParams.searchParams.append('format', format);
+          if (episodeIds.length > 0) {
+            downloadUrlWithParams.searchParams.append('episodes', episodeIds.join(','));
+          }
+          window.open(downloadUrlWithParams.toString(), "_blank");
+        }
       }
+
+      // Reset flow
+      setDownloadFlow(null);
     } catch (error) {
       console.error("Failed to get download URL:", error);
+      setDownloadFlow(null);
     }
+  };
+
+  // Cancel download flow
+  const handleCancelFlow = () => {
+    setDownloadFlow(null);
   };
 
   return (
@@ -85,10 +176,10 @@ export default function DownloadsPage() {
 
                     <Button
                       className="mt-4"
-                      onClick={() => handleDownload(bundle.id)}
+                      onClick={() => handleStartDownload(bundle)}
                     >
-                      <Download className="h-4 w-4" />
-                      Download
+                      <Settings className="h-4 w-4" />
+                      Customize & Download
                     </Button>
                   </div>
                 ))}
@@ -154,6 +245,27 @@ export default function DownloadsPage() {
           </section>
         </div>
       </div>
+
+      {/* Format Selection Modal */}
+      {downloadFlow && downloadFlow.step === 'format' && (
+        <FormatSelectionModal
+          titleName={downloadFlow.titleName}
+          onConfirm={handleFormatSelected}
+          onCancel={handleCancelFlow}
+          estimatedSize={downloadFlow.estimatedSize}
+        />
+      )}
+
+      {/* Episode Selection Modal (for series) */}
+      {downloadFlow && downloadFlow.step === 'episodes' && (
+        <EpisodeSelectionModal
+          episodes={bundleEpisodes || []}
+          titleName={downloadFlow.titleName}
+          onConfirm={handleEpisodesSelected}
+          onCancel={handleCancelFlow}
+          isLoading={episodesLoading}
+        />
+      )}
     </div>
   );
 }

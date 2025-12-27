@@ -99,6 +99,14 @@ export function TitleCardWithPreview({
     },
   });
 
+  const removeRatingMutation = useMutation({
+    mutationFn: () =>
+      api.user.rateTitle(title.id, "like"), // Send "like" to remove (or implement dedicated remove endpoint)
+    onSuccess: () => {
+      setUserRating(null);
+    },
+  });
+
   const toggleWatchlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -113,8 +121,8 @@ export function TitleCardWithPreview({
     e.preventDefault();
     e.stopPropagation();
     if (userRating === rating) {
-      setUserRating(null);
-      // TODO: Remove rating API call
+      // Remove rating when clicking the same rating again
+      removeRatingMutation.mutate();
     } else {
       rateMutation.mutate(rating);
     }

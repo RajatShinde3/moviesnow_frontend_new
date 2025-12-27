@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Download, Check, Loader2, AlertCircle, Crown, Sparkles, ArrowRight, Shield, Zap, Star } from "lucide-react";
 import Image from "next/image";
 import { requestDownload, getDownloadUrl, type DownloadLink } from "@/lib/api/downloads";
+import { api } from "@/lib/api/services";
 
 // ============================================================================
 // ULTRA-MODERN DOWNLOAD PAGE WITH PREMIUM UX
@@ -17,10 +18,16 @@ export default function DownloadsPage() {
 
   // Fetch user subscription status
   React.useEffect(() => {
-    // TODO: Check actual user subscription status
     const checkSubscription = async () => {
-      // Placeholder: You'd call your user API here
-      setIsPremium(false); // Change to true to test premium flow
+      try {
+        const subscription = await api.user.getSubscription();
+        const hasPremium = subscription?.status === 'active' &&
+                          (subscription?.tier === 'premium' || subscription?.tier === 'premium_yearly');
+        setIsPremium(hasPremium);
+      } catch (error) {
+        console.error('Failed to check subscription:', error);
+        setIsPremium(false); // Default to free on error
+      }
     };
     checkSubscription();
   }, []);

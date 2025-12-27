@@ -16,6 +16,7 @@
  */
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { api } from '@/lib/api/services';
@@ -33,6 +34,7 @@ import { colors, animation } from '@/lib/design-system';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export default function UltraStreamingHomePage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   // Fetch trending titles for hero
@@ -85,8 +87,8 @@ export default function UltraStreamingHomePage() {
       description: 'Enjoy your show!',
       icon: '▶️',
     });
-    // TODO: Navigate to player
-    console.log('Play:', titleId);
+    // Navigate to watch page
+    router.push(`/watch/${titleId}`);
   };
 
   // Handle add to watchlist
