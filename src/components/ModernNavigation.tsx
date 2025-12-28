@@ -14,6 +14,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/cn';
+import { useMe } from '@/lib/useMe';
+import { logout as logoutFromStore } from '@/lib/auth_store';
+import { ProfileSelector } from './ProfileSelector';
 
 interface NavItem {
   name: string;
@@ -87,6 +90,43 @@ const CloseIcon = () => (
   </svg>
 );
 
+const UserIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
+const SettingsIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M12 1v6m0 6v6M5.6 5.6l4.2 4.2m4.2 4.2l4.2 4.2M1 12h6m6 0h6M5.6 18.4l4.2-4.2m4.2-4.2l4.2-4.2" />
+  </svg>
+);
+
+const LogoutIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
+const BillingIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+    <line x1="1" y1="10" x2="23" y2="10" />
+  </svg>
+);
+
+const SwitchProfileIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <circle cx="8.5" cy="7" r="4" />
+    <polyline points="17 11 19 13 23 9" />
+  </svg>
+);
+
 // ============================================================================
 // NAVIGATION ITEMS
 // ============================================================================
@@ -112,6 +152,9 @@ export function ModernNavigation() {
   const [searchQuery, setSearchQuery] = React.useState('');
   const [scrolled, setScrolled] = React.useState(false);
 
+  // Get current user data
+  const { data: user, isLoading: userLoading } = useMe();
+
   // Handle scroll effect for navbar background
   React.useEffect(() => {
     const handleScroll = () => {
@@ -135,6 +178,23 @@ export function ModernNavigation() {
       router.push(`/browse?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchOpen(false);
       setSearchQuery('');
+    }
+  };
+
+  // Handle logout
+  const handleLogout = async () => {
+    try {
+      // Call logout API
+      await fetch('/api/v1/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Clear tokens and redirect
+      logoutFromStore();
+      router.push('/login');
     }
   };
 
@@ -240,16 +300,103 @@ export function ModernNavigation() {
                 </motion.button>
               </Link>
 
-              {/* User Avatar */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setUserMenuOpen(!userMenuOpen)}
-                className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-black text-base shadow-lg shadow-purple-500/30 transition-all duration-300 ring-2 ring-white/10 hover:ring-white/30"
-                aria-label="User menu"
-              >
-                U
-              </motion.button>
+              {/* Profile Selector */}
+              <ProfileSelector />
+
+              {/* User Avatar with Dropdown */}
+              <div className="relative">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-black text-base shadow-lg shadow-purple-500/30 transition-all duration-300 ring-2 ring-white/10 hover:ring-white/30"
+                  aria-label="User menu"
+                >
+                  {userLoading ? '...' : (user?.email?.[0]?.toUpperCase() || 'U')}
+                </motion.button>
+
+                {/* User Menu Dropdown */}
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setUserMenuOpen(false)}
+                      />
+
+                      {/* Dropdown Menu */}
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                        className="absolute right-0 top-14 z-50 w-72 rounded-2xl bg-gray-900/98 backdrop-blur-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
+                      >
+                        {/* User Info Section */}
+                        <div className="border-b border-white/10 p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-black text-lg">
+                              {user?.email?.[0]?.toUpperCase() || 'U'}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-bold text-white truncate">
+                                {user?.email || 'Guest User'}
+                              </p>
+                              <p className="text-xs text-white/60">
+                                {user?.is_email_verified ? '✓ Verified' : 'Unverified'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Menu Items */}
+                        <div className="p-2">
+                          <Link
+                            href="/profiles"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+                          >
+                            <SwitchProfileIcon />
+                            <span>Switch Profile</span>
+                          </Link>
+
+                          <Link
+                            href="/settings"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+                          >
+                            <SettingsIcon />
+                            <span>Account Settings</span>
+                          </Link>
+
+                          <Link
+                            href="/billing"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-3 w-full rounded-xl px-4 py-3 text-sm font-semibold text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+                          >
+                            <BillingIcon />
+                            <span>Billing & Subscription</span>
+                          </Link>
+
+                          <div className="my-2 border-t border-white/10" />
+
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              handleLogout();
+                            }}
+                            className="flex items-center gap-3 w-full rounded-xl px-4 py-3 text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-200"
+                          >
+                            <LogoutIcon />
+                            <span>Sign Out</span>
+                          </button>
+                        </div>
+                      </motion.div>
+                    </>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Mobile Menu Toggle */}
               <motion.button

@@ -23,7 +23,7 @@
 
 import * as React from "react";
 import { useSelectedLayoutSegments } from "next/navigation";
-import { SettingsTab } from "@/components/SettingsTab";
+import { EnhancedSettingsNav } from "@/components/EnhancedSettingsNav";
 
 // Canonical tab keys shown in <SettingsTab />
 const TABS = ["security", "sessions", "devices", "alerts", "activity", "account", "subscription"] as const;
@@ -59,7 +59,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         Skip to content
       </a>
 
-      <SettingsTab />
+      <EnhancedSettingsNav />
 
       {/* Main landmark keeps pages consistent and helps SR users */}
       <main id="settings-content" className="mt-6">

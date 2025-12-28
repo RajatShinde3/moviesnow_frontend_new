@@ -64,6 +64,7 @@ const RawMfaEnableResponseSchema = z
     secret_base32: z.string().optional(),
     otpauth_url: z.string().optional(),       // allow non-URL formats; we won't validate here
     provisioning_uri: z.string().optional(),  // some backends use this
+    qr_code_url: z.string().optional(),       // MoviesNow backend uses this
     qr_svg: z.string().optional(),
     qr_png: z.string().optional(),            // may be data: or https:
     algorithm: z.enum(["SHA1", "SHA256", "SHA512"]).optional(),
@@ -119,7 +120,7 @@ function extractFromOtpauth(otpauth?: string) {
 }
 
 function normalizeEnablePayload(raw: RawMfaEnableResponse): MfaEnableResult {
-  const otpauth_url = raw.otpauth_url ?? raw.provisioning_uri ?? undefined;
+  const otpauth_url = raw.otpauth_url ?? raw.provisioning_uri ?? raw.qr_code_url ?? undefined;
   const fromUri = extractFromOtpauth(otpauth_url);
 
   // Prefer explicit secret; else try to pull from otpauth:// URI.
@@ -210,6 +211,7 @@ export function useMfaEnable() {
     onSuccess: async () => {
       // Refresh any screens that depend on MFA status/provisioning
       await qc.invalidateQueries({ queryKey: ["auth", "mfa"] });
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }

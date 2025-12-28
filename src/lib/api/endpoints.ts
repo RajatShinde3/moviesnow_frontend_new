@@ -75,11 +75,11 @@ export const USER = {
    ══════════════════════════════════════════════════════════════ */
 
 export const PROFILES = {
-  LIST: `${API_V1}/users/profiles`,
-  CREATE: `${API_V1}/users/profiles`,
-  GET: (id: string) => `${API_V1}/users/profiles/${id}`,
-  UPDATE: (id: string) => `${API_V1}/users/profiles/${id}`,
-  DELETE: (id: string) => `${API_V1}/users/profiles/${id}`,
+  LIST: `${API_V1}/users/me/profiles`,
+  CREATE: `${API_V1}/users/me/profiles`,
+  GET: (id: string) => `${API_V1}/users/me/profiles/${id}`,
+  UPDATE: (id: string) => `${API_V1}/users/me/profiles/${id}`,
+  DELETE: (id: string) => `${API_V1}/users/me/profiles/${id}`,
 } as const;
 
 /* ══════════════════════════════════════════════════════════════

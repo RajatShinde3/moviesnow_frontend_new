@@ -17,7 +17,7 @@
  * - Normalizes responses into a single result shape.
  */
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchJsonWithMeta,
   REAUTH_HEADER_NAME,
@@ -91,8 +91,10 @@ const MfaVerifyResponseSchema = z
   .object({
     ok: z.boolean().optional(),
     enabled: z.boolean().optional(),
-    recovery_codes: z.array(z.string()).optional(),
-    backup_codes: z.array(z.string()).optional(), // alt name
+    recovery_codes: z.array(z.string()).nullable().optional(),
+    backup_codes: z.array(z.string()).nullable().optional(), // alt name
+    message: z.string().optional(), // Backend message
+    mfa_token: z.string().nullable().optional(), // Backend token
   })
   .partial()
   .passthrough();
@@ -129,18 +131,28 @@ function shouldRetry(_count: number, err: unknown) {
    ──────────────────────────────────────────────────────────────────────────── */
 
 export function useMfaVerify() {
+  const qc = useQueryClient();
+
   return useMutation<MfaVerifyResult, AppError, MfaVerifyInput>({
     mutationKey: ["auth", "mfa", "verify"],
     retry: shouldRetry,
     mutationFn: async (variables) => {
+      console.log("🔐 [useMfaVerify] Input variables:", variables);
       const payload: MfaVerifyPayload = MfaVerifyPayloadSchema.parse(variables);
+      console.log("🔐 [useMfaVerify] Parsed payload:", payload);
 
       // Compose headers: Idempotency always; X-Reauth if provided
       const headers: Record<string, string> = { "Idempotency-Key": newIdemKey() };
       if (payload.reauth_token) headers[REAUTH_HEADER_NAME] = payload.reauth_token;
 
       // Build JSON body without the reauth token
-      const { reauth_token: _rt, ...json } = payload;
+      // Backend expects "code" not "totp_code"
+      const { reauth_token: _rt, totp_code, ...rest } = payload;
+      const json = { code: totp_code, ...rest };
+
+      console.log("🔐 [useMfaVerify] Request path:", MFA_VERIFY_PATH);
+      console.log("🔐 [useMfaVerify] Request body:", json);
+      console.log("🔐 [useMfaVerify] Request headers:", headers);
 
       const { data, requestId } = await fetchJsonWithMeta<unknown | undefined>(MFA_VERIFY_PATH, {
         method: "POST",
@@ -149,19 +161,32 @@ export function useMfaVerify() {
         cache: "no-store",
       });
 
+      console.log("🔐 [useMfaVerify] Response data:", data, "requestId:", requestId);
+
       // 204 → ok
-      if (!data) return { ok: true, requestId } as const;
+      if (!data) {
+        console.log("🔐 [useMfaVerify] No data, returning ok");
+        return { ok: true, requestId } as const;
+      }
 
       // Normalize diverse responses
       const parsed = MfaVerifyResponseSchema.parse(data);
+      console.log("🔐 [useMfaVerify] Parsed response:", parsed);
       const recovery = parsed.recovery_codes ?? parsed.backup_codes ?? undefined;
 
-      return {
+      const result = {
         ok: true as const,
         enabled: parsed.enabled,
         recovery_codes: recovery,
         requestId,
       };
+      console.log("🔐 [useMfaVerify] Returning result:", result);
+      return result;
+    },
+    onSuccess: async () => {
+      // MFA verified successfully — refresh related caches
+      await qc.invalidateQueries({ queryKey: ["auth", "mfa"] });
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
     },
   });
 }

@@ -177,7 +177,7 @@ function MfaForm() {
     try {
       if (mode === "totp") {
         const base: any = { ...(challengeRef.current || {}) };
-        await mfaLogin({ ...base, totp } as any);
+        await mfaLogin({ ...base, totp_code: totp } as any);
       } else {
         await redeemRecoveryCode({
           code: normalizeBackupCode(recovery),

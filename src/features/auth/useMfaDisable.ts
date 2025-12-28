@@ -105,6 +105,7 @@ export function useMfaDisable() {
     onSuccess: async () => {
       // MFA state changed — refresh related caches
       await qc.invalidateQueries({ queryKey: ["auth", "mfa"] });
+      await qc.invalidateQueries({ queryKey: ["auth", "me"] });
       // (optional) If you display recovery codes status, also invalidate them
       // await qc.invalidateQueries({ queryKey: ["auth", "recovery-codes"] });
     },

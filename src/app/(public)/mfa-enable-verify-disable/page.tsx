@@ -49,6 +49,7 @@ import { useReauthPrompt } from "@/components/ReauthDialog";
 import { useMfaEnable } from "@/features/auth/useMfaEnable";
 import { useMfaVerify } from "@/features/auth/useMfaVerify";
 import { useMfaDisable } from "@/features/auth/useMfaDisable";
+import { useMe } from "@/features/auth/useMe";
 
 // Optional store integration removed for hooks rules compliance; page is fully state-driven.
 
@@ -68,9 +69,24 @@ function normalizeTotp(input: string) {
   return input.replace(/\D/g, "").slice(0, 6);
 }
 
-// Build-safe stub: omit QR generation if library is unavailable.
-async function generateQrDataUrl(_otpauthUrl: string): Promise<string | null> {
-  return null;
+// Generate QR code as data URL using the qrcode library
+async function generateQrDataUrl(otpauthUrl: string): Promise<string | null> {
+  try {
+    const QRCode = (await import("qrcode")).default;
+    const dataUrl = await QRCode.toDataURL(otpauthUrl, {
+      width: 256,
+      margin: 2,
+      color: {
+        dark: "#000000",
+        light: "#FFFFFF",
+      },
+      errorCorrectionLevel: "M",
+    });
+    return dataUrl;
+  } catch (error) {
+    console.error("Failed to generate QR code:", error);
+    return null;
+  }
 }
 
 function isStepUpRequired(err: unknown): boolean {
@@ -135,6 +151,8 @@ function MfaSettings() {
   const toast = useToast();
   const promptReauth = useReauthPrompt();
 
+  // Fetch current user to check MFA status
+  const { data: user, isLoading: isLoadingUser, refetch: refetchUser } = useMe();
   const [enabled, setEnabled] = React.useState<boolean>(false);
 
   const [setup, setSetup] = React.useState<SetupState>({ phase: "idle" });
@@ -147,8 +165,30 @@ function MfaSettings() {
   const errorRef = React.useRef<HTMLDivElement | null>(null);
 
   const { mutateAsync: enableMfa, isPending: isEnabling } = useMfaEnable();
-  const { mutateAsync: verifyMfa, isPending: isVerifying } = useMfaVerify();
+  const verifyMutation = useMfaVerify();
+  const { mutateAsync: verifyMfa, isPending: isVerifying, reset: resetVerify } = verifyMutation;
   const { mutateAsync: disableMfa, isPending: isDisabling } = useMfaDisable();
+
+  // Sync enabled state with user data from backend
+  React.useEffect(() => {
+    if (user) {
+      const mfaEnabled = user.mfa_enabled || user.is_2fa_enabled || false;
+      setEnabled(mfaEnabled);
+    }
+  }, [user]);
+
+  // Check authentication on mount and redirect if not logged in
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { getAccessToken } = await import("@/lib/api/tokens");
+      const token = getAccessToken();
+      if (!token) {
+        // Not authenticated - redirect to login
+        router.push("/login?redirect=/mfa-enable-verify-disable");
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   React.useEffect(() => {
     if (errorMsg && errorRef.current) errorRef.current.focus();
@@ -193,13 +233,13 @@ function MfaSettings() {
         const friendly = formatError(err, {
           includeRequestId: true,
           maskServerErrors: true,
-          fallback: "We couldn’t start MFA setup right now. Please try again.",
+          fallback: "We couldn't start MFA setup right now. Please try again.",
         });
         setErrorMsg(friendly);
         return;
       }
       try {
-        await promptReauth({ reason: "Confirm it’s you to enable MFA" } as any);
+        await promptReauth({ reason: "Confirm it's you to enable MFA" } as any);
         const res = await enableMfa({} as any);
         const secret = (res as any)?.secret ?? "";
         const otpauth_url = (res as any)?.otpauth_url ?? null;
@@ -217,7 +257,7 @@ function MfaSettings() {
         const friendly = formatError(err2, {
           includeRequestId: true,
           maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now.",
+          fallback: "We couldn't confirm it was you just now.",
         });
         setErrorMsg(friendly);
       }
@@ -233,10 +273,34 @@ function MfaSettings() {
     setErrorMsg(null);
     try {
       const code = normalizeTotp(totp);
-      if (code.length !== 6) return;
-      await verifyMfa({ totp: code } as any);
+      console.log("🔐 [MFA] Normalized code:", code, "length:", code.length);
+      if (code.length !== 6) {
+        console.log("🔐 [MFA] Code length invalid, returning");
+        return;
+      }
+
+      // Check if user is authenticated before attempting verification
+      const { getAccessToken } = await import("@/lib/api/tokens");
+      const token = getAccessToken();
+      console.log("🔐 [MFA] Access token present:", !!token);
+      if (!token) {
+        setErrorMsg("Your session expired. Please log in to continue, then return to this page to complete MFA setup.");
+        // Redirect to login after showing error
+        setTimeout(() => {
+          router.push("/login?redirect=/mfa-enable-verify-disable");
+        }, 3000);
+        return;
+      }
+
+      // Verify the TOTP code
+      const result = await verifyMfa({ code });
+
       setSetup({ phase: "verified" });
       setEnabled(true);
+
+      // Refetch user data to sync MFA status
+      refetchUser();
+
       if (trustDevice) {
         registerTrustedDeviceSafely(toast).catch(() => void 0);
       }
@@ -248,10 +312,17 @@ function MfaSettings() {
       });
       router.prefetch(PATHS.settingsRecoveryCodes || "/settings/security/recovery-codes");
     } catch (err) {
+      // Reset mutation state to stop "Verifying..." button state
+      resetVerify();
+
+      // Check for authentication errors
+      const authError = (err as any)?.status === 401 || (err as any)?.code === "unauthorized";
       const friendly = formatError(err, {
         includeRequestId: true,
         maskServerErrors: true,
-        fallback: "That code didn’t work. Check your authenticator and try again.",
+        fallback: authError
+          ? "Your session expired. Please log in again and retry."
+          : "That code didn't work. Check your authenticator and try again.",
       });
       setErrorMsg(friendly);
       setTotp("");
@@ -264,6 +335,10 @@ function MfaSettings() {
       await disableMfa({} as any); // attempt without step-up
       setEnabled(false);
       setSetup({ phase: "idle" });
+
+      // Refetch user data to sync MFA status
+      refetchUser();
+
       toast({
         variant: "success",
         title: "MFA disabled",
@@ -275,16 +350,21 @@ function MfaSettings() {
         const friendly = formatError(err, {
           includeRequestId: true,
           maskServerErrors: true,
-          fallback: "We couldn’t disable MFA right now. Please try again.",
+          fallback: "We couldn't disable MFA right now. Please try again.",
         });
         setErrorMsg(friendly);
         return;
       }
       try {
-        await promptReauth({ reason: "Confirm it’s you to disable MFA" } as any);
-        await disableMfa({} as any);
+        const reauthToken = await promptReauth({ reason: "Confirm it's you to disable MFA" } as any);
+        // Pass reauth token to disable MFA
+        await disableMfa({ reauth_token: reauthToken } as any);
         setEnabled(false);
         setSetup({ phase: "idle" });
+
+        // Refetch user data to sync MFA status
+        refetchUser();
+
         toast({
           variant: "success",
           title: "MFA disabled",
@@ -295,7 +375,7 @@ function MfaSettings() {
         const friendly = formatError(err2, {
           includeRequestId: true,
           maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now.",
+          fallback: "We couldn't confirm it was you just now.",
         });
         setErrorMsg(friendly);
       }

@@ -9,16 +9,20 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/services";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
-import { Plus, Edit, Trash2, User, Users } from "lucide-react";
+import { Plus, Edit, Trash2, User, Users, CheckCircle2 } from "lucide-react";
 import type { Profile } from "@/lib/api/types";
+import { useProfileStore } from "@/lib/stores/profileStore";
 
 export default function ProfilesPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const { activeProfile, setActiveProfile } = useProfileStore();
   const [isCreateOpen, setIsCreateOpen] = React.useState(false);
   const [editingProfile, setEditingProfile] = React.useState<Profile | null>(null);
   const [newProfileName, setNewProfileName] = React.useState("");
@@ -102,6 +106,32 @@ export default function ProfilesPage() {
     setIsCreateOpen(true);
   };
 
+  const handleSelectProfile = (profile: Profile) => {
+    setActiveProfile({
+      id: profile.id,
+      name: profile.name,
+      avatar_url: profile.avatar_url,
+      is_primary: profile.is_primary,
+    });
+    // Redirect to home page after selection
+    router.push('/home');
+  };
+
+  // Auto-select primary profile if no profile is active
+  React.useEffect(() => {
+    if (profiles && !activeProfile) {
+      const primary = profiles.find((p) => p.is_primary);
+      if (primary) {
+        setActiveProfile({
+          id: primary.id,
+          name: primary.name,
+          avatar_url: primary.avatar_url,
+          is_primary: primary.is_primary,
+        });
+      }
+    }
+  }, [profiles, activeProfile, setActiveProfile]);
+
   const avatarOptions = [
     "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
     "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
@@ -136,56 +166,77 @@ export default function ProfilesPage() {
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {/* Existing Profiles */}
-              {profiles?.map((profile) => (
-                <div
-                  key={profile.id}
-                  className="group relative flex flex-col items-center gap-4 rounded-lg border bg-card p-6 transition-all hover:border-primary"
-                >
-                  {/* Avatar */}
-                  <div className="relative">
-                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-muted bg-muted transition-all group-hover:border-primary">
-                      {profile.avatar_url ? (
-                        <img
-                          src={profile.avatar_url}
-                          alt={profile.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <User className="h-12 w-12 text-muted-foreground" />
+              {profiles?.map((profile) => {
+                const isActive = activeProfile?.id === profile.id;
+                return (
+                  <div
+                    key={profile.id}
+                    onClick={() => handleSelectProfile(profile)}
+                    className={`group relative flex cursor-pointer flex-col items-center gap-4 rounded-lg border bg-card p-6 transition-all hover:border-primary hover:shadow-lg ${
+                      isActive ? 'border-primary ring-2 ring-primary/20' : ''
+                    }`}
+                  >
+                    {/* Active Indicator */}
+                    {isActive && (
+                      <div className="absolute left-2 top-2 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-xs text-primary-foreground">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>Active</span>
+                      </div>
+                    )}
+
+                    {/* Avatar */}
+                    <div className="relative">
+                      <div className={`flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 bg-muted transition-all group-hover:border-primary ${
+                        isActive ? 'border-primary' : 'border-muted'
+                      }`}>
+                        {profile.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt={profile.name}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <User className="h-12 w-12 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Name */}
+                    <div className="text-center">
+                      <p className="font-medium">{profile.name}</p>
+                      {profile.is_primary && (
+                        <p className="mt-1 text-xs text-muted-foreground">Primary</p>
                       )}
                     </div>
-                  </div>
-
-                  {/* Name */}
-                  <div className="text-center">
-                    <p className="font-medium">{profile.name}</p>
-                    {profile.is_primary && (
-                      <p className="mt-1 text-xs text-muted-foreground">Primary</p>
-                    )}
-                  </div>
 
                   {/* Actions */}
-                  {!profile.is_primary && (
-                    <div className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => openEditDialog(profile)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                  <div
+                    className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEditDialog(profile)}
+                      title="Edit profile"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    {!profile.is_primary && (
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleDelete(profile)}
                         disabled={deleteMutation.isPending}
+                        title="Delete profile"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-              ))}
+              );
+              })}
 
               {/* Add New Profile */}
               <button

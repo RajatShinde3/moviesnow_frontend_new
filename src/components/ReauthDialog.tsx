@@ -54,7 +54,6 @@ import { cn } from "@/lib/cn";
 import formatError from "@/lib/formatError";
 import { useReauthWithPassword } from "@/features/auth/useReauthWithPassword";
 import { useReauthWithMfa } from "@/features/auth/useReauthWithMfa";
-import { useReauthVerify } from "@/features/auth/useReauthVerify";
 import type { EnrichedHTTPError } from "@/lib/api";
 
 type Method = "password" | "mfa";
@@ -64,8 +63,8 @@ export type ReauthDialogProps = {
   open: boolean;
   /** Called on cancel/close (does NOT imply success). */
   onClose: () => void;
-  /** Called when reauth completes successfully. */
-  onSuccess?: () => void;
+  /** Called when reauth completes successfully with the reauth token. */
+  onSuccess?: (token: string) => void;
   /** Restrict available methods (default: both). First item is preferred tab. */
   methods?: Method[];
   /** Optional explanation shown below the title. */
@@ -128,9 +127,8 @@ function ReauthDialogInner({
   // Hooks (network)
   const pw = useReauthWithPassword();
   const otp = useReauthWithMfa();
-  const verify = useReauthVerify();
 
-  const busy = pw.isPending || otp.isPending || verify.isPending;
+  const busy = pw.isPending || otp.isPending;
 
   // Focus refs & trap
   const panelRef = React.useRef<HTMLDivElement | null>(null);
@@ -216,6 +214,8 @@ function ReauthDialogInner({
     setSrStatus("");
 
     try {
+      let reauthToken: string | null = null;
+
       if (tab === "password") {
         if (!password) {
           const m = "Please enter your current password.";
@@ -224,8 +224,10 @@ function ReauthDialogInner({
           return;
         }
         const res = await pw.mutateAsync({ password });
-        const token = pickReauthToken(res);
-        if (token) await verify.mutateAsync({ reauth_token: token });
+        reauthToken = pickReauthToken(res);
+        if (!reauthToken) {
+          throw new Error("Not a reauth token");
+        }
       } else {
         const normalized = code.replace(/\D+/g, "");
         if (normalized.length !== CODE_LENGTH) {
@@ -235,15 +237,17 @@ function ReauthDialogInner({
           return;
         }
         const res = await otp.mutateAsync({ code: normalized });
-        const token = pickReauthToken(res);
-        if (token) await verify.mutateAsync({ reauth_token: token });
+        reauthToken = pickReauthToken(res);
+        if (!reauthToken) {
+          throw new Error("Not a reauth token");
+        }
       }
 
-      // Success
+      // Success - pass the reauth token
       setPassword("");
       setCode("");
       setSrStatus("Reauthentication successful.");
-      onSuccess?.();
+      onSuccess?.(reauthToken);
       onClose();
     } catch (e: any) {
       const msg = isHttpError(e) ? formatError(e) : e?.message || "Reauthentication failed. Try again.";
@@ -425,7 +429,7 @@ function ReauthDialogInner({
  * Provider & Hook
  * ==========================================================================*/
 
-const ReauthCtx = React.createContext<((opts?: ReauthPromptOptions) => Promise<void>) | null>(null);
+const ReauthCtx = React.createContext<((opts?: ReauthPromptOptions) => Promise<string>) | null>(null);
 
 /**
  * ReauthProvider
@@ -437,13 +441,13 @@ export function ReauthProvider({ children }: { children: React.ReactNode }) {
   const [opts, setOpts] = React.useState<ReauthPromptOptions | undefined>(undefined);
 
   // Promise resolvers for the calling site
-  const resolveRef = React.useRef<(() => void) | null>(null);
+  const resolveRef = React.useRef<((token: string) => void) | null>(null);
   const rejectRef = React.useRef<((err: unknown) => void) | null>(null);
 
   const prompt = React.useCallback((o?: ReauthPromptOptions) => {
     setOpts(o);
     setOpen(true);
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       resolveRef.current = resolve;
       rejectRef.current = reject;
     });
@@ -456,9 +460,9 @@ export function ReauthProvider({ children }: { children: React.ReactNode }) {
     resolveRef.current = null;
   }, []);
 
-  const handleSuccess = React.useCallback(() => {
+  const handleSuccess = React.useCallback((token: string) => {
     setOpen(false);
-    resolveRef.current?.();
+    resolveRef.current?.(token);
     resolveRef.current = null;
   }, []);
 

@@ -46,7 +46,6 @@ export interface SubscriptionContextValue extends SubscriptionState {
 export type PremiumFeature =
   | 'ad_free'
   | 'direct_download'
-  | '4k_quality'
   | 'multi_device'
   | 'offline_viewing'
   | 'early_access';
@@ -60,7 +59,6 @@ export type VideoQuality = '480p' | '720p' | '1080p' | '4K';
 const PREMIUM_FEATURES: Record<PremiumFeature, { free: boolean; premium: boolean }> = {
   ad_free: { free: false, premium: true },
   direct_download: { free: false, premium: true },
-  '4k_quality': { free: false, premium: true },
   multi_device: { free: false, premium: true },
   offline_viewing: { free: false, premium: true },
   early_access: { free: false, premium: true },
@@ -68,7 +66,7 @@ const PREMIUM_FEATURES: Record<PremiumFeature, { free: boolean; premium: boolean
 
 const QUALITY_LIMITS: Record<SubscriptionTier, VideoQuality> = {
   free: '720p',
-  premium: '4K',
+  premium: '1080p', // Max quality as per CLAUDE.md spec (no 4K)
 };
 
 const DEVICE_LIMITS: Record<SubscriptionTier, number> = {
@@ -93,10 +91,11 @@ interface SubscriptionProviderProps {
 export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch} = useQuery({
     queryKey: ['subscription-status'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/subscriptions/status', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_BASE}/subscriptions/status`, {
         credentials: 'include',
       });
 
@@ -155,7 +154,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     },
 
     cancel: async () => {
-      const response = await fetch('/api/v1/subscriptions/cancel', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_BASE}/subscriptions/cancel`, {
         method: 'POST',
         credentials: 'include',
       });
@@ -166,7 +166,8 @@ export function SubscriptionProvider({ children }: SubscriptionProviderProps) {
     },
 
     reactivate: async () => {
-      const response = await fetch('/api/v1/subscriptions/reactivate', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+      const response = await fetch(`${API_BASE}/subscriptions/reactivate`, {
         method: 'POST',
         credentials: 'include',
       });

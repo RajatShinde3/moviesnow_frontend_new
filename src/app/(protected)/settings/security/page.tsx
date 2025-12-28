@@ -57,7 +57,6 @@ import { PATHS } from "@/lib/env";
 import { formatError } from "@/lib/formatError";
 import { useToast } from "@/components/feedback/Toasts";
 import { useReauthPrompt } from "@/components/ReauthDialog";
-import { SettingsTab } from "@/components/SettingsTab";
 import EmptyState from "@/components/feedback/EmptyState";
 
 // Hooks (read)
@@ -120,13 +119,11 @@ type SecuritySummary = {
 export default function SecurityOverviewPage() {
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <SettingsTab />
-
       <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Security</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Review your account’s protection and manage key controls.
+            Review your account's protection and manage key controls.
           </p>
         </div>
         <RefreshButton />
