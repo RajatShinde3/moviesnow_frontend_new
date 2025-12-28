@@ -116,7 +116,7 @@ export const playerService = {
    */
   async getPlaybackInfo(titleId: string, episodeId?: string): Promise<PlaybackInfo> {
     const params = episodeId ? `?episode_id=${episodeId}` : '';
-    return fetchJson<PlaybackInfo>(`${API_BASE}/api/v1/playback/${titleId}/info${params}`);
+    return (await fetchJson<PlaybackInfo>(`${API_BASE}/api/v1/playback/${titleId}/info${params}`))!;
   },
 
   /**
@@ -128,17 +128,17 @@ export const playerService = {
     quality: string;
     device_info?: any;
   }): Promise<PlaybackSession> {
-    return fetchJson<PlaybackSession>(`${API_BASE}/api/v1/playback/sessions`, {
+    return (await fetchJson<PlaybackSession>(`${API_BASE}/api/v1/playback/sessions`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
    * Send heartbeat to keep session alive
    */
   async heartbeat(sessionId: string, currentTime: number): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/playback/sessions/${sessionId}/heartbeat`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/sessions/${sessionId}/heartbeat`, {
       method: 'POST',
       body: JSON.stringify({ current_time: currentTime }),
     });
@@ -148,7 +148,7 @@ export const playerService = {
    * End playback session
    */
   async endSession(sessionId: string, finalTime: number): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/playback/sessions/${sessionId}/end`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/sessions/${sessionId}/end`, {
       method: 'POST',
       body: JSON.stringify({ final_time: finalTime }),
     });
@@ -163,10 +163,10 @@ export const playerService = {
     progress_seconds: number;
     duration_seconds: number;
   }): Promise<WatchProgress> {
-    return fetchJson<WatchProgress>(`${API_BASE}/api/v1/playback/progress`, {
+    return (await fetchJson<WatchProgress>(`${API_BASE}/api/v1/playback/progress`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
@@ -175,7 +175,7 @@ export const playerService = {
   async getProgress(titleId: string, episodeId?: string): Promise<WatchProgress | null> {
     try {
       const params = episodeId ? `?episode_id=${episodeId}` : '';
-      return await fetchJson<WatchProgress>(`${API_BASE}/api/v1/playback/progress/${titleId}${params}`);
+      return (await fetchJson<WatchProgress>(`${API_BASE}/api/v1/playback/progress/${titleId}${params}`)) || null;
     } catch (error: any) {
       if (error?.status === 404) {
         return null;
@@ -188,14 +188,14 @@ export const playerService = {
    * Get active playback sessions
    */
   async getActiveSessions(): Promise<{ sessions: PlaybackSession[] }> {
-    return fetchJson(`${API_BASE}/api/v1/playback/sessions/active`);
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/sessions/active`);
   },
 
   /**
    * Get playback statistics
    */
   async getStats(sessionId: string): Promise<PlaybackStats> {
-    return fetchJson(`${API_BASE}/api/v1/playback/sessions/${sessionId}/stats`);
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/sessions/${sessionId}/stats`);
   },
 
   /**
@@ -207,7 +207,7 @@ export const playerService = {
     current_bitrate?: number;
     bandwidth_estimate?: number;
   }): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/playback/sessions/${sessionId}/metrics`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/sessions/${sessionId}/metrics`, {
       method: 'POST',
       body: JSON.stringify(metrics),
     });
@@ -220,7 +220,7 @@ export const playerService = {
     items: (WatchProgress & { title: any })[];
     total_count: number;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/playback/continue-watching?profile_id=${profileId}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/continue-watching?profile_id=${profileId}`);
   },
 
   /**
@@ -228,7 +228,7 @@ export const playerService = {
    */
   async markCompleted(titleId: string, episodeId?: string): Promise<void> {
     const params = episodeId ? `?episode_id=${episodeId}` : '';
-    return fetchJson(`${API_BASE}/api/v1/playback/progress/${titleId}/complete${params}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/playback/progress/${titleId}/complete${params}`, {
       method: 'POST',
     });
   },

@@ -47,7 +47,7 @@ export default function CostAnalyticsPage() {
   // Fetch cost analytics data
   const { data: costData, isLoading } = useQuery({
     queryKey: ["admin", "analytics", "costs", dateRange],
-    queryFn: () => api.advancedAnalytics.getCostAnalytics(dateRange),
+    queryFn: () => api.advancedAnalytics.costAnalyticsDashboard(),
   });
 
   if (isLoading || !costData) {
@@ -73,12 +73,12 @@ export default function CostAnalyticsPage() {
       : 0;
 
   const potentialSavings = costData.optimization_recommendations.reduce(
-    (sum, rec) => sum + rec.potential_savings,
+    (sum: number, rec: any) => sum + rec.potential_savings,
     0
   );
 
   // Prepare chart data
-  const costTrendsData = costData.cost_trends.map((trend) => ({
+  const costTrendsData = costData.cost_trends.map((trend: any) => ({
     date: new Date(trend.date).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
     Storage: trend.storage,
     Bandwidth: trend.bandwidth,
@@ -87,7 +87,7 @@ export default function CostAnalyticsPage() {
     Total: trend.total,
   }));
 
-  const serviceBreakdownData = costData.cost_by_service.map((service) => ({
+  const serviceBreakdownData = costData.cost_by_service.map((service: any) => ({
     name: service.service,
     value: service.cost,
     percentage: service.percentage,
@@ -152,24 +152,24 @@ export default function CostAnalyticsPage() {
             value={`$${costData.total_cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             change={totalCostGrowth}
             trend={totalCostGrowth > 0 ? "down" : "up"}
-            icon={DollarSign}
+            icon={<DollarSign className="w-5 h-5" />}
           />
           <StatCard
             title="Projected Monthly"
             value={`$${costData.projected_monthly_cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-            icon={TrendingUp}
+            icon={<TrendingUp className="w-5 h-5" />}
           />
           <StatCard
             title="Cost per User"
             value={`$${costData.cost_per_user.toFixed(2)}`}
-            icon={DollarSign}
+            icon={<DollarSign className="w-5 h-5" />}
           />
           <StatCard
             title="Potential Savings"
             value={`$${potentialSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
             change={potentialSavings > 0 ? 15 : 0}
             trend="up"
-            icon={Lightbulb}
+            icon={<Lightbulb className="w-5 h-5" />}
           />
         </motion.div>
 
@@ -284,7 +284,7 @@ export default function CostAnalyticsPage() {
           <div className="bg-slate-900/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6">
             <h2 className="text-xl font-bold text-white mb-6">Service Breakdown</h2>
             <div className="space-y-3">
-              {costData.cost_by_service.map((service, index) => {
+              {costData.cost_by_service.map((service: any, index: number) => {
                 const Icon = SERVICE_ICONS[service.service as keyof typeof SERVICE_ICONS] || AlertCircle;
                 const colors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B", "#6B7280", "#EC4899"];
 
@@ -341,12 +341,12 @@ export default function CostAnalyticsPage() {
           ) : (
             <div className="space-y-4">
               {costData.optimization_recommendations
-                .sort((a, b) => {
-                  const priorityOrder = { high: 0, medium: 1, low: 2 };
+                .sort((a: any, b: any) => {
+                  const priorityOrder: Record<string, number> = { high: 0, medium: 1, low: 2 };
                   return priorityOrder[a.priority] - priorityOrder[b.priority];
                 })
-                .map((rec, index) => {
-                  const priorityColor = PRIORITY_COLORS[rec.priority];
+                .map((rec: any, index: number) => {
+                  const priorityColor = PRIORITY_COLORS[rec.priority as keyof typeof PRIORITY_COLORS];
 
                   return (
                     <motion.div

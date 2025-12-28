@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/services";
 import { AdvancedFileUploader } from "@/components/ui/forms/AdvancedFileUploader";
-import { ConfirmDialog } from "@/components/ui/modals/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 type TabType = "artwork" | "subtitles" | "trailers" | "audio";
 
@@ -41,22 +41,22 @@ export default function AssetManagerPage() {
   // Fetch all assets
   const { data: artworkData, isLoading: artworkLoading } = useQuery({
     queryKey: ["admin", "titles", titleId, "artwork"],
-    queryFn: () => api.assets.listArtwork(titleId),
+    queryFn: () => api.assets.getArtwork(titleId),
   });
 
   const { data: subtitlesData, isLoading: subtitlesLoading } = useQuery({
     queryKey: ["admin", "titles", titleId, "subtitles"],
-    queryFn: () => api.assets.listSubtitles(titleId),
+    queryFn: () => api.assets.getSubtitles(titleId),
   });
 
   const { data: trailersData, isLoading: trailersLoading } = useQuery({
     queryKey: ["admin", "titles", titleId, "trailers"],
-    queryFn: () => api.assets.listTrailers(titleId),
+    queryFn: () => api.assets.getTrailers(titleId),
   });
 
   const { data: audioTracksData, isLoading: audioTracksLoading } = useQuery({
     queryKey: ["admin", "titles", titleId, "audio-tracks"],
-    queryFn: () => api.audioTracks.list(titleId),
+    queryFn: () => api.audioTracks.listTracks(titleId),
   });
 
   // Delete mutations
@@ -64,13 +64,13 @@ export default function AssetManagerPage() {
     mutationFn: async ({ type, id }: { type: TabType; id: string }) => {
       switch (type) {
         case "artwork":
-          return api.assets.deleteArtwork(titleId, id);
+          return api.assets.deleteArtwork(id);
         case "subtitles":
-          return api.assets.deleteSubtitle(titleId, id);
+          return api.assets.deleteSubtitle(id);
         case "trailers":
-          return api.assets.deleteTrailer(titleId, id);
+          return api.assets.deleteTrailer(id);
         case "audio":
-          return api.audioTracks.delete(titleId, id);
+          return api.audioTracks.deleteTrack(id);
       }
     },
     onSuccess: (_, variables) => {
@@ -84,7 +84,7 @@ export default function AssetManagerPage() {
   const invalidateCDN = useMutation({
     mutationFn: async (paths: string[]) => {
       setCdnInvalidating(true);
-      return api.assets.invalidateCDN(titleId, paths);
+      return api.assets.invalidateCache({ paths });
     },
     onSettled: () => {
       setCdnInvalidating(false);
@@ -191,7 +191,7 @@ export default function AssetManagerPage() {
               if (activeTab === "artwork" && artworkData) {
                 paths.push(...artworkData.map((a) => a.cdn_url));
               } else if (activeTab === "subtitles" && subtitlesData) {
-                paths.push(...subtitlesData.map((s) => s.cdn_url));
+                paths.push(...subtitlesData.map((s) => s.cdn_url).filter((url): url is string => !!url));
               } else if (activeTab === "trailers" && trailersData) {
                 paths.push(...trailersData.map((t) => t.cdn_url));
               }
@@ -346,8 +346,8 @@ export default function AssetManagerPage() {
                               )}
                             </div>
                             <div className="text-sm text-slate-400">
-                              {subtitle.format.toUpperCase()} •{" "}
-                              {(subtitle.file_size / 1024).toFixed(2)} KB •{" "}
+                              {subtitle.format?.toUpperCase() || 'N/A'} •{" "}
+                              {subtitle.file_size ? (subtitle.file_size / 1024).toFixed(2) : '0'} KB •{" "}
                               {subtitle.language}
                             </div>
                           </div>
@@ -608,7 +608,7 @@ export default function AssetManagerPage() {
             });
           }}
           title="Delete Asset"
-          description="Are you sure you want to delete this asset? This action cannot be undone."
+          message="Are you sure you want to delete this asset? This action cannot be undone."
           variant="danger"
           isLoading={deleteMutation.isPending}
         />

@@ -724,6 +724,38 @@ export const titleAvailabilityService = {
       method: "PUT",
       json: data,
     }),
+
+  /**
+   * List availability windows for a title
+   */
+  listAvailability: async (titleId: string) =>
+    fetchJson<T.AvailabilityWindow[]>(`/api/v1/admin/titles/${titleId}/availability`),
+
+  /**
+   * Create availability window for a title
+   */
+  createAvailability: async (titleId: string, data: T.CreateAvailabilityWindowRequest) =>
+    fetchJson<T.AvailabilityWindow>(`/api/v1/admin/titles/${titleId}/availability`, {
+      method: "POST",
+      json: data,
+    }),
+
+  /**
+   * Update availability window for a title
+   */
+  updateAvailability: async (titleId: string, windowId: string, data: T.UpdateAvailabilityWindowRequest) =>
+    fetchJson<T.AvailabilityWindow>(`/api/v1/admin/titles/${titleId}/availability/${windowId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  /**
+   * Delete availability window for a title
+   */
+  deleteAvailability: async (titleId: string, windowId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/titles/${titleId}/availability/${windowId}`, {
+      method: "DELETE",
+    }),
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -765,10 +797,16 @@ export const streamVariantsService = {
     }),
 
   /**
-   * Get variant analytics
+   * Get variant analytics (with variantId)
    */
   getVariantAnalytics: async (titleId: string, variantId: string) =>
     fetchJson<T.QualityAnalytics>(`/api/v1/admin/titles/${titleId}/stream-variants/${variantId}/analytics`),
+
+  /**
+   * Get all variant analytics for a title
+   */
+  getTitleVariantAnalytics: async (titleId: string) =>
+    fetchJson<{ quality_distribution: any[]; bandwidth_usage: any[] }>(`/api/v1/admin/titles/${titleId}/variants/analytics`),
 
   /**
    * Admin quality controls
@@ -951,6 +989,12 @@ export const monetizationService = {
   createCoupon: async (data: T.CreateCouponRequest) =>
     fetchJson<T.Coupon>(`/api/v1/admin/monetization/coupons`, {
       method: "POST",
+      json: data,
+    }),
+
+  updateCoupon: async (couponId: string, data: Partial<T.Coupon>) =>
+    fetchJson<T.Coupon>(`/api/v1/admin/monetization/coupons/${couponId}`, {
+      method: "PATCH",
       json: data,
     }),
 
@@ -1155,6 +1199,14 @@ export const audioTracksService = {
     fetchJson<T.SuccessResponse>(`/api/v1/admin/audio-tracks/${bundleId}`, {
       method: "DELETE",
     }),
+
+  listTracks: async (titleId: string) =>
+    fetchJson<T.AudioTrack[]>(`/api/v1/admin/media/titles/${titleId}/audio-tracks`),
+
+  deleteTrack: async (trackId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/media/audio-tracks/${trackId}`, {
+      method: "DELETE",
+    }),
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -1176,6 +1228,51 @@ export const complianceService = {
 
   getComplianceFlags: async () =>
     fetchJson<T.ComplianceFlags>(`/api/v1/admin/compliance/flags`),
+
+  listCertifications: async (params?: { title_id?: string; region?: string; rating_system?: string }) =>
+    fetchJson<T.ContentCertification[]>(`/api/v1/admin/compliance/certifications`, {
+      searchParams: params as Record<string, string>,
+    }),
+
+  getCertification: async (certId: string) =>
+    fetchJson<T.ContentCertification>(`/api/v1/admin/compliance/certifications/${certId}`),
+
+  createCertification: async (titleId: string, data: T.CreateCertificationRequest) =>
+    fetchJson<T.ContentCertification>(`/api/v1/admin/taxonomy/titles/${titleId}/certifications`, {
+      method: "POST",
+      json: data,
+    }),
+
+  updateCertification: async (titleId: string, certId: string, data: Partial<T.ContentCertification>) =>
+    fetchJson<T.ContentCertification>(`/api/v1/admin/taxonomy/titles/${titleId}/certifications/${certId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteCertification: async (titleId: string, certId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/taxonomy/titles/${titleId}/certifications/${certId}`, {
+      method: "DELETE",
+    }),
+
+  listDMCATakedowns: async (params?: { status?: string; limit?: number }) =>
+    fetchJson<T.DMCATakedownRequest[]>(`/api/v1/admin/compliance/dmca`, {
+      searchParams: params as Record<string, string | number>,
+    }),
+
+  getDMCAStats: async () =>
+    fetchJson<{ pending: number; approved: number; rejected: number }>(`/api/v1/admin/compliance/dmca/stats`),
+
+  approveDMCATakedown: async (takedownId: string, notes?: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/compliance/dmca/${takedownId}/approve`, {
+      method: "POST",
+      json: { notes },
+    }),
+
+  rejectDMCATakedown: async (takedownId: string, reason: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/compliance/dmca/${takedownId}/reject`, {
+      method: "POST",
+      json: { reason },
+    }),
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -1271,6 +1368,32 @@ export const permissionsService = {
 
   getEffectivePermissions: async (userId: string) =>
     fetchJson<T.EffectivePermissions>(`/api/v1/admin/permissions/effective/${userId}`),
+
+  listRoles: async () =>
+    fetchJson<T.Role[]>(`/api/v1/admin/staff/roles`),
+
+  getRole: async (roleId: string) =>
+    fetchJson<T.Role>(`/api/v1/admin/staff/roles/${roleId}`),
+
+  createRole: async (data: { name: string; description?: string; permissions: string[] }) =>
+    fetchJson<T.Role>(`/api/v1/admin/staff/roles`, {
+      method: "POST",
+      json: data,
+    }),
+
+  updateRole: async (roleId: string, data: Partial<{ name: string; description: string; permissions: string[] }>) =>
+    fetchJson<T.Role>(`/api/v1/admin/staff/roles/${roleId}`, {
+      method: "PATCH",
+      json: data,
+    }),
+
+  deleteRole: async (roleId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/staff/roles/${roleId}`, {
+      method: "DELETE",
+    }),
+
+  listPermissions: async () =>
+    fetchJson<T.Permission[]>(`/api/v1/admin/staff/permissions`),
 };
 
 /* ══════════════════════════════════════════════════════════════
@@ -1367,6 +1490,20 @@ export const mediaUploadsService = {
 
   getStatistics: async () =>
     fetchJson<T.UploadStatistics>(`/api/v1/admin/media-uploads/statistics`),
+
+  listArtwork: async (titleId: string) =>
+    fetchJson<T.Artwork[]>(`/api/v1/admin/media/titles/${titleId}/artwork`),
+
+  listSubtitles: async (titleId: string) =>
+    fetchJson<T.Subtitle[]>(`/api/v1/admin/media/titles/${titleId}/subtitles`),
+
+  listTrailers: async (titleId: string) =>
+    fetchJson<T.Trailer[]>(`/api/v1/admin/media/titles/${titleId}/trailers`),
+
+  invalidateCDN: async (assetId: string) =>
+    fetchJson<T.SuccessResponse>(`/api/v1/admin/cdn/invalidate/${assetId}`, {
+      method: "POST",
+    }),
 };
 
 /* ══════════════════════════════════════════════════════════════

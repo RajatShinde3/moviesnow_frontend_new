@@ -5,7 +5,7 @@
  * API service for managing user preferences and settings
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -113,24 +113,24 @@ export const preferencesService = {
    * Get all user preferences
    */
   async getPreferences(): Promise<UserPreferences> {
-    const response = await apiClient.get('/user/preferences');
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences');
+    return response as any;
   },
 
   /**
    * Update user preferences
    */
   async updatePreferences(preferences: Partial<UserPreferences>): Promise<UserPreferences> {
-    const response = await apiClient.patch('/user/preferences', preferences);
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences', { method: "PATCH", json: preferences });
+    return response as any;
   },
 
   /**
    * Reset preferences to default
    */
   async resetPreferences(): Promise<UserPreferences> {
-    const response = await apiClient.post('/user/preferences/reset');
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/reset');
+    return response as any;
   },
 
   /**
@@ -140,8 +140,8 @@ export const preferencesService = {
     'default_quality' | 'auto_play_next_episode' | 'skip_intro' | 'skip_recap' |
     'skip_credits' | 'playback_speed' | 'subtitle_language' | 'audio_language'
   >> {
-    const response = await apiClient.get('/user/preferences/playback');
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/playback');
+    return response as any;
   },
 
   /**
@@ -157,46 +157,46 @@ export const preferencesService = {
     subtitle_language?: string;
     audio_language?: string;
   }): Promise<void> {
-    await apiClient.patch('/user/preferences/playback', preferences);
+    await fetchJson<any>('/user/preferences/playback', { method: "PATCH", json: preferences });
   },
 
   /**
    * Get notification settings
    */
   async getNotificationSettings(): Promise<NotificationSettings> {
-    const response = await apiClient.get('/user/preferences/notifications');
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/notifications');
+    return response as any;
   },
 
   /**
    * Update notification settings
    */
   async updateNotificationSettings(settings: Partial<NotificationSettings>): Promise<NotificationSettings> {
-    const response = await apiClient.patch('/user/preferences/notifications', settings);
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/notifications', { method: "PATCH", json: settings });
+    return response as any;
   },
 
   /**
    * Get privacy settings
    */
   async getPrivacySettings(): Promise<PrivacySettings> {
-    const response = await apiClient.get('/user/preferences/privacy');
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/privacy');
+    return response as any;
   },
 
   /**
    * Update privacy settings
    */
   async updatePrivacySettings(settings: Partial<PrivacySettings>): Promise<PrivacySettings> {
-    const response = await apiClient.patch('/user/preferences/privacy', settings);
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/privacy', { method: "PATCH", json: settings });
+    return response as any;
   },
 
   /**
    * Get content filters
    */
   async getContentFilters(): Promise<ContentFilter[]> {
-    const response = await apiClient.get('/user/preferences/content-filters');
+    const response: any = await fetchJson<any>('/user/preferences/content-filters');
     return response.data.filters || [];
   },
 
@@ -207,32 +207,33 @@ export const preferencesService = {
     type: 'genre' | 'rating' | 'language' | 'keyword';
     value: string;
   }): Promise<ContentFilter> {
-    const response = await apiClient.post('/user/preferences/content-filters', filter);
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/content-filters', { method: "PATCH", json: filter });
+    return response as any;
   },
 
   /**
    * Remove content filter
    */
   async removeContentFilter(filterId: string): Promise<void> {
-    await apiClient.delete(`/user/preferences/content-filters/${filterId}`);
+    await fetchJson<any>(`/user/preferences/content-filters/${filterId}`);
   },
 
   /**
    * Toggle content filter
    */
   async toggleContentFilter(filterId: string, enabled: boolean): Promise<ContentFilter> {
-    const response = await apiClient.patch(`/user/preferences/content-filters/${filterId}`, {
-      enabled,
+    const response: any = await fetchJson<any>(`/user/preferences/content-filters/${filterId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ enabled }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get preferred genres
    */
   async getPreferredGenres(): Promise<string[]> {
-    const response = await apiClient.get('/user/preferences/genres');
+    const response: any = await fetchJson<any>('/user/preferences/genres');
     return response.data.genres || [];
   },
 
@@ -240,14 +241,17 @@ export const preferencesService = {
    * Update preferred genres
    */
   async updatePreferredGenres(genres: string[]): Promise<void> {
-    await apiClient.put('/user/preferences/genres', { genres });
+    await fetchJson<any>('/user/preferences/genres', {
+      method: 'PUT',
+      body: JSON.stringify({ genres }),
+    });
   },
 
   /**
    * Get watch reminders
    */
   async getWatchReminders(): Promise<WatchReminder[]> {
-    const response = await apiClient.get('/user/preferences/reminders');
+    const response: any = await fetchJson<any>('/user/preferences/reminders');
     return response.data.reminders || [];
   },
 
@@ -259,25 +263,23 @@ export const preferencesService = {
     remind_at: string;
     notification_channels: ('email' | 'push' | 'in_app')[];
   }): Promise<WatchReminder> {
-    const response = await apiClient.post('/user/preferences/reminders', reminder);
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/reminders', { method: "PATCH", json: reminder });
+    return response as any;
   },
 
   /**
    * Delete watch reminder
    */
   async deleteWatchReminder(reminderId: string): Promise<void> {
-    await apiClient.delete(`/user/preferences/reminders/${reminderId}`);
+    await fetchJson<any>(`/user/preferences/reminders/${reminderId}`);
   },
 
   /**
    * Export user preferences
    */
   async exportPreferences(): Promise<Blob> {
-    const response = await apiClient.get('/user/preferences/export', {
-      responseType: 'blob',
-    });
-    return response.data;
+    const response: any = await fetchJson<any>('/user/preferences/export');
+    return response as any;
   },
 
   /**
@@ -287,19 +289,18 @@ export const preferencesService = {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post('/user/preferences/import', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+    const response: any = await fetchJson<any>('/user/preferences/import', {
+      method: 'POST',
+      body: formData,
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get language options
    */
   async getLanguageOptions(): Promise<Array<{ code: string; name: string; native_name: string }>> {
-    const response = await apiClient.get('/user/preferences/languages');
+    const response: any = await fetchJson<any>('/user/preferences/languages');
     return response.data.languages || [];
   },
 
@@ -307,7 +308,7 @@ export const preferencesService = {
    * Get timezone options
    */
   async getTimezoneOptions(): Promise<Array<{ value: string; label: string; offset: string }>> {
-    const response = await apiClient.get('/user/preferences/timezones');
+    const response: any = await fetchJson<any>('/user/preferences/timezones');
     return response.data.timezones || [];
   },
 };

@@ -74,7 +74,7 @@ export default function RecommendationHub({
       <div className="space-y-8">
         {rails.map((rail, index) => (
           <ContentRail
-            key={`${rail.rail_id}-${index}`}
+            key={`${(rail as any).rail_id || rail.id}-${index}`}
             title={rail.title}
             items={rail.items}
             onItemClick={onItemClick}

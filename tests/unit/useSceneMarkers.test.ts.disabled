@@ -4,10 +4,10 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { useSceneMarkers } from '@/hooks/useSceneMarkers';
-import { api } from '@/lib/api';
+import { api } from '@/lib/api/services';
 
 // Mock the API
-vi.mock('@/lib/api', () => ({
+vi.mock('@/lib/api/services', () => ({
   api: {
     get: vi.fn(),
     post: vi.fn(),

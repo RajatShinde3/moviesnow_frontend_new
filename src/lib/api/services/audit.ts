@@ -5,7 +5,7 @@
  * API service for viewing system audit logs and admin actions
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -60,8 +60,8 @@ export const auditService = {
     if (params?.source) queryParams.append('source', params.source);
     if (params?.actor) queryParams.append('actor', params.actor);
 
-    const response = await apiClient.get(`/debug/audit-logs?${queryParams.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/debug/audit-logs?${queryParams.toString()}`);
+    return response as any;
   },
 
   /**
@@ -69,8 +69,8 @@ export const auditService = {
    */
   async getAuditStats(): Promise<AuditStats> {
     // Fetch recent logs and calculate stats client-side
-    const response = await apiClient.get('/debug/audit-logs', {
-      params: { page: 1, page_size: 1000 },
+    const response: any = await fetchJson<any>('/debug/audit-logs', {
+      searchParams: { page: 1, page_size: 1000 },
     });
 
     const items: AuditLogEntry[] = response.data.items || [];
@@ -118,9 +118,7 @@ export const auditService = {
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
 
-    const response = await apiClient.get(`/debug/audit-logs/export?${queryParams.toString()}`, {
-      responseType: 'blob',
-    });
-    return response.data;
+    const response: any = await fetchJson<any>(`/debug/audit-logs/export?${queryParams.toString()}`);
+    return response as any;
   },
 };

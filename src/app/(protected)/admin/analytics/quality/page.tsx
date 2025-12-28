@@ -29,7 +29,7 @@ export default function QualityAnalyticsPage() {
   // Fetch quality analytics data
   const { data: qualityData, isLoading } = useQuery({
     queryKey: ["admin", "analytics", "quality", dateRange],
-    queryFn: () => api.advancedAnalytics.getQualityAnalytics(dateRange),
+    queryFn: () => api.advancedAnalytics.qualityUsage(),
   });
 
   if (isLoading || !qualityData) {
@@ -50,7 +50,7 @@ export default function QualityAnalyticsPage() {
 
   // Calculate metrics from data
   const totalViews = qualityData.quality_distribution.reduce(
-    (sum, q) => sum + q.total_views,
+    (sum: number, q: any) => sum + q.total_views,
     0
   );
   const mostPopularQuality = qualityData.user_preferences.most_selected;
@@ -58,24 +58,24 @@ export default function QualityAnalyticsPage() {
   const downgradeRate = qualityData.user_preferences.downgrade_rate;
 
   // Prepare chart data
-  const qualityDistributionData = qualityData.quality_distribution.map((q) => ({
+  const qualityDistributionData = qualityData.quality_distribution.map((q: any) => ({
     name: q.quality,
     value: q.count,
     percentage: q.percentage,
   }));
 
-  const bandwidthData = qualityData.bandwidth_by_quality.map((q) => ({
+  const bandwidthData = qualityData.bandwidth_by_quality.map((q: any) => ({
     quality: q.quality,
     bandwidth: q.bandwidth,
     cost: q.cost,
   }));
 
-  const contentTypeData = qualityData.quality_by_content_type.map((ct) => ({
+  const contentTypeData = qualityData.quality_by_content_type.map((ct: any) => ({
     name: ct.content_type,
     ...ct.quality_breakdown,
   }));
 
-  const deviceData = qualityData.quality_by_device.map((d) => ({
+  const deviceData = qualityData.quality_by_device.map((d: any) => ({
     name: d.device_type,
     ...d.quality_breakdown,
   }));
@@ -131,26 +131,26 @@ export default function QualityAnalyticsPage() {
             value={totalViews.toLocaleString()}
             change={12.5}
             trend="up"
-            icon={Activity}
+            icon={<Activity className="w-5 h-5" />}
           />
           <StatCard
             title="Most Popular Quality"
             value={mostPopularQuality}
-            icon={Wifi}
+            icon={<Wifi className="w-5 h-5" />}
           />
           <StatCard
             title="Quality Upgrade Rate"
             value={`${upgradeRate.toFixed(1)}%`}
             change={upgradeRate}
             trend={upgradeRate > 0 ? "up" : "down"}
-            icon={TrendingUp}
+            icon={<TrendingUp className="w-5 h-5" />}
           />
           <StatCard
             title="Quality Downgrade Rate"
             value={`${downgradeRate.toFixed(1)}%`}
             change={-downgradeRate}
             trend={downgradeRate > 0 ? "down" : "up"}
-            icon={TrendingDown}
+            icon={<TrendingDown className="w-5 h-5" />}
           />
         </motion.div>
 
@@ -181,7 +181,7 @@ export default function QualityAnalyticsPage() {
               <h3 className="text-sm font-medium text-slate-400 mb-4">
                 Quality Breakdown
               </h3>
-              {qualityData.quality_distribution.map((q, index) => (
+              {qualityData.quality_distribution.map((q: any, index: number) => (
                 <div
                   key={q.quality}
                   className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg"
@@ -282,7 +282,7 @@ export default function QualityAnalyticsPage() {
               <h3 className="text-sm font-medium text-slate-400 mb-4">
                 Device Insights
               </h3>
-              {qualityData.quality_by_device.map((device) => {
+              {qualityData.quality_by_device.map((device: any) => {
                 const icon =
                   device.device_type === "desktop"
                     ? Monitor
@@ -293,7 +293,7 @@ export default function QualityAnalyticsPage() {
                         : Tv;
                 const Icon = icon;
                 const topQuality = Object.entries(device.quality_breakdown).sort(
-                  ([, a], [, b]) => (b as number) - (a as number)
+                  ([, a]: [string, any], [, b]: [string, any]) => (b as number) - (a as number)
                 )[0];
 
                 return (
@@ -371,8 +371,8 @@ export default function QualityAnalyticsPage() {
               <p className="text-slate-300 text-sm">
                 Monitor 4K usage closely - it costs{" "}
                 {(
-                  bandwidthData.find((b) => b.quality === "4K")?.cost /
-                    bandwidthData.find((b) => b.quality === "1080p")?.cost || 1
+                  (bandwidthData.find((b: any) => b.quality === "4K")?.cost || 0) /
+                    (bandwidthData.find((b: any) => b.quality === "1080p")?.cost || 1)
                 ).toFixed(1)}
                 x more than 1080p.
               </p>

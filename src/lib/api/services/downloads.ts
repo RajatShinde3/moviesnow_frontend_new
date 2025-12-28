@@ -91,10 +91,10 @@ export const downloadsService = {
    * Request a new download
    */
   async requestDownload(data: DownloadRequest): Promise<Download> {
-    return fetchJson<Download>(`${API_BASE}/api/v1/user/downloads`, {
+    return (await fetchJson<Download>(`${API_BASE}/api/v1/user/downloads`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
@@ -115,23 +115,23 @@ export const downloadsService = {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return fetchJson<Download[]>(`${API_BASE}/api/v1/user/downloads${query}`);
+    return (await fetchJson<Download[]>(`${API_BASE}/api/v1/user/downloads${query}`))!;
   },
 
   /**
    * Get a specific download by ID
    */
   async getDownload(downloadId: string): Promise<Download> {
-    return fetchJson<Download>(`${API_BASE}/api/v1/user/downloads/${downloadId}`);
+    return (await fetchJson<Download>(`${API_BASE}/api/v1/user/downloads/${downloadId}`))!;
   },
 
   /**
    * Get secure download URL for a ready download
    */
   async getDownloadUrl(downloadId: string): Promise<DownloadUrlResponse> {
-    return fetchJson<DownloadUrlResponse>(
+    return (await fetchJson<DownloadUrlResponse>(
       `${API_BASE}/api/v1/user/downloads/${downloadId}/url`
-    );
+    ))!;
   },
 
   /**
@@ -147,14 +147,14 @@ export const downloadsService = {
    * Get current user's download quota
    */
   async getQuota(): Promise<DownloadQuota> {
-    return fetchJson<DownloadQuota>(`${API_BASE}/api/v1/user/downloads/quota/me`);
+    return (await fetchJson<DownloadQuota>(`${API_BASE}/api/v1/user/downloads/quota/me`))!;
   },
 
   /**
    * Get download statistics
    */
   async getStats(): Promise<DownloadStats> {
-    return fetchJson<DownloadStats>(`${API_BASE}/api/v1/user/downloads/stats/me`);
+    return (await fetchJson<DownloadStats>(`${API_BASE}/api/v1/user/downloads/stats/me`))!;
   },
 
   /**

@@ -403,7 +403,7 @@ function SecuritySettings() {
     e.preventDefault();
 
     if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast('Passwords do not match');
       return;
     }
 

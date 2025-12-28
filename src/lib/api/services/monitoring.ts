@@ -5,7 +5,7 @@
  * API service for system health monitoring, metrics, and alerts
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -136,60 +136,60 @@ export const monitoringService = {
    * Get comprehensive health status
    */
   async getHealth(): Promise<HealthStatusResponse> {
-    const response = await apiClient.get('/monitoring/health');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/health');
+    return response as any;
   },
 
   /**
    * Get liveness probe status
    */
   async getLiveness(): Promise<{ status: string; timestamp: string }> {
-    const response = await apiClient.get('/monitoring/health/liveness');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/health/liveness');
+    return response as any;
   },
 
   /**
    * Get readiness probe status
    */
   async getReadiness(): Promise<{ status: string; timestamp: string }> {
-    const response = await apiClient.get('/monitoring/health/readiness');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/health/readiness');
+    return response as any;
   },
 
   /**
    * Get startup probe status
    */
   async getStartup(): Promise<{ status: string; timestamp: string }> {
-    const response = await apiClient.get('/monitoring/health/startup');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/health/startup');
+    return response as any;
   },
 
   /**
    * Get Prometheus metrics (text format)
    */
   async getPrometheusMetrics(): Promise<string> {
-    const response = await apiClient.get('/monitoring/metrics', {
+    const response: any = await fetchJson<any>('/monitoring/metrics', {
       headers: { Accept: 'text/plain' },
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get metrics summary
    */
   async getMetricsSummary(): Promise<MetricsResponse> {
-    const response = await apiClient.get('/monitoring/metrics/summary');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/metrics/summary');
+    return response as any;
   },
 
   /**
    * Get performance report
    */
   async getPerformanceReport(windowMinutes: number = 30): Promise<PerformanceResponse> {
-    const response = await apiClient.get('/monitoring/performance', {
-      params: { window_minutes: windowMinutes },
+    const response: any = await fetchJson<any>('/monitoring/performance', {
+      searchParams: { window_minutes: windowMinutes },
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -200,24 +200,24 @@ export const monitoringService = {
     memory_freed_mb: number;
     duration_ms: number;
   }> {
-    const response = await apiClient.post('/monitoring/performance/gc');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/performance/gc');
+    return response as any;
   },
 
   /**
    * Get comprehensive dashboard data
    */
   async getDashboardData(): Promise<DashboardDataResponse> {
-    const response = await apiClient.get('/monitoring/dashboard');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/dashboard');
+    return response as any;
   },
 
   /**
    * Get system status (simplified)
    */
   async getSystemStatus(): Promise<SystemStatusResponse> {
-    const response = await apiClient.get('/monitoring/status');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/status');
+    return response as any;
   },
 
   /**
@@ -227,8 +227,8 @@ export const monitoringService = {
     timestamp: string;
     circuit_breakers: Record<string, CircuitBreakerStatus>;
   }> {
-    const response = await apiClient.get('/monitoring/circuit-breakers');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/circuit-breakers');
+    return response as any;
   },
 
   /**
@@ -239,16 +239,16 @@ export const monitoringService = {
     timestamp: string;
     status: string;
   }> {
-    const response = await apiClient.post(`/monitoring/circuit-breakers/${circuitName}/reset`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/monitoring/circuit-breakers/${circuitName}/reset`);
+    return response as any;
   },
 
   /**
    * Get active alerts
    */
   async getActiveAlerts(): Promise<Alert[]> {
-    const response = await apiClient.get('/monitoring/alerts');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/alerts');
+    return response as any;
   },
 
   /**
@@ -258,9 +258,10 @@ export const monitoringService = {
     message: string;
     timestamp: string;
     started_by: string;
+    stopped_by?: never;
   }> {
-    const response = await apiClient.post('/monitoring/maintenance/start');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/maintenance/start');
+    return response as any;
   },
 
   /**
@@ -270,8 +271,9 @@ export const monitoringService = {
     message: string;
     timestamp: string;
     stopped_by: string;
+    started_by?: never;
   }> {
-    const response = await apiClient.post('/monitoring/maintenance/stop');
-    return response.data;
+    const response: any = await fetchJson<any>('/monitoring/maintenance/stop');
+    return response as any;
   },
 };

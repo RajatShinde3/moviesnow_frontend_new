@@ -101,7 +101,7 @@ export const searchService = {
     if (options?.sort_by) params.append('sort_by', options.sort_by);
     if (options?.sort_order) params.append('sort_order', options.sort_order);
 
-    return fetchJson<SearchResponse>(`${API_BASE}/api/v1/search?${params.toString()}`);
+    return (await fetchJson<SearchResponse>(`${API_BASE}/api/v1/search?${params.toString()}`))!;
   },
 
   /**
@@ -115,7 +115,7 @@ export const searchService = {
     params.append('q', query);
     params.append('limit', limit.toString());
 
-    return fetchJson(`${API_BASE}/api/v1/search/autocomplete?${params.toString()}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/search/autocomplete?${params.toString()}`);
   },
 
   /**
@@ -125,7 +125,7 @@ export const searchService = {
     trending: SearchSuggestion[];
     popular: SearchSuggestion[];
   }> {
-    return fetchJson(`${API_BASE}/api/v1/search/suggestions`);
+    return fetchJson<any>(`${API_BASE}/api/v1/search/suggestions`);
   },
 
   /**
@@ -135,14 +135,14 @@ export const searchService = {
     history: SearchHistory[];
     total_count: number;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/search/history?limit=${limit}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/search/history?limit=${limit}`);
   },
 
   /**
    * Clear search history
    */
   async clearHistory(): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/search/history`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/search/history`, {
       method: 'DELETE',
     });
   },
@@ -151,7 +151,7 @@ export const searchService = {
    * Delete specific search history item
    */
   async deleteHistoryItem(itemId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/search/history/${itemId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/search/history/${itemId}`, {
       method: 'DELETE',
     });
   },
@@ -164,6 +164,6 @@ export const searchService = {
     years: { min: number; max: number };
     types: string[];
   }> {
-    return fetchJson(`${API_BASE}/api/v1/search/filters`);
+    return fetchJson<any>(`${API_BASE}/api/v1/search/filters`);
   },
 };

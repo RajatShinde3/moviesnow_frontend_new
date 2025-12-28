@@ -5,7 +5,7 @@
  * API service for webhook event monitoring and audit logs
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -72,8 +72,8 @@ export const webhooksService = {
     if (params?.page) queryParams.append('page', String(params.page));
     if (params?.per_page) queryParams.append('per_page', String(params.per_page));
 
-    const response = await apiClient.get(`/debug/audit-logs?${queryParams.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/debug/audit-logs?${queryParams.toString()}`);
+    return response as any;
   },
 
   /**
@@ -86,8 +86,8 @@ export const webhooksService = {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 
-    const response = await apiClient.get('/debug/audit-logs', {
-      params: {
+    const response: any = await fetchJson<any>('/debug/audit-logs', {
+      searchParams: {
         action: 'webhook',
         start_date: startDate.toISOString(),
         end_date: endDate.toISOString(),
@@ -165,9 +165,12 @@ export const webhooksService = {
    */
   async testWebhook(source: string): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await apiClient.post(`/webhooks/${source}/test`, {
-        test: true,
-        timestamp: new Date().toISOString(),
+      const response: any = await fetchJson<any>(`/webhooks/${source}/test`, {
+        method: 'POST',
+        body: JSON.stringify({
+          test: true,
+          timestamp: new Date().toISOString(),
+        }),
       });
       return { success: true, message: 'Test webhook sent successfully' };
     } catch (error) {

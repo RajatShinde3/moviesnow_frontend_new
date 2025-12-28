@@ -47,9 +47,9 @@ export default function AdvancedPlayer({
 }: AdvancedPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const progressIntervalRef = useRef<NodeJS.Timeout>();
-  const heartbeatIntervalRef = useRef<NodeJS.Timeout>();
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const progressIntervalRef = useRef<NodeJS.Timeout>(null);
+  const heartbeatIntervalRef = useRef<NodeJS.Timeout>(null);
+  const controlsTimeoutRef = useRef<NodeJS.Timeout>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);

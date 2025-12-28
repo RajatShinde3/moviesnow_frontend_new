@@ -111,7 +111,7 @@ export function SearchBar({ onSearch, placeholder = 'Search movies, series, anim
         const results = await api.discovery.getSuggestions(debouncedQuery);
 
         // Map API results to SearchSuggestion format
-        const mappedSuggestions: SearchSuggestion[] = results.map((result: any) => ({
+        const mappedSuggestions: SearchSuggestion[] = (results || []).map((result: any) => ({
           id: result.id || result.title_id,
           name: result.title || result.name,
           type: (result.type?.toUpperCase() || 'MOVIE') as 'MOVIE' | 'SERIES',

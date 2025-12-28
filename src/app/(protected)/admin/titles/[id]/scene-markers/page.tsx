@@ -3,7 +3,7 @@
 
 import { useParams, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { fetchJson } from '@/lib/api/client';
 import { SceneMarkerEditor } from '@/components/admin/SceneMarkerEditor';
 import { ArrowLeft, Film, Sparkles, AlertCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -16,21 +16,19 @@ export default function SceneMarkerEditorPage() {
   const episodeId = searchParams.get('episode');
 
   // Fetch title details
-  const { data: title, isLoading: titleLoading, error: titleError } = useQuery({
+  const { data: title, isLoading: titleLoading, error: titleError } = useQuery<any>({
     queryKey: ['title', titleId],
     queryFn: async () => {
-      const response = await api.get(`/admin/titles/${titleId}`);
-      return response.json();
+      return await fetchJson(`/api/v1/admin/titles/${titleId}`);
     }
   });
 
   // Fetch episode if applicable
-  const { data: episode, isLoading: episodeLoading } = useQuery({
+  const { data: episode, isLoading: episodeLoading }: any = useQuery<any>({
     queryKey: ['episode', episodeId],
     queryFn: async () => {
       if (!episodeId) return null;
-      const response = await api.get(`/admin/episodes/${episodeId}`);
-      return response.json();
+      return await fetchJson(`/api/v1/admin/episodes/${episodeId}`);
     },
     enabled: !!episodeId
   });
@@ -76,7 +74,7 @@ export default function SceneMarkerEditorPage() {
     );
   }
 
-  const videoUrl = episodeId ? episode?.streamVariants?.[0]?.url : title?.streamVariants?.[0]?.url;
+  const videoUrl = episodeId ? (episode as any)?.streamVariants?.[0]?.url : title?.streamVariants?.[0]?.url;
   const isSeries = title?.titleType === 'series' || title?.titleType === 'anime';
 
   return (

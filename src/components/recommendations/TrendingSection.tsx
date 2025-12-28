@@ -73,7 +73,7 @@ export default function TrendingSection({
           <div>
             <h2 className="text-2xl font-bold text-white">Trending Now</h2>
             <p className="text-sm text-gray-400">
-              {data?.total_items || 0} trending titles
+              {(data as any)?.total_items || 0 || 0} trending titles
             </p>
           </div>
         </div>

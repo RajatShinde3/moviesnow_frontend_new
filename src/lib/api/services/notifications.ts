@@ -136,46 +136,46 @@ export const notificationsService = {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return fetchJson<NotificationListResponse>(
+    return (await fetchJson<NotificationListResponse>(
       `${API_BASE}/api/v1/notifications${query}`
-    );
+    ))!;
   },
 
   /**
    * Get notification statistics
    */
   async getStats(): Promise<NotificationStatsResponse> {
-    return fetchJson<NotificationStatsResponse>(
+    return (await fetchJson<NotificationStatsResponse>(
       `${API_BASE}/api/v1/notifications/stats`
-    );
+    ))!;
   },
 
   /**
    * Get a single notification by ID
    */
   async getNotification(notificationId: string): Promise<Notification> {
-    return fetchJson<Notification>(
+    return (await fetchJson<Notification>(
       `${API_BASE}/api/v1/notifications/${notificationId}`
-    );
+    ))!;
   },
 
   /**
    * Mark a notification as read
    */
   async markAsRead(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}/read`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
    * Mark all notifications as read (or specific IDs)
    */
   async markAllAsRead(notificationIds?: string[]): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/read-all`,
       {
         method: 'POST',
@@ -183,79 +183,79 @@ export const notificationsService = {
           notification_ids: notificationIds || null,
         }),
       }
-    );
+    ))!;
   },
 
   /**
    * Mark a notification as unread
    */
   async markAsUnread(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}/unread`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
    * Track notification click (analytics)
    */
   async trackClick(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}/click`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
    * Pin a notification to the top
    */
   async pinNotification(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}/pin`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
    * Unpin a notification
    */
   async unpinNotification(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}/unpin`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
    * Delete a notification permanently
    */
   async deleteNotification(notificationId: string): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/${notificationId}`,
       {
         method: 'DELETE',
       }
-    );
+    ))!;
   },
 
   /**
    * Clear all notifications (mark as read and archived)
    */
   async clearAll(): Promise<{ message: string }> {
-    return fetchJson<{ message: string }>(
+    return (await fetchJson<{ message: string }>(
       `${API_BASE}/api/v1/notifications/clear-all`,
       {
         method: 'DELETE',
       }
-    );
+    ))!;
   },
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -266,9 +266,9 @@ export const notificationsService = {
    * Get user notification preferences
    */
   async getPreferences(): Promise<NotificationPreferencesResponse> {
-    return fetchJson<NotificationPreferencesResponse>(
+    return (await fetchJson<NotificationPreferencesResponse>(
       `${API_BASE}/api/v1/notifications/preferences`
-    );
+    ))!;
   },
 
   /**
@@ -277,13 +277,13 @@ export const notificationsService = {
   async updatePreferences(
     updates: Partial<NotificationPreferences>
   ): Promise<NotificationPreferencesResponse> {
-    return fetchJson<NotificationPreferencesResponse>(
+    return (await fetchJson<NotificationPreferencesResponse>(
       `${API_BASE}/api/v1/notifications/preferences`,
       {
         method: 'PUT',
         body: JSON.stringify(updates),
       }
-    );
+    ))!;
   },
 
   /**
@@ -294,7 +294,7 @@ export const notificationsService = {
     channel: string,
     enabled: boolean
   ): Promise<{ success: boolean; message: string }> {
-    return fetchJson<{ success: boolean; message: string }>(
+    return (await fetchJson<{ success: boolean; message: string }>(
       `${API_BASE}/api/v1/notifications/preferences/quick-toggle`,
       {
         method: 'POST',
@@ -304,19 +304,19 @@ export const notificationsService = {
           enabled,
         }),
       }
-    );
+    ))!;
   },
 
   /**
    * Reset preferences to defaults
    */
   async resetPreferences(): Promise<NotificationPreferencesResponse> {
-    return fetchJson<NotificationPreferencesResponse>(
+    return (await fetchJson<NotificationPreferencesResponse>(
       `${API_BASE}/api/v1/notifications/preferences/reset`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 
   /**
@@ -328,7 +328,7 @@ export const notificationsService = {
     hours: number;
     message: string;
   }> {
-    return fetchJson(
+    return fetchJson<any>(
       `${API_BASE}/api/v1/notifications/preferences/mute-temporarily?hours=${hours}`,
       {
         method: 'POST',
@@ -340,11 +340,11 @@ export const notificationsService = {
    * Unmute notifications
    */
   async unmute(): Promise<{ success: boolean; message: string }> {
-    return fetchJson<{ success: boolean; message: string }>(
+    return (await fetchJson<{ success: boolean; message: string }>(
       `${API_BASE}/api/v1/notifications/preferences/unmute`,
       {
         method: 'POST',
       }
-    );
+    ))!;
   },
 };

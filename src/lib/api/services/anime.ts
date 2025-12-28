@@ -66,28 +66,28 @@ export const animeService = {
    * Get episode markers (OP/ED, recap, preview)
    */
   async getMarkers(titleId: string): Promise<Marker[]> {
-    return fetchJson<Marker[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/markers`);
+    return (await fetchJson<Marker[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/markers`))!;
   },
 
   /**
    * Get arcs and cours with absolute ordering
    */
   async getArcs(titleId: string): Promise<Arc[]> {
-    return fetchJson<Arc[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/arcs`);
+    return (await fetchJson<Arc[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/arcs`))!;
   },
 
   /**
    * Get title relations (prequel, sequel, side story, alt version)
    */
   async getRelations(titleId: string): Promise<Relation[]> {
-    return fetchJson<Relation[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/relations`);
+    return (await fetchJson<Relation[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/relations`))!;
   },
 
   /**
    * Get release variants (TV, BD/Uncensored, Dub/Sub)
    */
   async getVariants(titleId: string): Promise<Variant[]> {
-    return fetchJson<Variant[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/variants`);
+    return (await fetchJson<Variant[]>(`${API_BASE}/api/v1/anime/titles/${titleId}/variants`))!;
   },
 
   /**
@@ -106,6 +106,6 @@ export const animeService = {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return fetchJson<ScheduleItem[]>(`${API_BASE}/api/v1/anime/schedule${query}`);
+    return (await fetchJson<ScheduleItem[]>(`${API_BASE}/api/v1/anime/schedule${query}`))!;
   },
 };

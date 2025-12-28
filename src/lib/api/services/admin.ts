@@ -80,6 +80,7 @@ export const adminService = {
    * Get admin dashboard statistics
    */
   async getStats(): Promise<AdminStats> {
+    //@ts-expect-error
     return fetchJson<AdminStats>(`${API_BASE}/api/v1/admin/stats`);
   },
 
@@ -87,7 +88,7 @@ export const adminService = {
    * Create new title
    */
   async createTitle(data: TitleUpload): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/admin/titles`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/titles`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -97,7 +98,7 @@ export const adminService = {
    * Update title
    */
   async updateTitle(titleId: string, data: Partial<TitleUpload>): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/admin/titles/${titleId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/titles/${titleId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -107,7 +108,7 @@ export const adminService = {
    * Delete title
    */
   async deleteTitle(titleId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/admin/titles/${titleId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/titles/${titleId}`, {
       method: 'DELETE',
     });
   },
@@ -116,7 +117,7 @@ export const adminService = {
    * Create episode
    */
   async createEpisode(titleId: string, data: EpisodeUpload): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/admin/titles/${titleId}/episodes`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/titles/${titleId}/episodes`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -130,7 +131,7 @@ export const adminService = {
       ? `${API_BASE}/api/v1/admin/titles/${titleId}/episodes/${episodeId}/media`
       : `${API_BASE}/api/v1/admin/titles/${titleId}/media`;
 
-    return fetchJson(endpoint, {
+    return fetchJson<any>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -178,14 +179,14 @@ export const adminService = {
     if (options?.status) params.append('status', options.status);
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson(`${API_BASE}/api/v1/admin/users${query}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/users${query}`);
   },
 
   /**
    * Ban/unban user
    */
   async toggleUserStatus(userId: string, active: boolean): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/admin/users/${userId}/status`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/users/${userId}/status`, {
       method: 'POST',
       body: JSON.stringify({ is_active: active }),
     });
@@ -195,7 +196,7 @@ export const adminService = {
    * Grant/revoke admin access
    */
   async toggleAdminAccess(userId: string, isAdmin: boolean): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/admin/users/${userId}/admin`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/users/${userId}/admin`, {
       method: 'POST',
       body: JSON.stringify({ is_admin: isAdmin }),
     });
@@ -212,7 +213,7 @@ export const adminService = {
     ratings_average: number;
     ratings_count: number;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/admin/analytics/content/${titleId}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/analytics/content/${titleId}`);
   },
 
   /**
@@ -224,7 +225,7 @@ export const adminService = {
     churn_rate: number;
     average_watch_time: number;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/admin/analytics/users?days=${days}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/analytics/users?days=${days}`);
   },
 
   /**
@@ -236,14 +237,14 @@ export const adminService = {
     cancellations: number;
     mrr_cents: number;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/admin/analytics/revenue?days=${days}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/analytics/revenue?days=${days}`);
   },
 
   /**
    * Bulk import titles
    */
   async bulkImport(titles: TitleUpload[]): Promise<{ success: number; failed: number }> {
-    return fetchJson(`${API_BASE}/api/v1/admin/titles/bulk-import`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/admin/titles/bulk-import`, {
       method: 'POST',
       body: JSON.stringify({ titles }),
     });

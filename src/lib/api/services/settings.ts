@@ -76,48 +76,48 @@ export const settingsService = {
    * Get user settings
    */
   async getSettings(): Promise<UserSettings> {
-    return fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`);
+    return (await fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`))!;
   },
 
   /**
    * Update user settings
    */
   async updateSettings(data: Partial<UserSettings>): Promise<UserSettings> {
-    return fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`, {
+    return (await fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
    * Get privacy settings
    */
   async getPrivacySettings(): Promise<PrivacySettings> {
-    return fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`);
+    return (await fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`))!;
   },
 
   /**
    * Update privacy settings
    */
   async updatePrivacySettings(data: Partial<PrivacySettings>): Promise<PrivacySettings> {
-    return fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`, {
+    return (await fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
    * Get all devices
    */
   async getDevices(): Promise<{ devices: Device[] }> {
-    return fetchJson(`${API_BASE}/api/v1/user/devices`);
+    return fetchJson<any>(`${API_BASE}/api/v1/user/devices`);
   },
 
   /**
    * Remove device
    */
   async removeDevice(deviceId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/user/devices/${deviceId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/${deviceId}`, {
       method: 'DELETE',
     });
   },
@@ -126,7 +126,7 @@ export const settingsService = {
    * Trust device
    */
   async trustDevice(deviceId: string): Promise<Device> {
-    return fetchJson(`${API_BASE}/api/v1/user/devices/${deviceId}/trust`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/${deviceId}/trust`, {
       method: 'POST',
     });
   },
@@ -135,7 +135,7 @@ export const settingsService = {
    * Sign out all devices
    */
   async signOutAllDevices(): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/user/devices/signout-all`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/signout-all`, {
       method: 'POST',
     });
   },
@@ -157,7 +157,7 @@ export const settingsService = {
     if (options?.per_page) params.append('per_page', options.per_page.toString());
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson(`${API_BASE}/api/v1/user/activity${query}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/user/activity${query}`);
   },
 
   /**
@@ -167,7 +167,7 @@ export const settingsService = {
     current_password: string;
     new_password: string;
   }): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/user/change-password`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/change-password`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -180,7 +180,7 @@ export const settingsService = {
     new_email: string;
     password: string;
   }): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/user/change-email`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/change-email`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -190,7 +190,7 @@ export const settingsService = {
    * Delete account
    */
   async deleteAccount(password: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/user/delete-account`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/delete-account`, {
       method: 'POST',
       body: JSON.stringify({ password }),
     });

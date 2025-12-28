@@ -116,7 +116,7 @@ export default function SeriesEpisodesManager() {
       const response = await fetchJson<{ items: Season[] }>(
         `/api/v1/admin/titles/${seriesId}/seasons?include_episodes=true`
       );
-      return response.items || [];
+      return response?.items || [];
     },
   });
 

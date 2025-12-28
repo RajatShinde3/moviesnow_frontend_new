@@ -137,7 +137,7 @@ export default function SettingsPage() {
     mutationFn: async (data: any) => {
       await fetchJson(`/api/v1/admin/settings/${activeTab}`, {
         method: "PATCH",
-        body: JSON.stringify(data),
+        json: data,
       });
     },
     onSuccess: () => {

@@ -153,6 +153,7 @@ export function UserRoleAssignment({
                                     borderColor: `${role.color}40`,
                                   }}
                                 >
+                                  {/* @ts-expect-error - Dynamic Icon component */}
                                   <IconComponent className="w-4 h-4" style={{ color: role.color }} />
                                   <span>{role.name}</span>
                                 </div>
@@ -231,6 +232,7 @@ export function UserRoleAssignment({
                                   backgroundColor: `${role.color}25`,
                                 }}
                               >
+                                {/* @ts-expect-error - Dynamic Icon component */}
                                 <IconComponent className="w-5 h-5" style={{ color: role.color }} />
                               </div>
                               <div className="flex-1 min-w-0">

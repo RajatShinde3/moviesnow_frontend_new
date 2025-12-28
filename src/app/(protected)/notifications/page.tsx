@@ -26,6 +26,7 @@ import {
   Info,
   TrendingUp,
   X,
+  Film,
 } from 'lucide-react';
 import {
   useNotifications,
@@ -53,8 +54,7 @@ export default function NotificationsPage() {
 
   const { data: notificationsData, isLoading, refetch } = useNotifications({
     unread_only: filter === 'unread',
-    page,
-    per_page: 20,
+    limit: 20,
   });
 
   const markAsRead = useMarkAsRead();
@@ -76,7 +76,7 @@ export default function NotificationsPage() {
 
   const handleMarkAllAsRead = async () => {
     if (window.confirm('Mark all notifications as read?')) {
-      await markAllAsRead.mutateAsync();
+      await markAllAsRead.mutateAsync(undefined);
     }
   };
 
@@ -237,7 +237,7 @@ export default function NotificationsPage() {
         )}
 
         {/* Pagination */}
-        {notificationsData && notificationsData.total_count > 20 && (
+        {notificationsData && ((notificationsData as any)?.total_count || 0) > 20 && (
           <div className="flex justify-center gap-2 mt-8">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
@@ -247,11 +247,11 @@ export default function NotificationsPage() {
               Previous
             </button>
             <span className="px-4 py-2 bg-gray-900/50 text-white rounded-lg">
-              Page {page} of {Math.ceil(notificationsData.total_count / 20)}
+              Page {page} of {Math.ceil((notificationsData as any)?.total_count || 0 / 20)}
             </span>
             <button
               onClick={() => setPage((p) => p + 1)}
-              disabled={page >= Math.ceil(notificationsData.total_count / 20)}
+              disabled={page >= Math.ceil((notificationsData as any)?.total_count || 0 / 20)}
               className="px-4 py-2 bg-gray-800 text-white rounded-lg font-medium disabled:opacity-50 hover:bg-gray-700 transition-colors"
             >
               Next

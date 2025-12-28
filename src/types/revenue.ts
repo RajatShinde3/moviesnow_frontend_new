@@ -188,11 +188,16 @@ export interface RevenueFilters {
 }
 
 /**
+ * Export format types
+ */
+export type ExportFormat = 'csv' | 'excel' | 'pdf';
+
+/**
  * Export revenue data request
  */
 export interface ExportRevenueRequest {
   filters: RevenueFilters;
-  format: 'csv' | 'excel' | 'pdf';
+  format: ExportFormat;
   includeCharts?: boolean;
 }
 

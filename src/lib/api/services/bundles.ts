@@ -5,7 +5,7 @@
  * API service for download bundle management
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -96,46 +96,46 @@ export const bundleService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/admin/bundles?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/bundles?${params.toString()}`);
+    return response as any;
   },
 
   /**
    * Get bundle by ID
    */
   async getBundleById(bundleId: string): Promise<Bundle> {
-    const response = await apiClient.get(`/admin/bundles/${bundleId}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/bundles/${bundleId}`);
+    return response as any;
   },
 
   /**
    * Create new bundle (admin)
    */
   async createBundle(data: CreateBundleRequest): Promise<Bundle> {
-    const response = await apiClient.post('/admin/bundles', data);
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/bundles', { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Update bundle (admin)
    */
   async updateBundle(bundleId: string, data: UpdateBundleRequest): Promise<Bundle> {
-    const response = await apiClient.patch(`/admin/bundles/${bundleId}`, data);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/bundles/${bundleId}`, { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Delete bundle (admin)
    */
   async deleteBundle(bundleId: string): Promise<void> {
-    await apiClient.delete(`/admin/bundles/${bundleId}`);
+    await fetchJson<any>(`/admin/bundles/${bundleId}`);
   },
 
   /**
    * Get available bundles for a title (public)
    */
   async getTitleBundles(titleId: string): Promise<Bundle[]> {
-    const response = await apiClient.get(`/public/titles/${titleId}/bundles`);
+    const response: any = await fetchJson<any>(`/public/titles/${titleId}/bundles`);
     return response.data.bundles || [];
   },
 
@@ -143,7 +143,7 @@ export const bundleService = {
    * Get available bundles for a season (public)
    */
   async getSeasonBundles(titleId: string, seasonId: string): Promise<Bundle[]> {
-    const response = await apiClient.get(
+    const response: any = await fetchJson<any>(
       `/public/titles/${titleId}/seasons/${seasonId}/bundles`
     );
     return response.data.bundles || [];
@@ -153,25 +153,28 @@ export const bundleService = {
    * Generate download link for bundle
    */
   async generateDownloadLink(bundleId: string): Promise<{ download_url: string }> {
-    const response = await apiClient.post(`/bundles/${bundleId}/download`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/bundles/${bundleId}/download`);
+    return response as any;
   },
 
   /**
    * Generate custom bundle (admin)
    */
   async generateBundle(data: BundleGenerationRequest): Promise<Bundle> {
-    const response = await apiClient.post('/admin/bundles/generate', data);
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/bundles/generate', { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Bulk create bundles for title (admin)
    */
   async bulkCreateBundles(titleId: string, configs: CreateBundleRequest[]): Promise<Bundle[]> {
-    const response = await apiClient.post(`/admin/bundles/bulk`, {
-      title_id: titleId,
-      bundles: configs,
+    const response: any = await fetchJson<any>(`/admin/bundles/bulk`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title_id: titleId,
+        bundles: configs,
+      }),
     });
     return response.data.bundles || [];
   },
@@ -183,7 +186,7 @@ export const bundleService = {
     user_agent?: string;
     referrer?: string;
   }): Promise<void> {
-    await apiClient.post(`/bundles/${bundleId}/track`, metadata);
+    await fetchJson<any>(`/bundles/${bundleId}/track`, { method: "PATCH", json: metadata });
   },
 
   /**
@@ -196,8 +199,8 @@ export const bundleService = {
     unique_users: number;
     bandwidth_used_bytes: number;
   }> {
-    const response = await apiClient.get(`/admin/bundles/${bundleId}/stats`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/bundles/${bundleId}/stats`);
+    return response as any;
   },
 
   /**
@@ -211,7 +214,7 @@ export const bundleService = {
     duration_minutes?: number;
     file_size_bytes?: number;
   }[]> {
-    const response = await apiClient.get(`/bundles/${bundleId}/episodes`);
+    const response: any = await fetchJson<any>(`/bundles/${bundleId}/episodes`);
     return response.data.episodes || [];
   },
 
@@ -226,7 +229,7 @@ export const bundleService = {
     duration_minutes?: number;
     file_size_bytes?: number;
   }[]> {
-    const response = await apiClient.get(`/public/titles/${titleId}/seasons/${seasonId}/episodes`);
+    const response: any = await fetchJson<any>(`/public/titles/${titleId}/seasons/${seasonId}/episodes`);
     return response.data.episodes || [];
   },
 };

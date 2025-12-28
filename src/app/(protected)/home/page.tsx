@@ -483,7 +483,7 @@ function UltraPremiumCard({
   const [isLiked, setIsLiked] = React.useState(false);
   const [showModal, setShowModal] = React.useState(false);
   const [imageLoaded, setImageLoaded] = React.useState(false);
-  const hoverTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const hoverTimeoutRef = React.useRef<NodeJS.Timeout>(null);
   const cardRef = React.useRef<HTMLDivElement>(null);
   const prefersReducedMotion = false; // useReducedMotion hook removed for compatibility
 

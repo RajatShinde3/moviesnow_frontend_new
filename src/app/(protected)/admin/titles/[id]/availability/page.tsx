@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/services";
 import type { AvailabilityWindow } from "@/lib/api/types";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const REGIONS = [
   { code: "US", name: "United States", flag: "🇺🇸" },
@@ -62,24 +62,25 @@ export default function TitleAvailabilityPage() {
   // Fetch availability windows
   const { data: windows = [], isLoading } = useQuery({
     queryKey: ["admin", "titles", titleId, "availability"],
-    queryFn: () => api.titleAvailability.list(titleId),
+    queryFn: () => api.titleAvailability.listAvailability(titleId),
   });
 
   // Fetch title info for display
   const { data: titleInfo } = useQuery({
     queryKey: ["admin", "titles", titleId],
-    queryFn: () => api.titles.getById(titleId),
+    queryFn: () => api.discovery.getTitle(titleId),
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: {
-      window_type: string;
+      window_type?: 'theatrical' | 'streaming' | 'download' | 'all';
       regions: string[];
       start_date: string;
       end_date?: string;
       notes?: string;
-    }) => api.titleAvailability.create(titleId, data),
+      is_active?: boolean;
+    }) => api.titleAvailability.createAvailability(titleId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "titles", titleId, "availability"] });
       closeModal();
@@ -91,13 +92,14 @@ export default function TitleAvailabilityPage() {
     mutationFn: (data: {
       windowId: string;
       updates: {
-        window_type?: string;
+        window_type?: 'theatrical' | 'streaming' | 'download' | 'all';
         regions?: string[];
         start_date?: string;
         end_date?: string;
         notes?: string;
+        is_active?: boolean;
       };
-    }) => api.titleAvailability.update(titleId, data.windowId, data.updates),
+    }) => api.titleAvailability.updateAvailability(titleId, data.windowId, data.updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "titles", titleId, "availability"] });
       closeModal();
@@ -106,7 +108,7 @@ export default function TitleAvailabilityPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (windowId: string) => api.titleAvailability.delete(titleId, windowId),
+    mutationFn: (windowId: string) => api.titleAvailability.deleteAvailability(titleId, windowId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "titles", titleId, "availability"] });
       setDeleteWindowId(null);
@@ -210,7 +212,7 @@ export default function TitleAvailabilityPage() {
               Availability Management
             </h1>
             <p className="text-slate-400">
-              {titleInfo?.title || "Loading..."} - Configure regional availability windows
+              {titleInfo?.name || "Loading..."} - Configure regional availability windows
             </p>
           </div>
 
@@ -567,9 +569,10 @@ export default function TitleAvailabilityPage() {
           onClose={() => setDeleteWindowId(null)}
           onConfirm={() => deleteWindowId && deleteMutation.mutate(deleteWindowId)}
           title="Delete Availability Window"
-          description="Are you sure you want to delete this availability window? This action cannot be undone."
+          message="Are you sure you want to delete this availability window? This action cannot be undone."
           confirmText="Delete Window"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

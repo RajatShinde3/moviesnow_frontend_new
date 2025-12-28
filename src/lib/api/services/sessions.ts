@@ -5,7 +5,7 @@
  * API service for managing user sessions and devices
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -91,7 +91,7 @@ export const sessionsService = {
    * Get all active sessions
    */
   async getActiveSessions(): Promise<Session[]> {
-    const response = await apiClient.get('/auth/sessions');
+    const response: any = await fetchJson<any>('/auth/sessions');
     return response.data.sessions || [];
   },
 
@@ -99,56 +99,57 @@ export const sessionsService = {
    * Get session by ID
    */
   async getSessionById(sessionId: string): Promise<Session> {
-    const response = await apiClient.get(`/auth/sessions/${sessionId}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/auth/sessions/${sessionId}`);
+    return response as any;
   },
 
   /**
    * Get current session
    */
   async getCurrentSession(): Promise<Session> {
-    const response = await apiClient.get('/auth/sessions/current');
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/sessions/current');
+    return response as any;
   },
 
   /**
    * Revoke session
    */
   async revokeSession(sessionId: string): Promise<void> {
-    await apiClient.delete(`/auth/sessions/${sessionId}`);
+    await fetchJson<any>(`/auth/sessions/${sessionId}`);
   },
 
   /**
    * Revoke all sessions except current
    */
   async revokeAllOtherSessions(): Promise<{ revoked_count: number }> {
-    const response = await apiClient.post('/auth/sessions/revoke-all-others');
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/sessions/revoke-all-others');
+    return response as any;
   },
 
   /**
    * Revoke all sessions (logout from all devices)
    */
   async revokeAllSessions(): Promise<{ revoked_count: number }> {
-    const response = await apiClient.post('/auth/sessions/revoke-all');
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/sessions/revoke-all');
+    return response as any;
   },
 
   /**
    * Extend session expiry
    */
   async extendSession(sessionId: string, hoursToAdd: number = 24): Promise<Session> {
-    const response = await apiClient.post(`/auth/sessions/${sessionId}/extend`, {
-      hours: hoursToAdd,
+    const response: any = await fetchJson<any>(`/auth/sessions/${sessionId}/extend`, {
+      method: 'POST',
+      body: JSON.stringify({ hours: hoursToAdd }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get all registered devices
    */
   async getDevices(): Promise<Device[]> {
-    const response = await apiClient.get('/auth/devices');
+    const response: any = await fetchJson<any>('/auth/devices');
     return response.data.devices || [];
   },
 
@@ -156,47 +157,51 @@ export const sessionsService = {
    * Get device by ID
    */
   async getDeviceById(deviceId: string): Promise<Device> {
-    const response = await apiClient.get(`/auth/devices/${deviceId}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/auth/devices/${deviceId}`);
+    return response as any;
   },
 
   /**
    * Update device name
    */
   async updateDeviceName(deviceId: string, name: string): Promise<Device> {
-    const response = await apiClient.patch(`/auth/devices/${deviceId}`, { name });
-    return response.data;
+    const response: any = await fetchJson<any>(`/auth/devices/${deviceId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    return response as any;
   },
 
   /**
    * Remove device
    */
   async removeDevice(deviceId: string): Promise<void> {
-    await apiClient.delete(`/auth/devices/${deviceId}`);
+    await fetchJson<any>(`/auth/devices/${deviceId}`);
   },
 
   /**
    * Trust device
    */
   async trustDevice(deviceId: string, duration_days?: number): Promise<TrustedDevice> {
-    const response = await apiClient.post(`/auth/devices/${deviceId}/trust`, {
-      duration_days,
+    const response: any = await fetchJson<any>(`/auth/devices/${deviceId}/trust`, {
+      method: 'POST',
+      body: JSON.stringify({ duration_days }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Untrust device
    */
   async untrustDevice(deviceId: string): Promise<void> {
-    await apiClient.delete(`/auth/devices/${deviceId}/trust`);
+    await fetchJson<any>(`/auth/devices/${deviceId}/trust`);
   },
 
   /**
    * Get trusted devices
    */
   async getTrustedDevices(): Promise<TrustedDevice[]> {
-    const response = await apiClient.get('/auth/devices/trusted');
+    const response: any = await fetchJson<any>('/auth/devices/trusted');
     return response.data.devices || [];
   },
 
@@ -222,8 +227,8 @@ export const sessionsService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/auth/security-events?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/auth/security-events?${params.toString()}`);
+    return response as any;
   },
 
   /**
@@ -242,8 +247,8 @@ export const sessionsService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/auth/login-history?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/auth/login-history?${params.toString()}`);
+    return response as any;
   },
 
   /**
@@ -254,14 +259,17 @@ export const sessionsService = {
     description: string;
     evidence?: Record<string, any>;
   }): Promise<void> {
-    await apiClient.post('/auth/report-suspicious-activity', details);
+    await fetchJson<any>('/auth/report-suspicious-activity', { method: "PATCH", json: details });
   },
 
   /**
    * Enable session alerts
    */
   async enableSessionAlerts(alertTypes: ('new_login' | 'new_device' | 'failed_login' | 'suspicious_activity')[]): Promise<void> {
-    await apiClient.post('/auth/session-alerts', { alert_types: alertTypes });
+    await fetchJson<any>('/auth/session-alerts', {
+      method: 'POST',
+      body: JSON.stringify({ alert_types: alertTypes }),
+    });
   },
 
   /**
@@ -271,8 +279,8 @@ export const sessionsService = {
     enabled: boolean;
     alert_types: ('new_login' | 'new_device' | 'failed_login' | 'suspicious_activity')[];
   }> {
-    const response = await apiClient.get('/auth/session-alerts');
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/session-alerts');
+    return response as any;
   },
 
   /**
@@ -286,8 +294,8 @@ export const sessionsService = {
     last_password_change: string | null;
     mfa_enabled: boolean;
   }> {
-    const response = await apiClient.get('/auth/session-stats');
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/session-stats');
+    return response as any;
   },
 
   /**
@@ -298,10 +306,11 @@ export const sessionsService = {
     device_id?: string;
     last_seen?: string;
   }> {
-    const response = await apiClient.post('/auth/verify-device-fingerprint', {
-      fingerprint,
+    const response: any = await fetchJson<any>('/auth/verify-device-fingerprint', {
+      method: 'POST',
+      body: JSON.stringify({ fingerprint }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -311,8 +320,11 @@ export const sessionsService = {
     challenge_id: string;
     expires_at: string;
   }> {
-    const response = await apiClient.post('/auth/2fa-challenge', { action });
-    return response.data;
+    const response: any = await fetchJson<any>('/auth/2fa-challenge', {
+      method: 'POST',
+      body: JSON.stringify({ action }),
+    });
+    return response as any;
   },
 
   /**
@@ -322,9 +334,10 @@ export const sessionsService = {
     verified: boolean;
     token?: string;
   }> {
-    const response = await apiClient.post(`/auth/2fa-challenge/${challengeId}/verify`, {
-      code,
+    const response: any = await fetchJson<any>(`/auth/2fa-challenge/${challengeId}/verify`, {
+      method: 'POST',
+      body: JSON.stringify({ code }),
     });
-    return response.data;
+    return response as any;
   },
 };

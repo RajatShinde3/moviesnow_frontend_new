@@ -37,7 +37,7 @@ export default function DownloadAnalyticsPage() {
   // Fetch download analytics data
   const { data: downloadData, isLoading } = useQuery({
     queryKey: ["admin", "analytics", "downloads", dateRange],
-    queryFn: () => api.advancedAnalytics.getDownloadAnalytics(dateRange),
+    queryFn: () => api.advancedAnalytics.downloadAnalytics(),
   });
 
   if (isLoading || !downloadData) {
@@ -61,25 +61,25 @@ export default function DownloadAnalyticsPage() {
   const successRate = downloadData.completion_rate;
 
   // Prepare chart data
-  const qualityData = downloadData.downloads_by_quality.map((q) => ({
+  const qualityData = downloadData.downloads_by_quality.map((q: any) => ({
     name: q.quality,
     value: q.count,
     percentage: q.percentage,
   }));
 
-  const contentTypeData = downloadData.downloads_by_content_type.map((ct) => ({
+  const contentTypeData = downloadData.downloads_by_content_type.map((ct: any) => ({
     name: ct.content_type,
     value: ct.count,
     percentage: ct.percentage,
   }));
 
   const topCountries = downloadData.geographic_distribution
-    .sort((a, b) => b.count - a.count)
+    .sort((a: any, b: any) => b.count - a.count)
     .slice(0, 10);
 
   // Peak times data (create heatmap data)
   const peakTimesData = downloadData.peak_download_times
-    .sort((a, b) => b.count - a.count)
+    .sort((a: any, b: any) => b.count - a.count)
     .slice(0, 12);
 
   return (
@@ -133,28 +133,28 @@ export default function DownloadAnalyticsPage() {
             value={downloadData.total_downloads.toLocaleString()}
             change={15.3}
             trend="up"
-            icon={Download}
+            icon={<Download className="w-5 h-5" />}
           />
           <StatCard
             title="Success Rate"
             value={`${successRate.toFixed(1)}%`}
             change={successRate > 90 ? 5.2 : -2.1}
             trend={successRate > 90 ? "up" : "down"}
-            icon={CheckCircle}
+            icon={<CheckCircle className="w-5 h-5" />}
           />
           <StatCard
             title="Avg Download Time"
             value={`${avgDownloadTime.toFixed(1)}m`}
             change={-8.5}
             trend="up"
-            icon={Clock}
+            icon={<Clock className="w-5 h-5" />}
           />
           <StatCard
             title="Failed Downloads"
             value={downloadData.failed_downloads.toLocaleString()}
             change={-12.3}
             trend="up"
-            icon={XCircle}
+            icon={<XCircle className="w-5 h-5" />}
           />
         </motion.div>
 
@@ -227,7 +227,7 @@ export default function DownloadAnalyticsPage() {
               height={300}
             />
             <div className="space-y-4">
-              {downloadData.downloads_by_quality.map((q, index) => (
+              {downloadData.downloads_by_quality.map((q: any, index: number) => (
                 <div
                   key={q.quality}
                   className="flex items-center justify-between p-4 bg-slate-800/50 rounded-lg"
@@ -284,7 +284,7 @@ export default function DownloadAnalyticsPage() {
             Top 10 Countries by Downloads
           </h2>
           <div className="space-y-3">
-            {topCountries.map((country, index) => {
+            {topCountries.map((country: any, index: number) => {
               const percentage =
                 (country.count / downloadData.total_downloads) * 100;
               return (
@@ -333,10 +333,10 @@ export default function DownloadAnalyticsPage() {
             Peak Download Times
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {peakTimesData.map((time) => {
+            {peakTimesData.map((time: any) => {
               const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
               const intensity = Math.min(
-                (time.count / Math.max(...peakTimesData.map((t) => t.count))) * 100,
+                (time.count / Math.max(...peakTimesData.map((t: any) => t.count))) * 100,
                 100
               );
               return (
@@ -420,7 +420,7 @@ export default function DownloadAnalyticsPage() {
                 Top 3 countries account for{" "}
                 {topCountries
                   .slice(0, 3)
-                  .reduce((sum, c) => sum + c.percentage, 0)
+                  .reduce((sum: number, c: any) => sum + c.percentage, 0)
                   .toFixed(1)}
                 % of downloads. Consider localized CDN.
               </p>

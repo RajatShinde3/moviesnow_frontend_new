@@ -17,7 +17,7 @@ import {
 import { api } from "@/lib/api/services";
 import type { ContentCertification } from "@/lib/api/types";
 import { DataTable } from "@/components/ui/data/DataTable";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const RATING_SYSTEMS = [
   { value: "MPAA", label: "MPAA (USA)", region: "US" },
@@ -331,7 +331,7 @@ export default function ContentCertificationPage() {
             <div className="flex items-center justify-between mb-2">
               <Globe className="w-8 h-8 text-blue-400" />
               <span className="text-3xl font-bold text-white">
-                {new Set(certifications.map((c) => c.region)).size}
+                {new Set(certifications.map((c: ContentCertification) => c.region)).size}
               </span>
             </div>
             <p className="text-slate-400 text-sm">Regions Covered</p>
@@ -341,7 +341,7 @@ export default function ContentCertificationPage() {
             <div className="flex items-center justify-between mb-2">
               <CheckCircle className="w-8 h-8 text-green-400" />
               <span className="text-3xl font-bold text-white">
-                {certifications.filter((c) => c.certified_date).length}
+                {certifications.filter((c: ContentCertification) => c.certified_date).length}
               </span>
             </div>
             <p className="text-slate-400 text-sm">Officially Certified</p>
@@ -351,7 +351,7 @@ export default function ContentCertificationPage() {
             <div className="flex items-center justify-between mb-2">
               <Shield className="w-8 h-8 text-purple-400" />
               <span className="text-3xl font-bold text-white">
-                {new Set(certifications.map((c) => c.rating_system)).size}
+                {new Set(certifications.map((c: ContentCertification) => c.rating_system)).size}
               </span>
             </div>
             <p className="text-slate-400 text-sm">Rating Systems</p>
@@ -368,7 +368,6 @@ export default function ContentCertificationPage() {
           <DataTable
             data={certifications}
             columns={columns}
-            searchable
             searchPlaceholder="Search by title, rating, region..."
             emptyMessage="No certifications found"
           />
@@ -602,7 +601,7 @@ export default function ContentCertificationPage() {
           isOpen={deleteCertId !== null}
           onClose={() => setDeleteCertId(null)}
           onConfirm={() => {
-            const cert = certifications.find((c) => c.id === deleteCertId);
+            const cert = certifications.find((c: any) => c.id === deleteCertId);
             if (cert && deleteCertId) {
               deleteMutation.mutate({
                 titleId: cert.title_id,
@@ -611,9 +610,10 @@ export default function ContentCertificationPage() {
             }
           }}
           title="Delete Certification"
-          description="Are you sure you want to delete this certification? This action cannot be undone."
+          message="Are you sure you want to delete this certification? This action cannot be undone."
           confirmText="Delete Certification"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

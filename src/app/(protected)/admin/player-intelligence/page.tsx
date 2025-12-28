@@ -221,10 +221,10 @@ export default function PlayerIntelligencePage() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number, name: string) => [
-                    name === 'bandwidth' ? formatBandwidth(value) : `${value}ms`,
+                  formatter={((value: number | undefined, name: string) => [
+                    value !== undefined ? (name === 'bandwidth' ? formatBandwidth(value) : `${value}ms`) : '',
                     name === 'bandwidth' ? 'Bandwidth' : 'Latency',
-                  ]}
+                  ]) as any}
                 />
                 <Legend />
                 <Area type="monotone" dataKey="bandwidth" stroke="#3b82f6" fillOpacity={1} fill="url(#colorBandwidth)" name="Bandwidth" />
@@ -259,7 +259,7 @@ export default function PlayerIntelligencePage() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number) => [value.toFixed(1), 'QoE Score']}
+                  formatter={(value: number | undefined) => [value !== undefined ? value.toFixed(1) : '', 'QoE Score']}
                 />
                 <Line type="monotone" dataKey="qoe" stroke="#10b981" strokeWidth={3} dot={{ fill: '#10b981', r: 4 }} />
               </LineChart>
@@ -287,7 +287,7 @@ export default function PlayerIntelligencePage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ label, percent }) => `${label} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: any) => `${name} ${percent !== undefined ? (percent * 100).toFixed(0) : 0}%`}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="count"
@@ -296,7 +296,7 @@ export default function PlayerIntelligencePage() {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => [value.toLocaleString(), 'Sessions']} />
+                <Tooltip formatter={(value: number | undefined) => [value !== undefined ? value.toLocaleString() : '', 'Sessions']} />
               </PieChart>
             </ResponsiveContainer>
           </motion.div>
@@ -323,7 +323,7 @@ export default function PlayerIntelligencePage() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number) => [value.toLocaleString(), 'Sessions']}
+                  formatter={(value: number | undefined) => [value !== undefined ? value.toLocaleString() : '', 'Sessions']}
                 />
                 <Bar dataKey="count" fill="#8b5cf6" radius={[8, 8, 0, 0]}>
                   {deviceChartData.map((entry, index) => (

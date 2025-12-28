@@ -67,7 +67,7 @@ export const recommendationsService = {
    */
   async getHomeRails(profileId?: string): Promise<HomeRailsResponse> {
     const params = profileId ? `?profile_id=${profileId}` : '';
-    return fetchJson<HomeRailsResponse>(`${API_BASE}/api/v1/home/rails${params}`);
+    return (await fetchJson<HomeRailsResponse>(`${API_BASE}/api/v1/home/rails${params}`))!;
   },
 
   /**
@@ -82,14 +82,14 @@ export const recommendationsService = {
     if (options?.region) params.append('region', options.region);
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson<TrendingResponse>(`${API_BASE}/api/v1/trending${query}`);
+    return (await fetchJson<TrendingResponse>(`${API_BASE}/api/v1/trending${query}`))!;
   },
 
   /**
    * Get top 10 titles by region
    */
   async getTop10(region = 'US'): Promise<Top10Response> {
-    return fetchJson<Top10Response>(`${API_BASE}/api/v1/top10?region=${region}`);
+    return (await fetchJson<Top10Response>(`${API_BASE}/api/v1/top10?region=${region}`))!;
   },
 
   /**
@@ -108,13 +108,13 @@ export const recommendationsService = {
     if (options?.cursor) params.append('cursor', options.cursor);
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson<RecommendationsResponse>(`${API_BASE}/api/v1/recommendations${query}`);
+    return (await fetchJson<RecommendationsResponse>(`${API_BASE}/api/v1/recommendations${query}`))!;
   },
 
   /**
    * Get editorial collection
    */
   async getCollection(slug: string): Promise<CollectionResponse> {
-    return fetchJson<CollectionResponse>(`${API_BASE}/api/v1/collections/${slug}`);
+    return (await fetchJson<CollectionResponse>(`${API_BASE}/api/v1/collections/${slug}`))!;
   },
 };

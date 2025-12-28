@@ -90,6 +90,14 @@ export default function RBACPage() {
     );
   };
 
+  const handleRoleSubmit = (data: CreateRoleRequest | UpdateRoleRequest) => {
+    if (editingRole) {
+      handleUpdateRole(data as UpdateRoleRequest);
+    } else {
+      handleCreateRole(data as CreateRoleRequest);
+    }
+  };
+
   const handleDeleteRole = (roleId: string) => {
     if (window.confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
       deleteRole(roleId, {
@@ -272,7 +280,9 @@ export default function RBACPage() {
                         borderColor: `${role.color}30`,
                       }}
                     >
-                      <IconComponent className="w-6 h-6" style={{ color: role.color }} />
+                      <div style={{ color: role.color }}>
+                        <IconComponent className="w-6 h-6" />
+                      </div>
                     </div>
                     {role.isSystemRole ? (
                       <div className="px-2.5 py-1 bg-white/10 rounded-lg flex items-center gap-1.5 text-xs">
@@ -357,7 +367,9 @@ export default function RBACPage() {
                                   borderColor: `${role.color}40`,
                                 }}
                               >
-                                <IconComponent className="w-4 h-4" style={{ color: role.color }} />
+                                <div style={{ color: role.color }}>
+                                  <IconComponent className="w-4 h-4" />
+                                </div>
                                 <span>{role.name}</span>
                               </div>
                             );
@@ -408,7 +420,9 @@ export default function RBACPage() {
                       borderColor: `${template.color}30`,
                     }}
                   >
-                    <IconComponent className="w-6 h-6" style={{ color: template.color }} />
+                    <div style={{ color: template.color }}>
+                      <IconComponent className="w-6 h-6" />
+                    </div>
                   </div>
 
                   <h3 className="font-semibold text-lg mb-2">{template.name}</h3>
@@ -465,7 +479,7 @@ export default function RBACPage() {
           setIsRoleModalOpen(false);
           setEditingRole(undefined);
         }}
-        onSubmit={editingRole ? handleUpdateRole : handleCreateRole}
+        onSubmit={handleRoleSubmit}
         permissions={permissions}
         role={editingRole}
         isLoading={isCreating || isUpdating}

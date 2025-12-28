@@ -18,6 +18,7 @@ import {
   Mail,
   Phone,
   Calendar,
+  Clock,
   Check,
   X,
   Crown,

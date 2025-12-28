@@ -117,16 +117,16 @@ export const watchlistService = {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return fetchJson<WatchlistResponse>(
+    return (await fetchJson<WatchlistResponse>(
       `${API_BASE}/api/v1/user/profiles/${profileId}/watchlist${query}`
-    );
+    ))!;
   },
 
   /**
    * Add title to watchlist
    */
   async addToWatchlist(profileId: string, data: AddToWatchlistRequest): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -141,7 +141,7 @@ export const watchlistService = {
     archiveOnly = false
   ): Promise<void> {
     const params = archiveOnly ? '?archive_only=true' : '';
-    return fetchJson(
+    return fetchJson<any>(
       `${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/${titleId}${params}`,
       {
         method: 'DELETE',
@@ -157,7 +157,7 @@ export const watchlistService = {
     titleId: string,
     data: UpdateWatchlistItemRequest
   ): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/${titleId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/${titleId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -167,7 +167,7 @@ export const watchlistService = {
    * Reorder watchlist items
    */
   async reorderWatchlist(profileId: string, reorderData: ReorderItem[]): Promise<any> {
-    return fetchJson(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/reorder`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/reorder`, {
       method: 'POST',
       body: JSON.stringify({ reorder_data: reorderData }),
     });
@@ -209,8 +209,8 @@ export const watchlistService = {
     includeArchived = false
   ): Promise<ExportData> {
     const params = includeArchived ? '?include_archived=true' : '';
-    return fetchJson<ExportData>(
+    return (await fetchJson<ExportData>(
       `${API_BASE}/api/v1/user/profiles/${profileId}/watchlist/export${params}`
-    );
+    ))!;
   },
 };

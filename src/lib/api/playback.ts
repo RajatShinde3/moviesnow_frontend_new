@@ -50,28 +50,42 @@ export async function startPlayback(titleId: string, episodeId?: string): Promis
   const body: any = { titleId };
   if (episodeId) body.episodeId = episodeId;
 
-  return fetchJson<PlaybackSession>(`${API_V1}/playback/start`, {
+  const response = await fetchJson<PlaybackSession>(`${API_V1}/playback/start`, {
     method: "POST",
     body: JSON.stringify(body),
   });
+
+  if (!response) {
+    throw new Error("Failed to start playback session");
+  }
+
+  return response;
 }
 
 /**
  * Get signed stream URL for a specific quality
  */
 export async function getStreamUrl(titleId: string, quality: string): Promise<{ url: string; expiresIn: number }> {
-  return fetchJson(`${API_V1}/stream/${titleId}/${quality}`, {
+  const response = await fetchJson<{ url: string; expiresIn: number }>(`${API_V1}/stream/${titleId}/${quality}`, {
     method: "GET",
   });
+
+  if (!response) {
+    throw new Error("Failed to generate stream URL");
+  }
+
+  return response;
 }
 
 /**
  * Get available stream qualities for a title
  */
 export async function getStreamQualities(titleId: string): Promise<StreamVariant[]> {
-  return fetchJson<StreamVariant[]>(`${API_V1}/playback/qualities/${titleId}`, {
+  const response = await fetchJson<StreamVariant[]>(`${API_V1}/playback/qualities/${titleId}`, {
     method: "GET",
   });
+
+  return response || [];
 }
 
 /**
@@ -94,9 +108,10 @@ export async function updateProgress(titleId: string, currentTime: number, durat
  */
 export async function getProgress(titleId: string): Promise<WatchProgress | null> {
   try {
-    return await fetchJson<WatchProgress>(`${API_V1}/playback/progress/${titleId}`, {
+    const response = await fetchJson<WatchProgress>(`${API_V1}/playback/progress/${titleId}`, {
       method: "GET",
     });
+    return response || null;
   } catch {
     return null; // No progress found
   }
@@ -116,7 +131,9 @@ export async function markAsWatched(titleId: string): Promise<void> {
  * Get continue watching list
  */
 export async function getContinueWatching(): Promise<WatchProgress[]> {
-  return fetchJson<WatchProgress[]>(`${API_V1}/user/continue-watching`, {
+  const response = await fetchJson<WatchProgress[]>(`${API_V1}/user/continue-watching`, {
     method: "GET",
   });
+
+  return response || [];
 }

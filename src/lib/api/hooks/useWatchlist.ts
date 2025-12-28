@@ -172,7 +172,7 @@ export function useBulkUploadWatchlist(profileId: string) {
  * Hook to export watchlist
  */
 export function useExportWatchlist(profileId: string) {
-  return useMutation({
+  return useMutation<any, Error, boolean>({
     mutationFn: (includeArchived = false) =>
       watchlistService.exportWatchlist(profileId, includeArchived),
     onSuccess: (data) => {

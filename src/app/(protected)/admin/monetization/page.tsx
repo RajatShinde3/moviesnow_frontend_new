@@ -252,7 +252,7 @@ function AdsTab({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       await fetchJson(`/api/v1/admin/monetization/ads/${id}/toggle`, {
         method: "PATCH",
-        body: JSON.stringify({ is_active }),
+        json: { is_active },
       });
     },
     onSuccess: () => {
@@ -400,7 +400,7 @@ function RedirectsTab({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       await fetchJson(`/api/v1/admin/monetization/download-redirects/${id}/toggle`, {
         method: "PATCH",
-        body: JSON.stringify({ is_active }),
+        json: { is_active },
       });
     },
     onSuccess: () => {

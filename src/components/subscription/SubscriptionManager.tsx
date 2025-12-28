@@ -35,7 +35,7 @@ import { Plan } from '@/lib/api/services/subscriptions';
 
 export default function SubscriptionManager() {
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState<boolean>(false);
   const [invoiceFilter, setInvoiceFilter] = useState<string>('all');
 
   const { data: subscription, isLoading: subLoading } = useCurrentSubscription();

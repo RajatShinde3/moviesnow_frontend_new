@@ -70,41 +70,41 @@ export const profilesService = {
    * List all profiles for current user
    */
   async listProfiles(): Promise<{ profiles: Profile[] }> {
-    return fetchJson<{ profiles: Profile[] }>(`${API_BASE}/api/v1/profiles`);
+    return (await fetchJson<{ profiles: Profile[] }>(`${API_BASE}/api/v1/profiles`))!;
   },
 
   /**
    * Get specific profile
    */
   async getProfile(profileId: string): Promise<Profile> {
-    return fetchJson<Profile>(`${API_BASE}/api/v1/profiles/${profileId}`);
+    return (await fetchJson<Profile>(`${API_BASE}/api/v1/profiles/${profileId}`))!;
   },
 
   /**
    * Create new profile
    */
   async createProfile(data: CreateProfileData): Promise<Profile> {
-    return fetchJson<Profile>(`${API_BASE}/api/v1/profiles`, {
+    return (await fetchJson<Profile>(`${API_BASE}/api/v1/profiles`, {
       method: 'POST',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
    * Update profile
    */
   async updateProfile(profileId: string, data: UpdateProfileData): Promise<Profile> {
-    return fetchJson<Profile>(`${API_BASE}/api/v1/profiles/${profileId}`, {
+    return (await fetchJson<Profile>(`${API_BASE}/api/v1/profiles/${profileId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
-    });
+    }))!;
   },
 
   /**
    * Delete profile
    */
   async deleteProfile(profileId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/profiles/${profileId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/profiles/${profileId}`, {
       method: 'DELETE',
     });
   },
@@ -113,7 +113,7 @@ export const profilesService = {
    * Get profile preferences
    */
   async getPreferences(profileId: string): Promise<ProfilePreferences> {
-    return fetchJson<ProfilePreferences>(`${API_BASE}/api/v1/profiles/${profileId}/preferences`);
+    return (await fetchJson<ProfilePreferences>(`${API_BASE}/api/v1/profiles/${profileId}/preferences`))!;
   },
 
   /**
@@ -123,13 +123,13 @@ export const profilesService = {
     profileId: string,
     data: Partial<ProfilePreferences>
   ): Promise<ProfilePreferences> {
-    return fetchJson<ProfilePreferences>(
+    return (await fetchJson<ProfilePreferences>(
       `${API_BASE}/api/v1/profiles/${profileId}/preferences`,
       {
         method: 'PUT',
         body: JSON.stringify(data),
       }
-    );
+    ))!;
   },
 
   /**
@@ -137,7 +137,7 @@ export const profilesService = {
    */
   async getAvatars(category?: string): Promise<{ avatars: Avatar[] }> {
     const query = category ? `?category=${category}` : '';
-    return fetchJson<{ avatars: Avatar[] }>(`${API_BASE}/api/v1/profiles/avatars${query}`);
+    return (await fetchJson<{ avatars: Avatar[] }>(`${API_BASE}/api/v1/profiles/avatars${query}`))!;
   },
 
   /**
@@ -164,7 +164,7 @@ export const profilesService = {
    * Switch active profile
    */
   async switchProfile(profileId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/profiles/${profileId}/switch`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/profiles/${profileId}/switch`, {
       method: 'POST',
     });
   },

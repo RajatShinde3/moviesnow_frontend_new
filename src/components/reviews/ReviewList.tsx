@@ -14,7 +14,7 @@ import ReviewForm from './ReviewForm';
 import StarRating from './StarRating';
 import { useReviews } from '@/lib/api/hooks/useReviews';
 import { Review } from '@/lib/api/services/reviews';
-import { useAuthStore } from '@/lib/auth_store';
+// Auth store not needed - using hooks instead
 
 interface ReviewListProps {
   titleId: string;
@@ -28,7 +28,8 @@ export default function ReviewList({ titleId, titleName }: ReviewListProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingReview, setEditingReview] = useState<Review | undefined>();
 
-  const { accessToken } = useAuthStore();
+  // Auth store temporarily disabled - using hooks instead
+  const accessToken = null;
   const { data, isLoading, error } = useReviews(titleId, {
     page,
     page_size: 10,

@@ -90,7 +90,7 @@ export default function DownloadsPage() {
 
       if (download_url) {
         // Check if user has premium subscription
-        const user = await api.auth.getCurrentUser();
+        const user = await api.auth.me();
 
         // Build URL with format and episode parameters
         const params = new URLSearchParams();
@@ -100,7 +100,7 @@ export default function DownloadsPage() {
           params.append('episodes', episodeIds.join(','));
         }
 
-        if (user?.subscription_tier === 'free') {
+        if (!(user as any)?.is_premium) {
           // Redirect to ad page for free users with all parameters
           window.location.href = `/download-redirect?${params.toString()}`;
         } else {

@@ -23,7 +23,7 @@ import {
   ShieldOff,
 } from "lucide-react";
 import { api } from "@/lib/api/services";
-import { ConfirmDialog } from "@/components/ui/dialogs/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 interface TrustedDevice {
   id: string;
@@ -250,8 +250,9 @@ export default function TrustedDevicesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {activeTrusted.map((device, index) => {
-                const Icon = DEVICE_ICONS[device.device_type] || Laptop;
-                const color = DEVICE_COLORS[device.device_type];
+                const deviceType = (device as any).device_type || 'other';
+                const Icon = (DEVICE_ICONS as any)[deviceType] || Laptop;
+                const color = (DEVICE_COLORS as any)[deviceType];
                 const expiryInfo = getExpiryStatus(device.expires_at);
 
                 return (
@@ -276,14 +277,14 @@ export default function TrustedDevicesPage() {
                         <div>
                           <div className="text-white font-semibold">{device.device_name}</div>
                           <div className="text-sm text-slate-400 capitalize">
-                            {device.device_type}
+                            {(device as any).device_type || 'other'}
                           </div>
                         </div>
                       </div>
 
                       <button
                         onClick={() => {
-                          setSelectedDevice(device);
+                          setSelectedDevice(device as any);
                           setShowUntrustDialog(true);
                         }}
                         className="p-2 hover:bg-red-900/20 rounded-lg transition-colors"
@@ -295,12 +296,12 @@ export default function TrustedDevicesPage() {
                     <div className="space-y-2 text-sm">
                       <div className="flex items-center justify-between">
                         <span className="text-slate-400">OS</span>
-                        <span className="text-white">{device.os}</span>
+                        <span className="text-white">{(device as any).os || 'Unknown'}</span>
                       </div>
-                      {device.browser && (
+                      {((device as any).browser || 'Unknown') && (
                         <div className="flex items-center justify-between">
                           <span className="text-slate-400">Browser</span>
-                          <span className="text-white">{device.browser}</span>
+                          <span className="text-white">{(device as any).browser || 'Unknown'}</span>
                         </div>
                       )}
                       <div className="flex items-center justify-between">
@@ -309,11 +310,11 @@ export default function TrustedDevicesPage() {
                           {new Date(device.trusted_at).toLocaleDateString()}
                         </span>
                       </div>
-                      {device.last_used && (
+                      {((device as any).last_used || (device as any).created_at) && (
                         <div className="flex items-center justify-between">
                           <span className="text-slate-400">Last Used</span>
                           <span className="text-white">
-                            {new Date(device.last_used).toLocaleDateString()}
+                            {new Date((device as any).last_used || (device as any).created_at).toLocaleDateString()}
                           </span>
                         </div>
                       )}
@@ -377,8 +378,9 @@ export default function TrustedDevicesPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {expiredTrusted.map((device, index) => {
-                const Icon = DEVICE_ICONS[device.device_type] || Laptop;
-                const color = DEVICE_COLORS[device.device_type];
+                const deviceType = (device as any).device_type || 'other';
+                const Icon = (DEVICE_ICONS as any)[deviceType] || Laptop;
+                const color = (DEVICE_COLORS as any)[deviceType];
 
                 return (
                   <motion.div
@@ -407,7 +409,7 @@ export default function TrustedDevicesPage() {
 
                       <button
                         onClick={() => {
-                          setSelectedDevice(device);
+                          setSelectedDevice(device as any);
                           setShowUntrustDialog(true);
                         }}
                         className="p-2 hover:bg-red-900/20 rounded-lg transition-colors"
@@ -518,7 +520,8 @@ export default function TrustedDevicesPage() {
           title="Remove Trusted Device?"
           message={`Are you sure you want to untrust "${selectedDevice?.device_name}"? You'll need to verify with 2FA the next time you log in from this device.`}
           confirmText="Remove Trust"
-          confirmButtonClass="bg-red-600 hover:bg-red-500"
+          variant="danger"
+          isLoading={untrustDeviceMutation.isPending}
         />
       </div>
     </div>

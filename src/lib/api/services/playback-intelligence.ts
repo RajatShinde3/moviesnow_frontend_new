@@ -5,7 +5,7 @@
  * Advanced playback analytics, QoE tracking, and adaptive streaming
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -92,15 +92,15 @@ export const playbackIntelligenceService = {
    * Report Quality of Experience metrics
    */
   async reportQoEMetrics(sessionId: string, metrics: Partial<QoEMetrics>): Promise<void> {
-    await apiClient.post(`/playback/sessions/${sessionId}/qoe`, metrics);
+    await fetchJson<any>(`/playback/sessions/${sessionId}/qoe`, { method: "PATCH", json: metrics });
   },
 
   /**
    * Get adaptive streaming configuration
    */
   async getAdaptiveConfig(sessionId: string): Promise<AdaptiveStreamingConfig> {
-    const response = await apiClient.get(`/playback/sessions/${sessionId}/adaptive-config`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/playback/sessions/${sessionId}/adaptive-config`);
+    return response as any;
   },
 
   /**
@@ -110,16 +110,16 @@ export const playbackIntelligenceService = {
     sessionId: string,
     config: Partial<AdaptiveStreamingConfig>
   ): Promise<AdaptiveStreamingConfig> {
-    const response = await apiClient.patch(`/playback/sessions/${sessionId}/adaptive-config`, config);
-    return response.data;
+    const response: any = await fetchJson<any>(`/playback/sessions/${sessionId}/adaptive-config`, { method: "PATCH", json: config });
+    return response as any;
   },
 
   /**
    * Run bandwidth test
    */
   async runBandwidthTest(): Promise<BandwidthTest> {
-    const response = await apiClient.post('/playback/bandwidth-test');
-    return response.data;
+    const response: any = await fetchJson<any>('/playback/bandwidth-test');
+    return response as any;
   },
 
   /**
@@ -130,8 +130,8 @@ export const playbackIntelligenceService = {
     current_bandwidth_kbps?: number;
     device_type?: string;
   }): Promise<VideoQualityRecommendation> {
-    const response = await apiClient.post('/playback/quality-recommendation', options);
-    return response.data;
+    const response: any = await fetchJson<any>('/playback/quality-recommendation', { method: "PATCH", json: options });
+    return response as any;
   },
 
   /**
@@ -141,7 +141,7 @@ export const playbackIntelligenceService = {
     const params = new URLSearchParams();
     if (region) params.append('region', region);
 
-    const response = await apiClient.get(`/playback/cdn/performance?${params.toString()}`);
+    const response: any = await fetchJson<any>(`/playback/cdn/performance?${params.toString()}`);
     return response.data.nodes || [];
   },
 
@@ -152,8 +152,8 @@ export const playbackIntelligenceService = {
     title_id: string;
     user_location?: { lat: number; lon: number };
   }): Promise<{ node_id: string; base_url: string; region: string }> {
-    const response = await apiClient.post('/playback/cdn/select', options);
-    return response.data;
+    const response: any = await fetchJson<any>('/playback/cdn/select', { method: "PATCH", json: options });
+    return response as any;
   },
 
   /**
@@ -167,7 +167,7 @@ export const playbackIntelligenceService = {
     quality: string;
     user_agent: string;
   }): Promise<void> {
-    await apiClient.post(`/playback/sessions/${sessionId}/error`, error);
+    await fetchJson<any>(`/playback/sessions/${sessionId}/error`, { method: "PATCH", json: error });
   },
 
   /**
@@ -181,15 +181,15 @@ export const playbackIntelligenceService = {
     error_count: number;
     qoe_score: number; // 0-100
   }> {
-    const response = await apiClient.get(`/playback/sessions/${sessionId}/stats`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/playback/sessions/${sessionId}/stats`);
+    return response as any;
   },
 
   /**
    * Get active playback sessions for user
    */
   async getActiveSessions(): Promise<PlaybackSession[]> {
-    const response = await apiClient.get('/playback/sessions/active');
+    const response: any = await fetchJson<any>('/playback/sessions/active');
     return response.data.sessions || [];
   },
 
@@ -197,7 +197,10 @@ export const playbackIntelligenceService = {
    * Terminate playback session
    */
   async terminateSession(sessionId: string, reason?: string): Promise<void> {
-    await apiClient.post(`/playback/sessions/${sessionId}/terminate`, { reason });
+    await fetchJson<any>(`/playback/sessions/${sessionId}/terminate`, {
+      method: 'POST',
+      body: JSON.stringify({ reason }),
+    });
   },
 
   /**
@@ -220,23 +223,29 @@ export const playbackIntelligenceService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/playback/history?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/playback/history?${params.toString()}`);
+    return response as any;
   },
 
   /**
    * Enable auto-quality switching
    */
   async enableAutoQuality(sessionId: string, enabled: boolean): Promise<void> {
-    await apiClient.post(`/playback/sessions/${sessionId}/auto-quality`, { enabled });
+    await fetchJson<any>(`/playback/sessions/${sessionId}/auto-quality`, {
+      method: 'POST',
+      body: JSON.stringify({ enabled }),
+    });
   },
 
   /**
    * Set bandwidth cap
    */
   async setBandwidthCap(sessionId: string, maxBandwidthKbps: number): Promise<void> {
-    await apiClient.post(`/playback/sessions/${sessionId}/bandwidth-cap`, {
-      max_bandwidth_kbps: maxBandwidthKbps,
+    await fetchJson<any>(`/playback/sessions/${sessionId}/bandwidth-cap`, {
+      method: 'POST',
+      body: JSON.stringify({
+        max_bandwidth_kbps: maxBandwidthKbps,
+      }),
     });
   },
 
@@ -249,8 +258,8 @@ export const playbackIntelligenceService = {
     is_healthy: boolean;
     risk_of_rebuffer: boolean;
   }> {
-    const response = await apiClient.get(`/playback/sessions/${sessionId}/buffer-health`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/playback/sessions/${sessionId}/buffer-health`);
+    return response as any;
   },
 
   /**
@@ -262,7 +271,7 @@ export const playbackIntelligenceService = {
     quality: string;
     start_position_seconds?: number;
   }): Promise<{ buffer_id: string; expires_at: string }> {
-    const response = await apiClient.post('/playback/pre-buffer', options);
-    return response.data;
+    const response: any = await fetchJson<any>('/playback/pre-buffer', { method: "PATCH", json: options });
+    return response as any;
   },
 };

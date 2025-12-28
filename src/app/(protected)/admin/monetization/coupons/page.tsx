@@ -19,7 +19,7 @@ import {
 import { api } from "@/lib/api/services";
 import type { Coupon } from "@/lib/api/types";
 import { DataTable } from "@/components/ui/data/DataTable";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 export default function CouponsPage() {
   const queryClient = useQueryClient();
@@ -382,7 +382,6 @@ export default function CouponsPage() {
           <DataTable
             data={coupons}
             columns={columns}
-            searchable
             searchPlaceholder="Search by code..."
             emptyMessage="No coupons found"
           />
@@ -632,9 +631,10 @@ export default function CouponsPage() {
           onClose={() => setDeleteCouponId(null)}
           onConfirm={() => deleteCouponId && deleteMutation.mutate(deleteCouponId)}
           title="Delete Coupon"
-          description="Are you sure you want to delete this coupon? Users will no longer be able to redeem it. This action cannot be undone."
+          message="Are you sure you want to delete this coupon? Users will no longer be able to redeem it. This action cannot be undone."
           confirmText="Delete Coupon"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

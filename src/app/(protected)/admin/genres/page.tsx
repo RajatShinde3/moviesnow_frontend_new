@@ -321,7 +321,7 @@ function GenresTab({
     mutationFn: async ({ id, is_featured }: { id: string; is_featured: boolean }) => {
       await fetchJson(`/api/v1/admin/genres/${id}/featured`, {
         method: "PATCH",
-        body: JSON.stringify({ is_featured }),
+        json: { is_featured },
       });
     },
     onSuccess: () => {
@@ -641,7 +641,7 @@ function CategoriesTab({
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       await fetchJson(`/api/v1/admin/categories/${id}/toggle`, {
         method: "PATCH",
-        body: JSON.stringify({ is_active }),
+        json: { is_active },
       });
     },
     onSuccess: () => {

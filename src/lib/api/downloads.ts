@@ -32,19 +32,31 @@ export async function requestDownload(titleId: string, quality?: string): Promis
   const params = new URLSearchParams();
   if (quality) params.set("quality", quality);
 
-  return fetchJson<DownloadResponse>(`${API_V1}/downloads/request/${titleId}`, {
+  const response = await fetchJson<DownloadResponse>(`${API_V1}/downloads/request/${titleId}`, {
     method: "GET",
     searchParams: params,
   });
+
+  if (!response) {
+    throw new Error("Failed to fetch download information");
+  }
+
+  return response;
 }
 
 /**
  * Get signed download URL (for premium users or after ad completion)
  */
 export async function getDownloadUrl(titleId: string, quality: string): Promise<{ url: string; expiresIn: number }> {
-  return fetchJson(`${API_V1}/download/${titleId}/${quality}`, {
+  const response = await fetchJson<{ url: string; expiresIn: number }>(`${API_V1}/download/${titleId}/${quality}`, {
     method: "GET",
   });
+
+  if (!response) {
+    throw new Error("Failed to generate download URL");
+  }
+
+  return response;
 }
 
 /**

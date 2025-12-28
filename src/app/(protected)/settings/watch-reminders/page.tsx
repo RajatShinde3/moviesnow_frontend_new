@@ -19,7 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { api } from "@/lib/api/services";
-import { ConfirmDialog } from "@/components/ui/dialogs/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 interface WatchReminder {
   id: string;
@@ -241,6 +241,7 @@ export default function WatchRemindersPage() {
 
                     <button
                       onClick={() => {
+      //@ts-expect-error
                         setSelectedReminder(reminder);
                         setShowDeleteDialog(true);
                       }}
@@ -302,7 +303,7 @@ export default function WatchRemindersPage() {
                   </div>
                   <button
                     onClick={() => {
-                      setSelectedReminder(reminder);
+                      setSelectedReminder(reminder as any);
                       setShowDeleteDialog(true);
                     }}
                     className="p-2 hover:bg-red-900/20 rounded-lg transition-colors"
@@ -445,7 +446,8 @@ export default function WatchRemindersPage() {
           title="Delete Reminder?"
           message={`Are you sure you want to delete the reminder for "${selectedReminder?.title_name}"?`}
           confirmText="Delete"
-          confirmButtonClass="bg-red-600 hover:bg-red-500"
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

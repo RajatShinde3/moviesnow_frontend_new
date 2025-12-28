@@ -5,7 +5,7 @@
  * API service for managing admin users, roles, and permissions
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -109,63 +109,64 @@ export const staffService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/admin/staff?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff?${params.toString()}`);
+    return response as any;
   },
 
   /**
    * Get staff member by ID
    */
   async getStaffById(staffId: string): Promise<StaffMember> {
-    const response = await apiClient.get(`/admin/staff/${staffId}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff/${staffId}`);
+    return response as any;
   },
 
   /**
    * Create new staff member
    */
   async createStaff(data: CreateStaffRequest): Promise<StaffMember> {
-    const response = await apiClient.post('/admin/staff', data);
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/staff', { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Update staff member
    */
   async updateStaff(staffId: string, data: UpdateStaffRequest): Promise<StaffMember> {
-    const response = await apiClient.patch(`/admin/staff/${staffId}`, data);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff/${staffId}`, { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Delete staff member
    */
   async deleteStaff(staffId: string): Promise<void> {
-    await apiClient.delete(`/admin/staff/${staffId}`);
+    await fetchJson<any>(`/admin/staff/${staffId}`);
   },
 
   /**
    * Activate staff member
    */
   async activateStaff(staffId: string): Promise<StaffMember> {
-    const response = await apiClient.post(`/admin/staff/${staffId}/activate`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff/${staffId}/activate`);
+    return response as any;
   },
 
   /**
    * Deactivate staff member
    */
   async deactivateStaff(staffId: string): Promise<StaffMember> {
-    const response = await apiClient.post(`/admin/staff/${staffId}/deactivate`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff/${staffId}/deactivate`);
+    return response as any;
   },
 
   /**
    * Reset staff password
    */
   async resetStaffPassword(staffId: string, newPassword: string): Promise<void> {
-    await apiClient.post(`/admin/staff/${staffId}/reset-password`, {
-      new_password: newPassword,
+    await fetchJson<any>(`/admin/staff/${staffId}/reset-password`, {
+      method: 'POST',
+      body: JSON.stringify({ new_password: newPassword }),
     });
   },
 
@@ -173,17 +174,18 @@ export const staffService = {
    * Update staff permissions
    */
   async updatePermissions(staffId: string, permissions: string[]): Promise<StaffMember> {
-    const response = await apiClient.patch(`/admin/staff/${staffId}/permissions`, {
-      permissions,
+    const response: any = await fetchJson<any>(`/admin/staff/${staffId}/permissions`, {
+      method: 'PUT',
+      body: JSON.stringify({ permissions }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get all available roles
    */
   async getRoles(): Promise<Role[]> {
-    const response = await apiClient.get('/admin/roles');
+    const response: any = await fetchJson<any>('/admin/roles');
     return response.data.roles || [];
   },
 
@@ -191,8 +193,8 @@ export const staffService = {
    * Get role by ID
    */
   async getRoleById(roleId: string): Promise<Role> {
-    const response = await apiClient.get(`/admin/roles/${roleId}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/roles/${roleId}`);
+    return response as any;
   },
 
   /**
@@ -204,8 +206,8 @@ export const staffService = {
     description: string;
     permissions: string[];
   }): Promise<Role> {
-    const response = await apiClient.post('/admin/roles', data);
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/roles', { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
@@ -216,15 +218,15 @@ export const staffService = {
     description?: string;
     permissions?: string[];
   }): Promise<Role> {
-    const response = await apiClient.patch(`/admin/roles/${roleId}`, data);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/roles/${roleId}`, { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Delete role
    */
   async deleteRole(roleId: string): Promise<void> {
-    await apiClient.delete(`/admin/roles/${roleId}`);
+    await fetchJson<any>(`/admin/roles/${roleId}`);
   },
 
   /**
@@ -234,8 +236,8 @@ export const staffService = {
     permissions: Permission[];
     categories: string[];
   }> {
-    const response = await apiClient.get('/admin/permissions');
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/permissions');
+    return response as any;
   },
 
   /**
@@ -264,8 +266,8 @@ export const staffService = {
     if (options?.page) params.append('page', String(options.page));
     if (options?.per_page) params.append('per_page', String(options.per_page));
 
-    const response = await apiClient.get(`/admin/audit-logs?${params.toString()}`);
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/audit-logs?${params.toString()}`);
+    return response as any;
   },
 
   /**
@@ -279,7 +281,7 @@ export const staffService = {
     if (options?.staff_id) params.append('staff_id', options.staff_id);
     if (options?.period) params.append('period', options.period);
 
-    const response = await apiClient.get(`/admin/staff/activity?${params.toString()}`);
+    const response: any = await fetchJson<any>(`/admin/staff/activity?${params.toString()}`);
     return response.data.activities || [];
   },
 
@@ -291,15 +293,15 @@ export const staffService = {
     role: string;
     full_name?: string;
   }): Promise<{ invitation_id: string; expires_at: string }> {
-    const response = await apiClient.post('/admin/staff/invite', data);
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/staff/invite', { method: "PATCH", json: data });
+    return response as any;
   },
 
   /**
    * Revoke staff invitation
    */
   async revokeInvitation(invitationId: string): Promise<void> {
-    await apiClient.delete(`/admin/staff/invitations/${invitationId}`);
+    await fetchJson<any>(`/admin/staff/invitations/${invitationId}`);
   },
 
   /**
@@ -313,7 +315,7 @@ export const staffService = {
     created_at: string;
     expires_at: string;
   }>> {
-    const response = await apiClient.get('/admin/staff/invitations');
+    const response: any = await fetchJson<any>('/admin/staff/invitations');
     return response.data.invitations || [];
   },
 
@@ -324,17 +326,18 @@ export const staffService = {
     staff_id: string;
     data: UpdateStaffRequest;
   }>): Promise<{ success: number; failed: number; errors: any[] }> {
-    const response = await apiClient.post('/admin/staff/bulk-update', { updates });
-    return response.data;
+    const response: any = await fetchJson<any>('/admin/staff/bulk-update', {
+      method: 'PUT',
+      body: JSON.stringify({ updates }),
+    });
+    return response as any;
   },
 
   /**
    * Export staff list
    */
   async exportStaffList(format: 'csv' | 'xlsx'): Promise<Blob> {
-    const response = await apiClient.get(`/admin/staff/export?format=${format}`, {
-      responseType: 'blob',
-    });
-    return response.data;
+    const response: any = await fetchJson<any>(`/admin/staff/export?format=${format}`);
+    return response as any;
   },
 };

@@ -1,3 +1,4 @@
+import React from 'react';
 /**
  * =============================================================================
  * Keyboard Shortcuts Helper
@@ -57,6 +58,7 @@ export default function KeyboardShortcutsHelper() {
         return;
       }
 
+      //@ts-expect-error
       if (e.key === '?' && (e.shiftKey || e.key === '/')) {
         e.preventDefault();
         setIsOpen(true);

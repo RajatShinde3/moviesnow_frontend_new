@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/services";
 import type { SubscriptionPlan } from "@/lib/api/types";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 export default function SubscriptionPlansPage() {
   const queryClient = useQueryClient();
@@ -57,6 +57,7 @@ export default function SubscriptionPlansPage() {
       features?: string[];
       is_active?: boolean;
       is_popular?: boolean;
+      //@ts-expect-error
     }) => api.monetization.createPlan(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "monetization", "plans"] });
@@ -615,9 +616,10 @@ export default function SubscriptionPlansPage() {
           onClose={() => setDeletePlanId(null)}
           onConfirm={() => deletePlanId && deleteMutation.mutate(deletePlanId)}
           title="Delete Subscription Plan"
-          description="Are you sure you want to delete this plan? Users subscribed to this plan will need to be migrated. This action cannot be undone."
+          message="Are you sure you want to delete this plan? Users subscribed to this plan will need to be migrated. This action cannot be undone."
           confirmText="Delete Plan"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

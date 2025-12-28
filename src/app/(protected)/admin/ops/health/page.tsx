@@ -89,7 +89,11 @@ export default function SystemHealthPage() {
     },
   });
 
-  const maintenanceModeMutation = useMutation({
+  const maintenanceModeMutation = useMutation<
+    { message: string; timestamp: string; started_by?: string; stopped_by?: string },
+    Error,
+    boolean
+  >({
     mutationFn: (start: boolean) =>
       start
         ? monitoringService.startMaintenanceMode()

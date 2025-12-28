@@ -1,6 +1,7 @@
 // hooks/useWebSocket.ts
 import { useEffect, useRef, useCallback, useState } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { io } from 'socket.io-client';
+type Socket = any;
 import { WebSocketMessage } from '@/types/upload';
 
 interface UseWebSocketOptions {
@@ -59,19 +60,19 @@ export function useWebSocket({
     });
 
     // Message handlers
-    socket.on('upload:progress', (data) => {
+    socket.on('upload:progress', (data: any) => {
       onMessage?.({ type: 'upload:progress', data });
     });
 
-    socket.on('upload:completed', (data) => {
+    socket.on('upload:completed', (data: any) => {
       onMessage?.({ type: 'upload:completed', data });
     });
 
-    socket.on('upload:error', (data) => {
+    socket.on('upload:error', (data: any) => {
       onMessage?.({ type: 'upload:error', data });
     });
 
-    socket.on('upload:paused', (data) => {
+    socket.on('upload:paused', (data: any) => {
       onMessage?.({ type: 'upload:paused', data });
     });
 

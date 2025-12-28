@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/services";
 import type { Role, Permission } from "@/lib/api/types";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const RESOURCE_CATEGORIES = [
   { name: "Content", resources: ["titles", "episodes", "seasons", "genres"] },
@@ -63,7 +63,7 @@ export default function StaffRolesPage() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data: { name: string; description?: string; permission_ids: string[] }) =>
+    mutationFn: (data: { name: string; description?: string; permissions: string[] }) =>
       api.permissions.createRole(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "rbac", "roles"] });
@@ -75,7 +75,7 @@ export default function StaffRolesPage() {
   const updateMutation = useMutation({
     mutationFn: (data: {
       roleId: string;
-      updates: { name?: string; description?: string; permission_ids?: string[] };
+      updates: { name?: string; description?: string; permissions?: string[] };
     }) => api.permissions.updateRole(data.roleId, data.updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "rbac", "roles"] });
@@ -114,7 +114,7 @@ export default function StaffRolesPage() {
     const roleData = {
       name: roleName,
       description: roleDescription || undefined,
-      permission_ids: selectedPermissions,
+      permissions: selectedPermissions,
     };
 
     if (editingRole) {
@@ -599,9 +599,10 @@ export default function StaffRolesPage() {
           onClose={() => setDeleteRoleId(null)}
           onConfirm={() => deleteRoleId && deleteMutation.mutate(deleteRoleId)}
           title="Delete Role"
-          description="Are you sure you want to delete this role? Users with this role will lose their permissions. This action cannot be undone."
+          message="Are you sure you want to delete this role? Users with this role will lose their permissions. This action cannot be undone."
           confirmText="Delete Role"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

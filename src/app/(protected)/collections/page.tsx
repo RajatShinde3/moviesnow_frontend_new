@@ -570,7 +570,7 @@ function CreateCollectionModal({
                                 className="p-3 rounded-xl mb-2"
                                 style={{ backgroundColor: `${template.color}20` }}
                               >
-                                <IconComponent className="w-6 h-6" style={{ color: template.color }} />
+                                <IconComponent className="w-6 h-6" />
                               </div>
                               <h4 className="font-semibold text-sm">{template.name}</h4>
                             </div>

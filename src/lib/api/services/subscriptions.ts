@@ -99,7 +99,7 @@ export const subscriptionsService = {
    * Get all available subscription plans
    */
   async listPlans(): Promise<{ plans: Plan[] }> {
-    return fetchJson<{ plans: Plan[] }>(`${API_BASE}/api/v1/subscriptions/plans`);
+    return (await fetchJson<{ plans: Plan[] }>(`${API_BASE}/api/v1/subscriptions/plans`))!;
   },
 
   /**
@@ -107,7 +107,7 @@ export const subscriptionsService = {
    */
   async getCurrentSubscription(): Promise<Subscription | null> {
     try {
-      return await fetchJson<Subscription>(`${API_BASE}/api/v1/subscriptions/me`);
+      return (await fetchJson<Subscription>(`${API_BASE}/api/v1/subscriptions/me`)) || null;
     } catch (error: any) {
       if (error?.status === 404) {
         return null; // No active subscription
@@ -123,7 +123,7 @@ export const subscriptionsService = {
     subscription: Subscription;
     client_secret?: string;
   }> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions`, {
       method: 'POST',
       body: JSON.stringify({
         plan_id: planId,
@@ -136,7 +136,7 @@ export const subscriptionsService = {
    * Update subscription (change plan)
    */
   async updateSubscription(planId: string, prorationBehavior?: 'create_prorations' | 'none'): Promise<Subscription> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me`, {
       method: 'PUT',
       body: JSON.stringify({
         plan_id: planId,
@@ -149,7 +149,7 @@ export const subscriptionsService = {
    * Cancel subscription
    */
   async cancelSubscription(cancelAtPeriodEnd = true): Promise<Subscription> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me`, {
       method: 'DELETE',
       body: JSON.stringify({
         cancel_at_period_end: cancelAtPeriodEnd,
@@ -161,7 +161,7 @@ export const subscriptionsService = {
    * Reactivate canceled subscription
    */
   async reactivateSubscription(): Promise<Subscription> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me/reactivate`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me/reactivate`, {
       method: 'POST',
     });
   },
@@ -170,7 +170,7 @@ export const subscriptionsService = {
    * Preview subscription change
    */
   async previewSubscriptionChange(planId: string): Promise<SubscriptionPreview> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me/preview-change?plan_id=${planId}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me/preview-change?plan_id=${planId}`);
   },
 
   /**
@@ -193,28 +193,28 @@ export const subscriptionsService = {
 
     const query = params.toString() ? `?${params.toString()}` : '';
 
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me/invoices${query}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me/invoices${query}`);
   },
 
   /**
    * Get usage statistics for current billing period
    */
   async getUsageStats(): Promise<UsageStats> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/me/usage`);
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/me/usage`);
   },
 
   /**
    * List payment methods
    */
   async listPaymentMethods(): Promise<{ payment_methods: PaymentMethod[] }> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/payment-methods`);
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/payment-methods`);
   },
 
   /**
    * Add new payment method
    */
   async addPaymentMethod(paymentMethodId: string, setAsDefault = false): Promise<PaymentMethod> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/payment-methods`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/payment-methods`, {
       method: 'POST',
       body: JSON.stringify({
         payment_method_id: paymentMethodId,
@@ -227,7 +227,7 @@ export const subscriptionsService = {
    * Set default payment method
    */
   async setDefaultPaymentMethod(paymentMethodId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/payment-methods/${paymentMethodId}/default`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/payment-methods/${paymentMethodId}/default`, {
       method: 'POST',
     });
   },
@@ -236,7 +236,7 @@ export const subscriptionsService = {
    * Remove payment method
    */
   async removePaymentMethod(paymentMethodId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/payment-methods/${paymentMethodId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/payment-methods/${paymentMethodId}`, {
       method: 'DELETE',
     });
   },
@@ -245,7 +245,7 @@ export const subscriptionsService = {
    * Create Stripe setup intent for adding payment method
    */
   async createSetupIntent(): Promise<{ client_secret: string }> {
-    return fetchJson(`${API_BASE}/api/v1/subscriptions/setup-intent`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/subscriptions/setup-intent`, {
       method: 'POST',
     });
   },

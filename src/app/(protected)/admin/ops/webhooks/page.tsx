@@ -205,7 +205,9 @@ export default function WebhooksPage() {
                   <div className="flex items-center justify-between mb-3">
                     <Icon className={`w-8 h-8 ${source.color}`} />
                     {config?.secret_configured && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" title="HMAC Configured" />
+                      <div title="HMAC Configured">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                      </div>
                     )}
                   </div>
                   <p className="text-2xl font-bold text-white mb-1">{count}</p>

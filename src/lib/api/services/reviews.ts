@@ -80,14 +80,14 @@ export const reviewsService = {
     if (options?.rating_filter) params.append('rating', options.rating_filter.toString());
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson(`${API_BASE}/api/v1/titles/${titleId}/reviews${query}`);
+    return fetchJson<any>(`${API_BASE}/api/v1/titles/${titleId}/reviews${query}`);
   },
 
   /**
    * Create a new review
    */
   async createReview(titleId: string, data: CreateReviewData): Promise<Review> {
-    return fetchJson(`${API_BASE}/api/v1/titles/${titleId}/reviews`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/titles/${titleId}/reviews`, {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -97,7 +97,7 @@ export const reviewsService = {
    * Update an existing review
    */
   async updateReview(reviewId: string, data: UpdateReviewData): Promise<Review> {
-    return fetchJson(`${API_BASE}/api/v1/reviews/${reviewId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/reviews/${reviewId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
@@ -107,7 +107,7 @@ export const reviewsService = {
    * Delete a review
    */
   async deleteReview(reviewId: string): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/reviews/${reviewId}`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/reviews/${reviewId}`, {
       method: 'DELETE',
     });
   },
@@ -116,7 +116,7 @@ export const reviewsService = {
    * Vote on a review (helpful/not helpful)
    */
   async voteReview(reviewId: string, vote: 'helpful' | 'not_helpful'): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/reviews/${reviewId}/vote`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/reviews/${reviewId}/vote`, {
       method: 'POST',
       body: JSON.stringify({ vote }),
     });
@@ -126,7 +126,7 @@ export const reviewsService = {
    * Report a review
    */
   async reportReview(reviewId: string, data: ReportReviewData): Promise<void> {
-    return fetchJson(`${API_BASE}/api/v1/reviews/${reviewId}/report`, {
+    return fetchJson<any>(`${API_BASE}/api/v1/reviews/${reviewId}/report`, {
       method: 'POST',
       body: JSON.stringify(data),
     });

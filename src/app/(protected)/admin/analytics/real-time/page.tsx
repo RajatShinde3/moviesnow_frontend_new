@@ -30,7 +30,7 @@ export default function RealTimeMetricsPage() {
   // Fetch real-time metrics with auto-refresh
   const { data: metricsData, isLoading, refetch } = useQuery({
     queryKey: ["admin", "analytics", "real-time"],
-    queryFn: () => api.advancedAnalytics.getRealTimeMetrics(),
+    queryFn: () => api.advancedAnalytics.realTimeMetrics(),
     refetchInterval: isAutoRefresh ? refreshInterval : false,
     refetchOnWindowFocus: true,
   });
@@ -193,22 +193,22 @@ export default function RealTimeMetricsPage() {
           <StatCard
             title="Active Streams"
             value={metricsData.active_streams.toLocaleString()}
-            icon={Activity}
+            icon={<Activity className="w-5 h-5" />}
           />
           <StatCard
             title="Active Downloads"
             value={metricsData.active_downloads.toLocaleString()}
-            icon={Download}
+            icon={<Download className="w-5 h-5" />}
           />
           <StatCard
             title="Concurrent Users"
             value={metricsData.concurrent_users.toLocaleString()}
-            icon={Users}
+            icon={<Users className="w-5 h-5" />}
           />
           <StatCard
             title="Bandwidth Usage"
             value={`${metricsData.bandwidth_usage.toFixed(1)} Mbps`}
-            icon={Wifi}
+            icon={<Wifi className="w-5 h-5" />}
           />
         </motion.div>
 
@@ -488,9 +488,9 @@ export default function RealTimeMetricsPage() {
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {metricsData.active_users_by_region
-              .sort((a, b) => b.count - a.count)
+              .sort((a: any, b: any) => b.count - a.count)
               .slice(0, 10)
-              .map((region, index) => (
+              .map((region: any, index: number) => (
                 <motion.div
                   key={region.region}
                   initial={{ opacity: 0, scale: 0.8 }}
@@ -522,13 +522,13 @@ export default function RealTimeMetricsPage() {
           <div className="space-y-3">
             {metricsData.active_content
               .sort(
-                (a, b) =>
+                (a: any, b: any) =>
                   b.active_streams +
                   b.active_downloads -
                   (a.active_streams + a.active_downloads)
               )
               .slice(0, 5)
-              .map((content, index) => {
+              .map((content: any, index: number) => {
                 const total = content.active_streams + content.active_downloads;
                 return (
                   <motion.div

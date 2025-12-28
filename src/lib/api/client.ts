@@ -81,6 +81,8 @@ export type FetchJsonOptions = {
   method?: string;
   /** JSON body. If provided, `Content-Type: application/json` is set. */
   json?: unknown;
+  /** Raw body for FormData or other non-JSON payloads. */
+  body?: BodyInit;
   /** Additional headers (merged). */
   headers?: Record<string, string>;
   /** URLSearchParams or record to be appended to the URL. */
@@ -182,8 +184,11 @@ async function fetchCore(
   };
 
   // JSON body support (sets Content-Type if none provided)
+  // If raw body is provided, use it directly (for FormData, etc.)
   const body =
-    typeof options.json !== "undefined"
+    options.body !== undefined
+      ? options.body
+      : typeof options.json !== "undefined"
       ? ((headers["Content-Type"] = headers["Content-Type"] ?? "application/json"),
         JSON.stringify(options.json))
       : undefined;
@@ -638,3 +643,38 @@ function newIdemKey(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
+
+/* ╔═════════════════════════════════════════════════════════════════════════╗
+   ║                     API Client Wrapper (Legacy Support)                 ║
+   ╚═════════════════════════════════════════════════════════════════════════╝ */
+
+/**
+ * Legacy API client wrapper that provides axios-like interface
+ * Returns data wrapped in { data: T } format for backward compatibility
+ */
+export const apiClient = {
+  async get<T = any>(url: string, config?: Omit<FetchJsonOptions, 'method'>): Promise<{ data: T }> {
+    const data = await fetchJson<T>(url, { ...config, method: 'GET' });
+    return { data: data as T };
+  },
+
+  async post<T = any>(url: string, data?: any, config?: Omit<FetchJsonOptions, 'method' | 'json'>): Promise<{ data: T }> {
+    const result = await fetchJson<T>(url, { ...config, method: 'POST', json: data });
+    return { data: result as T };
+  },
+
+  async put<T = any>(url: string, data?: any, config?: Omit<FetchJsonOptions, 'method' | 'json'>): Promise<{ data: T }> {
+    const result = await fetchJson<T>(url, { ...config, method: 'PUT', json: data });
+    return { data: result as T };
+  },
+
+  async patch<T = any>(url: string, data?: any, config?: Omit<FetchJsonOptions, 'method' | 'json'>): Promise<{ data: T }> {
+    const result = await fetchJson<T>(url, { ...config, method: 'PATCH', json: data });
+    return { data: result as T };
+  },
+
+  async delete<T = any>(url: string, config?: Omit<FetchJsonOptions, 'method'>): Promise<{ data: T }> {
+    const result = await fetchJson<T>(url, { ...config, method: 'DELETE' });
+    return { data: result as T };
+  },
+};

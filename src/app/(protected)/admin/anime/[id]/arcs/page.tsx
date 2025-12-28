@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api/services";
 import type { AnimeArc } from "@/lib/api/types";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const ARC_TYPES = [
   { value: "canon", label: "Canon", color: "blue", description: "Main storyline" },
@@ -48,27 +48,27 @@ export default function AnimeArcManagerPage() {
   // Fetch arcs
   const { data: arcs = [], isLoading } = useQuery({
     queryKey: ["admin", "anime", animeId, "arcs"],
-    queryFn: () => api.animeArcs.list(animeId),
+    queryFn: () => api.animeArcs.listArcs({ anime_id: animeId }),
   });
 
   // Fetch anime info
   const { data: animeInfo } = useQuery({
     queryKey: ["admin", "titles", animeId],
-    queryFn: () => api.titles.getById(animeId),
+    queryFn: () => api.discovery.getTitle(animeId),
   });
 
   // Create mutation
   const createMutation = useMutation({
     mutationFn: (data: {
-      arc_name: string;
-      arc_type: string;
+      anime_id: string;
+      name: string;
+      arc_type: "canon" | "filler" | "mixed";
       start_episode: number;
       end_episode: number;
       description?: string;
-      manga_chapter_start?: number;
-      manga_chapter_end?: number;
-      filler_episodes?: number[];
-    }) => api.animeArcs.create(animeId, data),
+      manga_chapters?: string;
+      is_filler?: boolean;
+    }) => api.animeArcs.createArc(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "anime", animeId, "arcs"] });
       closeModal();
@@ -79,17 +79,8 @@ export default function AnimeArcManagerPage() {
   const updateMutation = useMutation({
     mutationFn: (data: {
       arcId: string;
-      updates: {
-        arc_name?: string;
-        arc_type?: string;
-        start_episode?: number;
-        end_episode?: number;
-        description?: string;
-        manga_chapter_start?: number;
-        manga_chapter_end?: number;
-        filler_episodes?: number[];
-      };
-    }) => api.animeArcs.update(animeId, data.arcId, data.updates),
+      updates: Partial<AnimeArc>;
+    }) => api.animeArcs.updateArc(data.arcId, data.updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "anime", animeId, "arcs"] });
       closeModal();
@@ -98,7 +89,7 @@ export default function AnimeArcManagerPage() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (arcId: string) => api.animeArcs.delete(animeId, arcId),
+    mutationFn: (arcId: string) => api.animeArcs.deleteArc(arcId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "anime", animeId, "arcs"] });
       setDeleteArcId(null);
@@ -120,35 +111,56 @@ export default function AnimeArcManagerPage() {
 
   const openEditModal = (arc: AnimeArc) => {
     setEditingArc(arc);
-    setArcName(arc.arc_name);
-    setArcType(arc.arc_type as any);
+    setArcName(arc.name);
+    setArcType(arc.arc_type);
     setStartEpisode(arc.start_episode.toString());
     setEndEpisode(arc.end_episode.toString());
     setDescription(arc.description || "");
-    setMangaChapterStart(arc.manga_chapter_start?.toString() || "");
-    setMangaChapterEnd(arc.manga_chapter_end?.toString() || "");
-    setFillerEpisodes(arc.filler_episodes || []);
+    // Parse manga_chapters string (e.g., "1-50" or "1")
+    const chapters = arc.manga_chapters?.split("-") || [];
+    setMangaChapterStart(chapters[0] || "");
+    setMangaChapterEnd(chapters[1] || chapters[0] || "");
+    setFillerEpisodes([]);
     setIsCreateModalOpen(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const data = {
-      arc_name: arcName,
-      arc_type: arcType,
-      start_episode: parseInt(startEpisode),
-      end_episode: parseInt(endEpisode),
-      description: description || undefined,
-      manga_chapter_start: mangaChapterStart ? parseInt(mangaChapterStart) : undefined,
-      manga_chapter_end: mangaChapterEnd ? parseInt(mangaChapterEnd) : undefined,
-      filler_episodes: fillerEpisodes.length > 0 ? fillerEpisodes : undefined,
-    };
+    // Build manga_chapters string (e.g., "1-50" or "1")
+    let mangaChapters: string | undefined;
+    if (mangaChapterStart) {
+      if (mangaChapterEnd && mangaChapterEnd !== mangaChapterStart) {
+        mangaChapters = `${mangaChapterStart}-${mangaChapterEnd}`;
+      } else {
+        mangaChapters = mangaChapterStart;
+      }
+    }
 
     if (editingArc) {
-      updateMutation.mutate({ arcId: editingArc.id, updates: data });
+      updateMutation.mutate({
+        arcId: editingArc.id,
+        updates: {
+          name: arcName,
+          arc_type: arcType,
+          start_episode: parseInt(startEpisode),
+          end_episode: parseInt(endEpisode),
+          description: description || undefined,
+          manga_chapters: mangaChapters,
+          is_filler: arcType === "filler",
+        },
+      });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate({
+        anime_id: animeId,
+        name: arcName,
+        arc_type: arcType,
+        start_episode: parseInt(startEpisode),
+        end_episode: parseInt(endEpisode),
+        description: description || undefined,
+        manga_chapters: mangaChapters,
+        is_filler: arcType === "filler",
+      });
     }
   };
 
@@ -166,7 +178,7 @@ export default function AnimeArcManagerPage() {
 
   // Check for overlaps
   const detectOverlaps = (arc: AnimeArc) => {
-    return arcs.filter((a) => {
+    return arcs.filter((a: AnimeArc) => {
       if (a.id === arc.id) return false;
       return (
         (arc.start_episode >= a.start_episode && arc.start_episode <= a.end_episode) ||
@@ -188,14 +200,13 @@ export default function AnimeArcManagerPage() {
   }
 
   // Calculate timeline data
-  const totalEpisodes = arcs.length > 0 ? Math.max(...arcs.map((a) => a.end_episode)) : 0;
+  const totalEpisodes = arcs.length > 0 ? Math.max(...arcs.map((a: AnimeArc) => a.end_episode)) : 0;
   const canonEpisodes = arcs
-    .filter((a) => a.arc_type === "canon")
-    .reduce((sum, a) => sum + (a.end_episode - a.start_episode + 1), 0);
+    .filter((a: AnimeArc) => a.arc_type === "canon")
+    .reduce((sum: number, a: AnimeArc) => sum + (a.end_episode - a.start_episode + 1), 0);
   const fillerEpisodeCount = arcs
-    .filter((a) => a.arc_type === "filler")
-    .reduce((sum, a) => sum + (a.end_episode - a.start_episode + 1), 0) +
-    arcs.reduce((sum, a) => sum + (a.filler_episodes?.length || 0), 0);
+    .filter((a: AnimeArc) => a.arc_type === "filler")
+    .reduce((sum: number, a: AnimeArc) => sum + (a.end_episode - a.start_episode + 1), 0);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-pink-950/20 to-slate-950 p-6">
@@ -211,7 +222,7 @@ export default function AnimeArcManagerPage() {
               Anime Arc Manager
             </h1>
             <p className="text-slate-400">
-              {animeInfo?.title || "Loading..."} - Manage story arcs and filler episodes
+              {animeInfo?.name || "Loading..."} - Manage story arcs and filler episodes
             </p>
           </div>
 
@@ -275,8 +286,8 @@ export default function AnimeArcManagerPage() {
             <h2 className="text-xl font-bold text-white mb-6">Arc Timeline</h2>
             <div className="space-y-2">
               {arcs
-                .sort((a, b) => a.start_episode - b.start_episode)
-                .map((arc, index) => {
+                .sort((a: AnimeArc, b: AnimeArc) => a.start_episode - b.start_episode)
+                .map((arc: AnimeArc, index: number) => {
                   const typeConfig = ARC_TYPES.find((t) => t.value === arc.arc_type);
                   const width = ((arc.end_episode - arc.start_episode + 1) / totalEpisodes) * 100;
                   const overlaps = detectOverlaps(arc);
@@ -295,7 +306,7 @@ export default function AnimeArcManagerPage() {
                             className={`h-full bg-gradient-to-r from-${typeConfig?.color}-500/80 to-${typeConfig?.color}-600/80 border border-${typeConfig?.color}-500/50 flex items-center justify-between px-4`}
                           >
                             <span className="text-white font-medium text-sm truncate">
-                              {arc.arc_name}
+                              {arc.name}
                             </span>
                             <span
                               className={`px-2 py-1 bg-${typeConfig?.color}-900/50 rounded text-xs text-white`}
@@ -359,8 +370,8 @@ export default function AnimeArcManagerPage() {
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {arcs
-                .sort((a, b) => a.start_episode - b.start_episode)
-                .map((arc, index) => {
+                .sort((a: AnimeArc, b: AnimeArc) => a.start_episode - b.start_episode)
+                .map((arc: AnimeArc, index: number) => {
                   const typeConfig = ARC_TYPES.find((t) => t.value === arc.arc_type);
                   const episodeCount = arc.end_episode - arc.start_episode + 1;
 
@@ -381,7 +392,7 @@ export default function AnimeArcManagerPage() {
                           </div>
                           <div>
                             <h3 className="text-lg font-semibold text-white mb-1">
-                              {arc.arc_name}
+                              {arc.name}
                             </h3>
                             <div className="flex items-center gap-2">
                               <span
@@ -405,11 +416,11 @@ export default function AnimeArcManagerPage() {
                             {arc.start_episode} - {arc.end_episode}
                           </span>
                         </div>
-                        {arc.manga_chapter_start && arc.manga_chapter_end && (
+                        {arc.manga_chapters && (
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-slate-400">Manga Chapters</span>
                             <span className="text-white font-medium">
-                              Ch. {arc.manga_chapter_start} - {arc.manga_chapter_end}
+                              Ch. {arc.manga_chapters}
                             </span>
                           </div>
                         )}
@@ -418,25 +429,6 @@ export default function AnimeArcManagerPage() {
                       {/* Description */}
                       {arc.description && (
                         <p className="text-sm text-slate-300 mb-4">{arc.description}</p>
-                      )}
-
-                      {/* Filler Episodes */}
-                      {arc.filler_episodes && arc.filler_episodes.length > 0 && (
-                        <div className="p-3 bg-slate-800/50 rounded-lg">
-                          <p className="text-xs text-slate-400 mb-2">
-                            Filler Episodes ({arc.filler_episodes.length})
-                          </p>
-                          <div className="flex flex-wrap gap-1">
-                            {arc.filler_episodes.map((ep) => (
-                              <span
-                                key={ep}
-                                className="px-2 py-1 bg-slate-700/50 text-slate-300 text-xs rounded"
-                              >
-                                {ep}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
                       )}
                     </motion.div>
                   );
@@ -681,9 +673,10 @@ export default function AnimeArcManagerPage() {
           onClose={() => setDeleteArcId(null)}
           onConfirm={() => deleteArcId && deleteMutation.mutate(deleteArcId)}
           title="Delete Arc"
-          description="Are you sure you want to delete this arc? This action cannot be undone."
+          message="Are you sure you want to delete this arc? This action cannot be undone."
           confirmText="Delete Arc"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

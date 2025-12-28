@@ -22,7 +22,7 @@ import {
 import { api } from "@/lib/api/services";
 import type { AdConfig } from "@/lib/api/types";
 import { DataTable } from "@/components/ui/data/DataTable";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const AD_TYPES = [
   { value: "pre-roll", label: "Pre-Roll", description: "Plays before content starts", color: "blue" },
@@ -360,7 +360,6 @@ export default function AdConfigurationPage() {
           <DataTable
             data={ads}
             columns={columns}
-            searchable
             searchPlaceholder="Search ad configurations..."
             emptyMessage="No ad configurations found"
           />
@@ -603,9 +602,10 @@ export default function AdConfigurationPage() {
           onClose={() => setDeleteAdId(null)}
           onConfirm={() => deleteAdId && deleteMutation.mutate(deleteAdId)}
           title="Delete Ad Configuration"
-          description="Are you sure you want to delete this ad configuration? This will stop showing ads for this placement. This action cannot be undone."
+          message="Are you sure you want to delete this ad configuration? This will stop showing ads for this placement. This action cannot be undone."
           confirmText="Delete Configuration"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

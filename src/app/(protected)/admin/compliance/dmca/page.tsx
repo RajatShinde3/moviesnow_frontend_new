@@ -17,7 +17,7 @@ import {
 import { api } from "@/lib/api/services";
 import type { DMCATakedownRequest } from "@/lib/api/types";
 import { DataTable } from "@/components/ui/data/DataTable";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const STATUS_CONFIG = {
   pending: { label: "Pending Review", color: "amber", icon: Clock },
@@ -48,7 +48,7 @@ export default function DMCACompliancePage() {
   // Approve mutation
   const approveMutation = useMutation({
     mutationFn: (data: { requestId: string; notes?: string }) =>
-      api.compliance.approveDMCATakedown(data.requestId, { notes: data.notes }),
+      api.compliance.approveDMCATakedown(data.requestId, data.notes),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "compliance", "dmca"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "compliance", "dmca", "stats"] });
@@ -59,7 +59,7 @@ export default function DMCACompliancePage() {
   // Reject mutation
   const rejectMutation = useMutation({
     mutationFn: (data: { requestId: string; notes?: string }) =>
-      api.compliance.rejectDMCATakedown(data.requestId, { notes: data.notes }),
+      api.compliance.rejectDMCATakedown(data.requestId, data.notes || ""),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "compliance", "dmca"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "compliance", "dmca", "stats"] });
@@ -92,7 +92,7 @@ export default function DMCACompliancePage() {
   // Filter requests
   const filteredRequests = statusFilter === "all"
     ? requests
-    : requests.filter((req) => req.status === statusFilter);
+    : requests.filter((req: DMCATakedownRequest) => req.status === statusFilter);
 
   // DataTable columns
   const columns = [
@@ -110,18 +110,18 @@ export default function DMCACompliancePage() {
       accessor: "title_id" as keyof DMCATakedownRequest,
       cell: (value: any, row: DMCATakedownRequest) => (
         <div>
-          <div className="font-medium text-white">{row.content_title || "Unknown Title"}</div>
+          <div className="font-medium text-white">{row.title_name || "Unknown Title"}</div>
           <div className="text-xs text-slate-400">ID: {value?.toString().slice(0, 8)}</div>
         </div>
       ),
     },
     {
-      header: "Complainant",
-      accessor: "complainant_name" as keyof DMCATakedownRequest,
+      header: "Claimant",
+      accessor: "claimant_name" as keyof DMCATakedownRequest,
       cell: (value: any, row: DMCATakedownRequest) => (
         <div>
           <div className="text-white">{value}</div>
-          <div className="text-xs text-slate-400">{row.complainant_email}</div>
+          <div className="text-xs text-slate-400">{row.claimant_email}</div>
         </div>
       ),
     },
@@ -245,7 +245,7 @@ export default function DMCACompliancePage() {
             <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 backdrop-blur-sm border border-amber-700/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-2">
                 <Clock className="w-8 h-8 text-amber-400" />
-                <span className="text-3xl font-bold text-white">{stats.pending_count}</span>
+                <span className="text-3xl font-bold text-white">{stats.pending}</span>
               </div>
               <p className="text-slate-400 text-sm">Pending Review</p>
             </div>
@@ -253,7 +253,7 @@ export default function DMCACompliancePage() {
             <div className="bg-gradient-to-br from-green-900/20 to-emerald-900/20 backdrop-blur-sm border border-green-700/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-2">
                 <CheckCircle className="w-8 h-8 text-green-400" />
-                <span className="text-3xl font-bold text-white">{stats.approved_count}</span>
+                <span className="text-3xl font-bold text-white">{stats.approved}</span>
               </div>
               <p className="text-slate-400 text-sm">Approved</p>
             </div>
@@ -261,7 +261,7 @@ export default function DMCACompliancePage() {
             <div className="bg-gradient-to-br from-red-900/20 to-rose-900/20 backdrop-blur-sm border border-red-700/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-2">
                 <XCircle className="w-8 h-8 text-red-400" />
-                <span className="text-3xl font-bold text-white">{stats.rejected_count}</span>
+                <span className="text-3xl font-bold text-white">{stats.rejected}</span>
               </div>
               <p className="text-slate-400 text-sm">Rejected</p>
             </div>
@@ -269,7 +269,7 @@ export default function DMCACompliancePage() {
             <div className="bg-gradient-to-br from-blue-900/20 to-cyan-900/20 backdrop-blur-sm border border-blue-700/50 rounded-xl p-6">
               <div className="flex items-center justify-between mb-2">
                 <FileText className="w-8 h-8 text-blue-400" />
-                <span className="text-3xl font-bold text-white">{stats.total_requests}</span>
+                <span className="text-3xl font-bold text-white">{stats.pending + stats.approved + stats.rejected}</span>
               </div>
               <p className="text-slate-400 text-sm">Total Requests</p>
             </div>
@@ -286,7 +286,6 @@ export default function DMCACompliancePage() {
           <DataTable
             data={filteredRequests}
             columns={columns}
-            searchable
             searchPlaceholder="Search by complainant, content..."
             emptyMessage="No DMCA requests found"
           />
@@ -358,7 +357,7 @@ export default function DMCACompliancePage() {
                       <div className="flex justify-between">
                         <span className="text-slate-400">Title</span>
                         <span className="text-white font-medium">
-                          {viewingRequest.content_title || "Unknown"}
+                          {viewingRequest.title_name || "Unknown"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -367,11 +366,11 @@ export default function DMCACompliancePage() {
                           {viewingRequest.title_id?.toString().slice(0, 16)}...
                         </span>
                       </div>
-                      {viewingRequest.infringing_url && (
+                      {viewingRequest.content_url && (
                         <div className="flex justify-between">
                           <span className="text-slate-400">URL</span>
                           <a
-                            href={viewingRequest.infringing_url}
+                            href={viewingRequest.content_url}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-400 hover:underline text-sm"
@@ -383,32 +382,32 @@ export default function DMCACompliancePage() {
                     </div>
                   </div>
 
-                  {/* Complainant Info */}
+                  {/* Claimant Info */}
                   <div className="bg-slate-800/50 rounded-lg p-4">
                     <h3 className="text-sm font-medium text-slate-400 mb-3">
-                      Complainant Information
+                      Claimant Information
                     </h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-slate-400">Name</span>
                         <span className="text-white font-medium">
-                          {viewingRequest.complainant_name}
+                          {viewingRequest.claimant_name}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-400">Email</span>
                         <a
-                          href={`mailto:${viewingRequest.complainant_email}`}
+                          href={`mailto:${viewingRequest.claimant_email}`}
                           className="text-blue-400 hover:underline"
                         >
-                          {viewingRequest.complainant_email}
+                          {viewingRequest.claimant_email}
                         </a>
                       </div>
-                      {viewingRequest.complainant_organization && (
+                      {viewingRequest.claimant_organization && (
                         <div className="flex justify-between">
                           <span className="text-slate-400">Organization</span>
                           <span className="text-white">
-                            {viewingRequest.complainant_organization}
+                            {viewingRequest.claimant_organization}
                           </span>
                         </div>
                       )}
@@ -421,53 +420,53 @@ export default function DMCACompliancePage() {
                       Complaint Details
                     </h3>
                     <p className="text-white whitespace-pre-wrap">
-                      {viewingRequest.complaint_details}
+                      {viewingRequest.description}
                     </p>
                   </div>
 
                   {/* Copyrighted Work */}
-                  {viewingRequest.copyrighted_work_description && (
+                  {viewingRequest.copyright_work && (
                     <div className="bg-slate-800/50 rounded-lg p-4">
                       <h3 className="text-sm font-medium text-slate-400 mb-3">
                         Copyrighted Work Description
                       </h3>
                       <p className="text-white whitespace-pre-wrap">
-                        {viewingRequest.copyrighted_work_description}
+                        {viewingRequest.copyright_work}
                       </p>
                     </div>
                   )}
 
-                  {/* Admin Notes */}
-                  {viewingRequest.admin_notes && (
+                  {/* Resolution Notes */}
+                  {viewingRequest.resolution_notes && (
                     <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-4">
                       <h3 className="text-sm font-medium text-blue-400 mb-3">
-                        Admin Notes
+                        Resolution Notes
                       </h3>
                       <p className="text-white whitespace-pre-wrap">
-                        {viewingRequest.admin_notes}
+                        {viewingRequest.resolution_notes}
                       </p>
                     </div>
                   )}
 
-                  {/* Processed Info */}
+                  {/* Reviewed Info */}
                   {viewingRequest.status !== "pending" && (
                     <div className="bg-slate-800/50 rounded-lg p-4">
                       <h3 className="text-sm font-medium text-slate-400 mb-3">
-                        Processing Information
+                        Review Information
                       </h3>
                       <div className="space-y-2">
-                        {viewingRequest.processed_at && (
+                        {viewingRequest.reviewed_at && (
                           <div className="flex justify-between">
-                            <span className="text-slate-400">Processed At</span>
+                            <span className="text-slate-400">Reviewed At</span>
                             <span className="text-white">
-                              {new Date(viewingRequest.processed_at).toLocaleString()}
+                              {new Date(viewingRequest.reviewed_at).toLocaleString()}
                             </span>
                           </div>
                         )}
-                        {viewingRequest.processed_by && (
+                        {viewingRequest.reviewed_by && (
                           <div className="flex justify-between">
-                            <span className="text-slate-400">Processed By</span>
-                            <span className="text-white">{viewingRequest.processed_by}</span>
+                            <span className="text-slate-400">Reviewed By</span>
+                            <span className="text-white">{viewingRequest.reviewed_by}</span>
                           </div>
                         )}
                       </div>

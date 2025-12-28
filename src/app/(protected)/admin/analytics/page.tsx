@@ -197,15 +197,15 @@ export default function AnalyticsPage() {
 }
 
 function MetricCard({ icon, label, value, change, trend, color }: any) {
-  const colorClasses = {
+  const colorClasses: Record<string, string> = {
     blue: "from-blue-500 to-cyan-600",
     green: "from-green-500 to-emerald-600",
     purple: "from-purple-500 to-pink-600",
     yellow: "from-yellow-500 to-orange-600",
   };
 
-  const trendIcon = { up: <ArrowUp className="h-4 w-4" />, down: <ArrowDown className="h-4 w-4" />, neutral: <Minus className="h-4 w-4" /> };
-  const trendColor = { up: "text-green-400 bg-green-500/20", down: "text-red-400 bg-red-500/20", neutral: "text-gray-400 bg-gray-500/20" };
+  const trendIcon: Record<string, React.ReactNode> = { up: <ArrowUp className="h-4 w-4" />, down: <ArrowDown className="h-4 w-4" />, neutral: <Minus className="h-4 w-4" /> };
+  const trendColor: Record<string, string> = { up: "text-green-400 bg-green-500/20", down: "text-red-400 bg-red-500/20", neutral: "text-gray-400 bg-gray-500/20" };
 
   return (
     <div className="relative overflow-hidden rounded-xl border border-gray-800 bg-gray-900/50 p-6">

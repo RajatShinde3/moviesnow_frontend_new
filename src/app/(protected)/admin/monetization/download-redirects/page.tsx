@@ -23,7 +23,7 @@ import {
 import { api } from "@/lib/api/services";
 import type { DownloadRedirect } from "@/lib/api/types";
 import { DataTable } from "@/components/ui/data/DataTable";
-import { ConfirmDialog } from "@/components/ui/data/ConfirmDialog";
+import { ConfirmDialog } from "@/components/ui";
 
 const QUALITY_OPTIONS = [
   { value: "480p", label: "SD (480p)", color: "green" },
@@ -336,7 +336,6 @@ export default function DownloadRedirectsPage() {
           <DataTable
             data={redirects}
             columns={columns}
-            searchable
             searchPlaceholder="Search redirect URLs..."
             emptyMessage="No download redirects found"
           />
@@ -554,9 +553,10 @@ export default function DownloadRedirectsPage() {
           onClose={() => setDeleteRedirectId(null)}
           onConfirm={() => deleteRedirectId && deleteMutation.mutate(deleteRedirectId)}
           title="Delete Download Redirect"
-          description="Are you sure you want to delete this redirect? Free users will no longer see ads before downloads. This action cannot be undone."
+          message="Are you sure you want to delete this redirect? Free users will no longer see ads before downloads. This action cannot be undone."
           confirmText="Delete Redirect"
-          isDestructive
+          variant="danger"
+          isLoading={deleteMutation.isPending}
         />
       </div>
     </div>

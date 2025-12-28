@@ -515,7 +515,9 @@ function CreateAPIKeyModal({
                                   className="p-2 rounded-lg"
                                   style={{ backgroundColor: `${template.color}20` }}
                                 >
-                                  <IconComponent className="w-5 h-5" style={{ color: template.color }} />
+                                  <div style={{ color: template.color }}>
+                                    <IconComponent className="w-5 h-5" />
+                                  </div>
                                 </div>
                                 <div className="flex-1">
                                   <h4 className="font-semibold text-sm">{template.name}</h4>

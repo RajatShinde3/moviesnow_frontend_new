@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { subscriptionsService } from '../services/subscriptions';
+import { subscriptionsService, Subscription } from '../services/subscriptions';
 import { toast } from 'sonner';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,7 +106,7 @@ export function useUpdateSubscription() {
 export function useCancelSubscription() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<Subscription, Error, boolean>({
     mutationFn: (cancelAtPeriodEnd = true) =>
       subscriptionsService.cancelSubscription(cancelAtPeriodEnd),
     onSuccess: (_, cancelAtPeriodEnd) => {

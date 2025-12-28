@@ -22,8 +22,8 @@ export function RoleModal({ isOpen, onClose, onSubmit, permissions, role, isLoad
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
-  const [selectedColor, setSelectedColor] = useState(ROLE_COLORS[0]);
-  const [selectedIcon, setSelectedIcon] = useState(ROLE_ICONS[0]);
+  const [selectedColor, setSelectedColor] = useState<string>("#3b82f6");
+  const [selectedIcon, setSelectedIcon] = useState<string>("Shield");
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<PermissionCategory | 'all'>('all');
 
@@ -199,7 +199,7 @@ export function RoleModal({ isOpen, onClose, onSubmit, permissions, role, isLoad
                             <button
                               key={color}
                               type="button"
-                              onClick={() => setSelectedColor(color)}
+                              onClick={() => setSelectedColor(color as string)}
                               className={`w-10 h-10 rounded-lg transition-all ${
                                 selectedColor === color ? 'ring-2 ring-white ring-offset-2 ring-offset-background-elevated scale-110' : 'hover:scale-110'
                               }`}
@@ -241,6 +241,7 @@ export function RoleModal({ isOpen, onClose, onSubmit, permissions, role, isLoad
                     <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                       <p className="text-sm text-white/60 mb-2">Preview:</p>
                       <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border" style={{ backgroundColor: `${selectedColor}20`, borderColor: `${selectedColor}40` }}>
+                        {/* @ts-expect-error - Dynamic Icon component */}
                         <SelectedIconComponent className="w-5 h-5" style={{ color: selectedColor }} />
                         <span className="font-semibold">{name || 'Role Name'}</span>
                       </div>

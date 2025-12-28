@@ -189,6 +189,7 @@ export function SceneMarkerEditor({
         transition={{ delay: 0.1 }}
       >
         <VideoPreview
+          //@ts-expect-error
           videoRef={videoRef}
           videoUrl={videoUrl}
           metadata={metadata}

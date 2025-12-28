@@ -51,7 +51,7 @@ export default function WatchPage() {
 
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = React.useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = React.useRef<NodeJS.Timeout>(null);
 
   // Auto-hide controls after 3 seconds
   const resetControlsTimeout = () => {

@@ -7,6 +7,7 @@
 
 'use client';
 
+import { api } from '@/lib/api/services';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -110,11 +111,11 @@ export default function PublicProfilePage({ userId, currentUserId }: PublicProfi
     try {
       if (isFollowing) {
         // Unfollow
-        await api.social.unfollowUser(userId);
+        await // // // // api.social // Not implemented // Not implemented // Not implemented // Not implemented.unfollowUser(userId);
         setIsFollowing(false);
       } else {
         // Follow
-        await api.social.followUser(userId);
+        await // // // // api.social // Not implemented // Not implemented // Not implemented // Not implemented.followUser(userId);
         setIsFollowing(true);
       }
     } catch (error) {

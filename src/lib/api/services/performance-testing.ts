@@ -5,7 +5,7 @@
  * API service for running and managing performance regression tests
  */
 
-import { apiClient } from '../client';
+import { fetchJson } from '../client';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -118,8 +118,8 @@ export const performanceTestingService = {
    * Get all available test cases
    */
   async getTestCases(): Promise<TestCase[]> {
-    const response = await apiClient.get('/performance-testing/test-cases');
-    return response.data;
+    const response: any = await fetchJson<any>('/performance-testing/test-cases');
+    return response as any;
   },
 
   /**
@@ -133,10 +133,10 @@ export const performanceTestingService = {
     baseline_stored: boolean;
     test_summary: any;
   }> {
-    const response = await apiClient.post(`/performance-testing/run-test/${testId}`, null, {
-      params: { store_as_baseline: storeAsBaseline },
+    const response: any = await fetchJson<any>(`/performance-testing/run-test/${testId}`, {
+      searchParams: { store_as_baseline: storeAsBaseline },
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -147,12 +147,15 @@ export const performanceTestingService = {
     include_regression_check?: boolean;
     store_baseline?: boolean;
   }): Promise<TestSuiteResult> {
-    const response = await apiClient.post('/performance-testing/run-suite', {
-      test_ids: params.test_ids || null,
-      include_regression_check: params.include_regression_check ?? true,
-      store_baseline: params.store_baseline ?? false,
+    const response: any = await fetchJson<any>('/performance-testing/run-suite', {
+      method: 'POST',
+      body: JSON.stringify({
+        test_ids: params.test_ids || null,
+        include_regression_check: params.include_regression_check ?? true,
+        store_baseline: params.store_baseline ?? false,
+      }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -169,22 +172,25 @@ export const performanceTestingService = {
     description: string;
     established_at: string;
   }> {
-    const response = await apiClient.post('/performance-testing/establish-baseline', {
-      test_case_id: params.test_case_id,
-      description: params.description,
-      force_update: params.force_update ?? false,
+    const response: any = await fetchJson<any>('/performance-testing/establish-baseline', {
+      method: 'POST',
+      body: JSON.stringify({
+        test_case_id: params.test_case_id,
+        description: params.description,
+        force_update: params.force_update ?? false,
+      }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get test execution history
    */
   async getTestHistory(testCaseId: string, limit: number = 50): Promise<PerformanceHistory[]> {
-    const response = await apiClient.get(`/performance-testing/history/${testCaseId}`, {
-      params: { limit },
+    const response: any = await fetchJson<any>(`/performance-testing/history/${testCaseId}`, {
+      searchParams: { limit },
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -198,10 +204,10 @@ export const performanceTestingService = {
     current_execution: TestExecution;
     regression_analysis: RegressionAnalysis;
   }> {
-    const response = await apiClient.get(`/performance-testing/regression-check/${testCaseId}`, {
-      params: { threshold },
+    const response: any = await fetchJson<any>(`/performance-testing/regression-check/${testCaseId}`, {
+      searchParams: { threshold },
     });
-    return response.data;
+    return response as any;
   },
 
   /**
@@ -212,20 +218,23 @@ export const performanceTestingService = {
     include_trends?: boolean;
     include_recommendations?: boolean;
   }): Promise<PerformanceReport> {
-    const response = await apiClient.post('/performance-testing/generate-report', {
-      days: params.days ?? 7,
-      include_trends: params.include_trends ?? true,
-      include_recommendations: params.include_recommendations ?? true,
+    const response: any = await fetchJson<any>('/performance-testing/generate-report', {
+      method: 'POST',
+      body: JSON.stringify({
+        days: params.days ?? 7,
+        include_trends: params.include_trends ?? true,
+        include_recommendations: params.include_recommendations ?? true,
+      }),
     });
-    return response.data;
+    return response as any;
   },
 
   /**
    * Get performance testing dashboard
    */
   async getDashboard(): Promise<PerformanceDashboard> {
-    const response = await apiClient.get('/performance-testing/dashboard');
-    return response.data;
+    const response: any = await fetchJson<any>('/performance-testing/dashboard');
+    return response as any;
   },
 
   /**
@@ -242,8 +251,8 @@ export const performanceTestingService = {
     };
     critical_issues: TestExecution[];
   }> {
-    const response = await apiClient.post('/performance-testing/automated-suite-run');
-    return response.data;
+    const response: any = await fetchJson<any>('/performance-testing/automated-suite-run');
+    return response as any;
   },
 
   /**
@@ -260,9 +269,9 @@ export const performanceTestingService = {
       degrading: number;
     };
   }> {
-    const response = await apiClient.get('/performance-testing/metrics/test-execution-trends', {
-      params: { days },
+    const response: any = await fetchJson<any>('/performance-testing/metrics/test-execution-trends', {
+      searchParams: { days },
     });
-    return response.data;
+    return response as any;
   },
 };

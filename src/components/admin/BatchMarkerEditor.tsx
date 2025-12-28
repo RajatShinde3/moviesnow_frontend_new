@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Copy, Check, Loader2, AlertCircle, Info, Zap } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { api } from '@/lib/api';
+import { api } from '@/lib/api/services';
 import { SceneMarkers } from '@/types/sceneMarkers';
 
 interface BatchMarkerEditorProps {
@@ -34,11 +34,11 @@ export function BatchMarkerEditor({
         ? Array.from({ length: totalEpisodes }, (_, i) => String(i + 1))
         : selectedEpisodes.map(String);
 
-      const response = await api.post(`/admin/titles/${titleId}/scene-markers/batch`, {
-        json: {
-          episodeIds,
-          markers: currentMarkers
-        }
+      // Batch update markers - API method placeholder
+      const response = await fetch(`/api/v1/admin/titles/${titleId}/scene-markers/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ episodeIds, markers: currentMarkers })
       });
       return response.json();
     },

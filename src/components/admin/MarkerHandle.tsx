@@ -115,7 +115,7 @@ export function MarkerHandle({ config, range, currentTime, onUpdate }: MarkerHan
           whileHover={{ scale: 1.1, rotate: 5 }}
           transition={{ type: 'spring', stiffness: 400 }}
         >
-          <Icon className="w-6 h-6 relative z-10" style={{ color: config.color }} />
+          <Icon className="w-6 h-6 relative z-10" />
           <motion.div
             className="absolute inset-0"
             style={{ backgroundColor: config.color }}
@@ -218,13 +218,13 @@ export function MarkerHandle({ config, range, currentTime, onUpdate }: MarkerHan
               <div className="grid grid-cols-3 gap-3">
                 <div className="p-3 bg-background-hover/50 rounded-xl border border-white/5">
                   <p className="text-xs text-white/50 mb-1">Start</p>
-                  <p className="font-mono font-semibold text-base" style={{ color: config.color }}>
+                  <p className="font-mono font-semibold text-base">
                     {formatTime(range.start)}
                   </p>
                 </div>
                 <div className="p-3 bg-background-hover/50 rounded-xl border border-white/5">
                   <p className="text-xs text-white/50 mb-1">End</p>
-                  <p className="font-mono font-semibold text-base" style={{ color: config.color }}>
+                  <p className="font-mono font-semibold text-base">
                     {formatTime(range.end)}
                   </p>
                 </div>

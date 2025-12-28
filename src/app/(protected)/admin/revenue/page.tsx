@@ -292,7 +292,7 @@ export default function RevenueDashboardPage() {
                   border: '1px solid rgba(255,255,255,0.1)',
                   borderRadius: '12px',
                 }}
-                formatter={(value: number) => [formatCurrency(value), '']}
+                formatter={(value: number | undefined) => [value !== undefined ? formatCurrency(value) : '', '']}
               />
               <Legend />
               <Area type="monotone" dataKey="mrr" stroke="#10b981" fillOpacity={1} fill="url(#colorMrr)" name="MRR" />
@@ -324,7 +324,7 @@ export default function RevenueDashboardPage() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number) => [formatCurrency(value), '']}
+                  formatter={(value: number | undefined) => [value !== undefined ? formatCurrency(value) : '', '']}
                 />
                 <Legend />
                 <Bar dataKey="new" fill="#10b981" name="New Revenue" />
@@ -352,7 +352,7 @@ export default function RevenueDashboardPage() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }: any) => `${name} ${percent !== undefined ? (percent * 100).toFixed(0) : 0}%`}
                   outerRadius={100}
                   fill="#8884d8"
                   dataKey="value"
@@ -361,7 +361,7 @@ export default function RevenueDashboardPage() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                <Tooltip formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''} />
               </PieChart>
             </ResponsiveContainer>
           </motion.div>
@@ -388,10 +388,10 @@ export default function RevenueDashboardPage() {
                     border: '1px solid rgba(255,255,255,0.1)',
                     borderRadius: '12px',
                   }}
-                  formatter={(value: number, name: string) => [
-                    name === 'rate' ? `${value.toFixed(2)}%` : value,
+                  formatter={((value: number | undefined, name: string) => [
+                    value !== undefined ? (name === 'rate' ? `${value.toFixed(2)}%` : value) : '',
                     name === 'rate' ? 'Churn Rate' : 'Churned Count',
-                  ]}
+                  ]) as any}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="rate" stroke="#ef4444" strokeWidth={2} name="Churn Rate %" />

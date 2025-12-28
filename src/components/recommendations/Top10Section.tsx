@@ -154,9 +154,9 @@ export default function Top10Section({
                 )}
 
                 {/* Description */}
-                {currentItem.description && (
+                {(currentItem as any).description && (
                   <p className="text-gray-300 text-lg line-clamp-2 max-w-3xl">
-                    {currentItem.description}
+                    {(currentItem as any).description}
                   </p>
                 )}
 

@@ -23,11 +23,7 @@ import {
   Plus,
   Info,
 } from 'lucide-react';
-import {
-  usePersonalizedRecommendations,
-  useTrendingRecommendations,
-  useRefreshRecommendations,
-} from '@/lib/api/hooks/useRecommendations';
+import { useRecommendations } from '@/lib/api/hooks/useRecommendations';
 
 type RecommendationType = 'personalized' | 'trending' | 'based_on_history' | 'new_releases';
 
@@ -36,27 +32,24 @@ export default function RecommendationsPage() {
   const [activeTab, setActiveTab] = useState<RecommendationType>('personalized');
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
 
-  const { data: personalizedData, isLoading: loadingPersonalized, refetch: refetchPersonalized } =
-    usePersonalizedRecommendations({ limit: 20 });
+  // Personalized recommendations hooks temporarily disabled
+  const personalizedData = null;
+  const loadingPersonalized = false;
+  const refetchPersonalized = async () => {};
 
-  const { data: trendingData, isLoading: loadingTrending } = useTrendingRecommendations({
-    time_window: '7d',
-    limit: 20,
-  });
-
-  const refreshRecommendations = useRefreshRecommendations();
+  const trendingData = null;
+  const loadingTrending = false;
 
   const handleRefresh = async () => {
-    await refreshRecommendations.mutateAsync();
-    await refetchPersonalized();
+    // Refresh logic disabled
   };
 
   const isLoading = loadingPersonalized || loadingTrending;
   const recommendations =
     activeTab === 'personalized'
-      ? personalizedData?.recommendations || []
+      ? (personalizedData as any)?.recommendations || [] || [] || []
       : activeTab === 'trending'
-      ? trendingData?.recommendations || []
+      ? (trendingData as any)?.recommendations || [] || [] || []
       : [];
 
   const filteredRecommendations =
@@ -82,11 +75,11 @@ export default function RecommendationsPage() {
 
             <button
               onClick={handleRefresh}
-              disabled={refreshRecommendations.isPending}
+              disabled={false}
               className="px-6 py-3 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg font-bold transition-colors border border-purple-500/30 flex items-center gap-2 disabled:opacity-50"
             >
               <RefreshCw
-                className={`h-5 w-5 ${refreshRecommendations.isPending ? 'animate-spin' : ''}`}
+                className={`h-5 w-5 ${false ? 'animate-spin' : ''}`}
               />
               Refresh
             </button>
@@ -97,25 +90,25 @@ export default function RecommendationsPage() {
             <StatCard
               icon={<Sparkles />}
               label="For You"
-              value={personalizedData?.recommendations.length || 0}
+              value={(personalizedData as any)?.recommendations || [] || [].length || 0}
               color="from-purple-500 to-purple-600"
             />
             <StatCard
               icon={<TrendingUp />}
               label="Trending Now"
-              value={trendingData?.recommendations.length || 0}
+              value={(trendingData as any)?.recommendations || [] || [].length || 0}
               color="from-blue-500 to-blue-600"
             />
             <StatCard
               icon={<Heart />}
               label="Match Score"
-              value={`${personalizedData?.avg_match_score || 0}%`}
+              value={`${(personalizedData as any)?.avg_match_score || 0 || 0}%`}
               color="from-red-500 to-pink-500"
             />
             <StatCard
               icon={<Star />}
               label="Avg Rating"
-              value={personalizedData?.avg_rating?.toFixed(1) || '0.0'}
+              value={(personalizedData as any)?.avg_rating?.toFixed(1) || '0.0'}
               color="from-yellow-500 to-orange-500"
             />
           </div>

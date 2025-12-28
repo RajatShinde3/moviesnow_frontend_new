@@ -34,7 +34,8 @@ export interface User {
   is_2fa_enabled: boolean;
   created_at: string;
   updated_at: string;
-}
+
+  subscription_tier?: string;}
 
 export interface LoginRequest {
   email: string;
@@ -190,22 +191,36 @@ export interface StreamVariant {
   protocol: StreamProtocol;
   quality: QualityTier;
   bandwidth_kbps: number;
+  bitrate?: number;
   resolution?: string;
+  format?: string;
+  codec?: string;
   codec_video?: string;
   codec_audio?: string;
+  file_size?: number;
+  file_url?: string;
+  cdn_url?: string;
   manifest_url?: string;
+  hls_manifest_url?: string;
   is_streamable: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Subtitle {
   id: string;
   media_asset_id: string;
   language: string;
+  language_name?: string;
   label?: string;
+  format?: 'srt' | 'vtt' | 'ass' | 'ssa';
+  file_size?: number;
+  url?: string;
+  cdn_url?: string;
   is_default: boolean;
   is_forced: boolean;
   is_sdh: boolean;
-  url?: string;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -493,16 +508,18 @@ export interface AvailabilityWindow {
   regions: string[];
   is_active: boolean;
   window_type?: 'theatrical' | 'streaming' | 'download' | 'all';
+  notes?: string;
   created_at: string;
   updated_at: string;
 }
 
 export interface CreateAvailabilityWindowRequest {
   start_date: string;
-  end_date: string;
+  end_date?: string;
   regions: string[];
   window_type?: 'theatrical' | 'streaming' | 'download' | 'all';
   is_active?: boolean;
+  notes?: string;
 }
 
 export interface UpdateAvailabilityWindowRequest {
@@ -511,6 +528,7 @@ export interface UpdateAvailabilityWindowRequest {
   regions?: string[];
   window_type?: 'theatrical' | 'streaming' | 'download' | 'all';
   is_active?: boolean;
+  notes?: string;
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -564,6 +582,16 @@ export interface VariantAnalytics {
     bandwidth: number;
     unique_viewers: number;
   }>;
+}
+
+export interface TitleVariantAnalytics {
+  quality_distribution: any[];
+  bandwidth_usage: any[];
+  total_views: number;
+  most_popular_quality: string;
+  total_storage_used: number;
+  avg_bitrate: number;
+  quality_breakdown?: any[];
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1104,6 +1132,7 @@ export interface AnimeArc {
 }
 
 export interface CreateAnimeArcRequest {
+  anime_id: string;
   name: string;
   description?: string;
   arc_type: 'canon' | 'filler' | 'mixed';
@@ -1111,6 +1140,13 @@ export interface CreateAnimeArcRequest {
   end_episode: number;
   manga_chapters?: string;
   is_filler?: boolean;
+}
+
+export interface AnimeArcFilterParams {
+  anime_id?: string;
+  arc_type?: 'canon' | 'filler' | 'mixed';
+  limit?: number;
+  offset?: number;
 }
 
 export interface UpdateAnimeArcRequest {
@@ -1483,3 +1519,255 @@ export interface SortParams {
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ADDITIONAL ADMIN & ANALYTICS TYPES
+   ══════════════════════════════════════════════════════════════ */
+
+export interface RegionalAvailability {
+  region: string;
+  country_code: string;
+  is_available: boolean;
+  release_date?: string;
+  restrictions?: string[];
+}
+
+export interface AdminQualityControls {
+  titleId: string;
+  auto_quality_enabled: boolean;
+  force_quality?: QualityTier;
+  max_quality?: QualityTier;
+  min_quality?: QualityTier;
+}
+
+export interface FallbackTestResult {
+  success: boolean;
+  tested_qualities: QualityTier[];
+  fallback_chain: QualityTier[];
+  errors?: string[];
+}
+
+export interface CacheInvalidationRequest {
+  paths: string[];
+  pattern?: string;
+}
+
+export interface CDNInvalidationResult {
+  invalidation_id: string;
+  status: 'in_progress' | 'completed' | 'failed';
+  paths: string[];
+  created_at: string;
+}
+
+export interface AssetValidationRequest {
+  asset_id: string;
+  check_accessibility: boolean;
+  check_integrity: boolean;
+}
+
+export interface ValidationResult {
+  valid: boolean;
+  errors: string[];
+  warnings: string[];
+  asset_id: string;
+  checked_at: string;
+}
+
+export interface RedirectVerificationResult {
+  url: string;
+  is_valid: boolean;
+  status_code: number;
+  redirect_chain: string[];
+  final_url: string;
+  errors?: string[];
+}
+
+export interface CreateSubscriptionPlanRequest {
+  name: string;
+  description: string;
+  price: number;
+  currency: string;
+  interval: 'monthly' | 'yearly';
+  features: string[];
+  stripe_price_id?: string;
+}
+
+export interface SubscriptionStats {
+  total_subscriptions: number;
+  active_subscriptions: number;
+  trial_subscriptions: number;
+  cancelled_subscriptions: number;
+  total_revenue: number;
+  mrr: number;
+  churn_rate: number;
+}
+
+export interface SubscriptionFilterParams {
+  status?: 'active' | 'trial' | 'cancelled' | 'expired';
+  plan_id?: string;
+  start_date?: string;
+  end_date?: string;
+}
+
+export interface GrantTrialRequest {
+  user_id: string;
+  duration_days: number;
+  plan_id: string;
+}
+
+export interface ExtendSubscriptionRequest {
+  subscription_id: string;
+  extension_days: number;
+  reason?: string;
+}
+
+export interface QualityUsageAnalytics {
+  quality: QualityTier;
+  total_views: number;
+  total_bandwidth: number;
+  unique_users: number;
+  average_bitrate: number;
+  completion_rate: number;
+  quality_distribution: Array<{
+    quality: QualityTier;
+    count: number;
+    total_views: number;
+    percentage: number;
+  }>;
+  user_preferences: {
+    most_selected: QualityTier;
+    upgrade_rate: number;
+    downgrade_rate: number;
+  };
+  bandwidth_by_quality: Array<{
+    quality: QualityTier;
+    bandwidth: number;
+    cost: number;
+  }>;
+  quality_by_content_type: Array<{
+    content_type: string;
+    quality_breakdown: Record<string, number>;
+  }>;
+  quality_by_device: Array<{
+    device_type: string;
+    quality_breakdown: Record<string, number>;
+  }>;
+}
+
+export interface QualityOverrideAnalytics {
+  title_id: string;
+  title_name: string;
+  override_count: number;
+  most_common_override: QualityTier;
+  reasons: string[];
+}
+
+export interface CostOptimizationAnalytics {
+  total_bandwidth_cost: number;
+  cost_by_quality: Record<QualityTier, number>;
+  optimization_suggestions: string[];
+  potential_savings: number;
+}
+
+export interface UserQualityPreferences {
+  user_id: string;
+  preferred_quality: QualityTier;
+  auto_quality_enabled: boolean;
+  data_saver_mode: boolean;
+}
+
+export interface TitlePerformance {
+  title_id: string;
+  title_name: string;
+  total_views: number;
+  unique_viewers: number;
+  total_watch_time: number;
+  average_completion_rate: number;
+  revenue: number;
+}
+
+export interface CostAnalyticsDashboard {
+  total_cost: number;
+  bandwidth_cost: number;
+  storage_cost: number;
+  cdn_cost: number;
+  compute_cost: number;
+  other_costs: number;
+  projected_monthly_cost: number;
+  cost_per_user: number;
+  cost_per_gb: number;
+  cost_per_hour: number;
+  cost_trend: Array<{
+    date: string;
+    cost: number;
+  }>;
+  cost_trends: Array<{
+    date: string;
+    storage: number;
+    bandwidth: number;
+    compute: number;
+    cdn: number;
+    total: number;
+  }>;
+  cost_by_service: Array<{
+    service: string;
+    cost: number;
+    percentage: number;
+  }>;
+  optimization_recommendations: Array<{
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+    potential_savings: number;
+    impact: 'low' | 'medium' | 'high';
+    effort: 'low' | 'medium' | 'high';
+    priority: number;
+  }>;
+}
+
+export interface AnalyticsDashboard {
+  overview: AnalyticsSummary;
+  quality_usage: QualityUsageAnalytics[];
+  top_titles: TitlePerformance[];
+  revenue_metrics: SubscriptionStats;
+  cost_metrics: CostAnalyticsDashboard;
+}
+
+export interface BulkArcStatusUpdate {
+  arc_ids: string[];
+  is_filler: boolean;
+}
+
+export interface AudioTrackUpload {
+  language: string;
+  label: string;
+  file: File;
+  is_default?: boolean;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MISSING TYPES - Stub exports for services.ts
+   ══════════════════════════════════════════════════════════════ */
+
+export type AudioTrackProcessing = any;
+export type AudioTrackProcessingStatus = any;
+export type Certification = any;
+export type ComplianceFlags = any;
+export type UserSearchParams = any;
+export type AdminPasswordResetRequest = any;
+export type CreatePermissionGroupRequest = any;
+export type PermissionGroup = any;
+export type AssignPermissionsRequest = any;
+export type UserPermissions = any;
+export type GrantPermissionRequest = any;
+export type AssignGroupRequest = any;
+export type RemoveGroupRequest = any;
+export type EffectivePermissions = any;
+export type ScheduledRelease = any;
+export type ScheduledEpisode = any;
+export type MediaUploadFilterParams = any;
+export type MediaUpload = any;
+export type UploadProgress = any;
+export type ProcessingLog = any;
+export type UploadStatistics = any;

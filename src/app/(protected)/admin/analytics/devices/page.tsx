@@ -47,7 +47,7 @@ export default function DeviceAnalyticsPage() {
   // Fetch device analytics data
   const { data: deviceData, isLoading } = useQuery({
     queryKey: ["admin", "analytics", "devices", dateRange],
-    queryFn: () => api.advancedAnalytics.getDeviceAnalytics(dateRange),
+    queryFn: () => api.advancedAnalytics.deviceInsights(),
   });
 
   if (isLoading || !deviceData) {
@@ -67,31 +67,31 @@ export default function DeviceAnalyticsPage() {
   }
 
   // Calculate metrics
-  const totalDevices = deviceData.device_distribution.reduce((sum, d) => sum + d.count, 0);
+  const totalDevices = deviceData.device_distribution.reduce((sum: number, d: any) => sum + d.count, 0);
   const mobileUsers =
-    (deviceData.device_distribution.find((d) => d.device_type === "mobile")?.count || 0) +
-    (deviceData.device_distribution.find((d) => d.device_type === "tablet")?.count || 0);
+    (deviceData.device_distribution.find((d: any) => d.device_type === "mobile")?.count || 0) +
+    (deviceData.device_distribution.find((d: any) => d.device_type === "tablet")?.count || 0);
   const mobilePercentage = (mobileUsers / totalDevices) * 100;
 
   // Prepare chart data
-  const deviceDistributionData = deviceData.device_distribution.map((d) => ({
+  const deviceDistributionData = deviceData.device_distribution.map((d: any) => ({
     name: d.device_type.charAt(0).toUpperCase() + d.device_type.slice(1),
     value: d.count,
     percentage: d.percentage,
   }));
 
-  const osDistributionData = deviceData.os_distribution.map((os) => ({
+  const osDistributionData = deviceData.os_distribution.map((os: any) => ({
     name: os.version ? `${os.os} ${os.version}` : os.os,
     value: os.count,
   }));
 
-  const browserDistributionData = deviceData.browser_distribution.map((browser) => ({
+  const browserDistributionData = deviceData.browser_distribution.map((browser: any) => ({
     name: browser.version ? `${browser.browser} ${browser.version}` : browser.browser,
     value: browser.count,
   }));
 
   const screenResolutionsData = deviceData.screen_resolutions
-    .sort((a, b) => b.count - a.count)
+    .sort((a: any, b: any) => b.count - a.count)
     .slice(0, 10);
 
   const connectionTypesData = deviceData.connection_types.map((conn) => ({
@@ -151,24 +151,24 @@ export default function DeviceAnalyticsPage() {
             value={totalDevices.toLocaleString()}
             change={12.5}
             trend="up"
-            icon={Activity}
+            icon={<Activity className="w-5 h-5" />}
           />
           <StatCard
             title="Mobile Users"
             value={`${mobilePercentage.toFixed(1)}%`}
             change={mobilePercentage > 50 ? 8.3 : -3.2}
             trend={mobilePercentage > 50 ? "up" : "down"}
-            icon={Smartphone}
+            icon={<Smartphone className="w-5 h-5" />}
           />
           <StatCard
             title="Most Popular OS"
             value={deviceData.os_distribution[0]?.os || "N/A"}
-            icon={Globe}
+            icon={<Globe className="w-5 h-5" />}
           />
           <StatCard
             title="Most Popular Browser"
             value={deviceData.browser_distribution[0]?.browser || "N/A"}
-            icon={Chrome}
+            icon={<Chrome className="w-5 h-5" />}
           />
         </motion.div>
 

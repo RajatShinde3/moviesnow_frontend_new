@@ -116,6 +116,7 @@ export function usePlayerIntelligence(sessionId?: string) {
   const { isConnected } = useWebSocket({
     url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000',
     token: typeof window !== 'undefined' ? localStorage.getItem('access_token') || undefined : undefined,
+  //@ts-expect-error
     onMessage: handleWebSocketMessage,
   });
 

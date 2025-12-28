@@ -22,7 +22,7 @@ export default function DownloadsPage() {
       try {
         const subscription = await api.user.getSubscription();
         const hasPremium = subscription?.status === 'active' &&
-                          (subscription?.tier === 'premium' || subscription?.tier === 'premium_yearly');
+                          (subscription?.plan_name === 'premium' || subscription?.plan_name === 'premium_yearly');
         setIsPremium(hasPremium);
       } catch (error) {
         console.error('Failed to check subscription:', error);

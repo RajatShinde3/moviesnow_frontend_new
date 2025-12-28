@@ -99,9 +99,9 @@ export default function AuditLogViewerPage() {
   ) => {
     setFilters((prev) => {
       const currentFilter = prev[filterType] || [];
-      const newFilter = currentFilter.includes(value as any)
+      const newFilter = currentFilter.includes(value as never)
         ? currentFilter.filter((v) => v !== value)
-        : [...currentFilter, value as any];
+        : [...currentFilter, value as never];
       return { ...prev, [filterType]: newFilter };
     });
   };
@@ -413,7 +413,9 @@ export default function AuditLogViewerPage() {
                         className="p-2.5 rounded-lg"
                         style={{ backgroundColor: `${severityColor}20` }}
                       >
-                        <SeverityIcon className="w-5 h-5" style={{ color: severityColor }} />
+                        <div style={{ color: severityColor }}>
+                          <SeverityIcon className="w-5 h-5" />
+                        </div>
                       </div>
 
                       <div className="flex-1">

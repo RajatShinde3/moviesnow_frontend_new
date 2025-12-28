@@ -119,7 +119,7 @@ export function VideoPlayer({
 
     async function checkSubscription() {
       try {
-        const user = await api.auth.getCurrentUser();
+        const user = await api.auth.me();
         const hasPremium = user?.subscription_tier === 'premium' || user?.subscription_tier === 'premium_yearly';
 
         if (mounted) {
