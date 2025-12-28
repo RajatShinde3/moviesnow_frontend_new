@@ -22,63 +22,63 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export const colors = {
-  // Background layers (dark, cinematic)
+  // Background layers (dark, neutral - Animesuge style)
   bg: {
-    primary: '#0a0a0f',      // Near-black base
-    secondary: '#12121a',    // Elevated surfaces
-    tertiary: '#1a1a26',     // Card backgrounds
-    elevated: '#222232',     // Hover states
-    glass: 'rgba(18, 18, 26, 0.7)',  // Glassmorphism
+    primary: '#161616',      // Dark gray base (neutral, no tint)
+    secondary: '#202020',    // Elevated surfaces (header, cards)
+    tertiary: '#2a2a2a',     // Hover states
+    elevated: '#1a1a1a',     // Modals, overlays
+    glass: 'rgba(32, 32, 32, 0.8)',  // Glassmorphism
   },
 
-  // Accent colors (vibrant, energetic)
+  // Accent colors (Animesuge red primary)
   accent: {
-    primary: '#ff0080',      // Hot pink/magenta (CTA)
-    secondary: '#00d9ff',    // Cyan (highlights)
-    tertiary: '#b829ff',     // Purple (premium)
-    success: '#00ff88',      // Green (success states)
-    warning: '#ffd000',      // Yellow (warnings)
-    error: '#ff4444',        // Red (errors)
+    primary: '#FF3D41',      // Animesuge red (main brand color)
+    secondary: '#40A9FF',    // Blue (secondary highlights)
+    tertiary: '#9254DE',     // Purple (premium features)
+    success: '#00D98E',      // Teal green (success states)
+    warning: '#FFB020',      // Gold (warnings, 4K)
+    error: '#FF4D4F',        // Red-orange (errors)
   },
 
-  // Text hierarchy
+  // Text hierarchy (improved contrast)
   text: {
-    primary: '#ffffff',      // High emphasis
-    secondary: '#b3b3b3',    // Medium emphasis
-    tertiary: '#737373',     // Low emphasis
-    disabled: '#4d4d4d',     // Disabled state
-    inverse: '#0a0a0f',      // On light backgrounds
+    primary: '#ffffff',      // High emphasis (white)
+    secondary: '#CCCCCC',    // Medium emphasis (light gray)
+    tertiary: '#AAAAAA',     // Low emphasis (muted gray)
+    disabled: '#666666',     // Disabled state (dark gray)
+    inverse: '#161616',      // On light backgrounds
   },
 
-  // Semantic colors
+  // Quality badge colors
   quality: {
-    '1080p': '#ff0080',      // Premium quality
-    '720p': '#00d9ff',       // Standard HD
-    '480p': '#b3b3b3',       // SD
-    '4k': '#ffd000',         // Ultra HD (future)
+    '1080p': '#FF3D41',      // Premium quality (red)
+    '720p': '#40A9FF',       // Standard HD (blue)
+    '480p': '#AAAAAA',       // SD (gray)
+    '4k': '#FFB020',         // Ultra HD (gold)
   },
 
   // Content type colors
   type: {
-    movie: '#ff0080',
-    series: '#00d9ff',
-    anime: '#b829ff',
-    documentary: '#00ff88',
+    movie: '#FF3D41',        // Red
+    series: '#40A9FF',       // Blue
+    anime: '#9254DE',        // Purple
+    documentary: '#00D98E',  // Green
   },
 
-  // Gradients (for backgrounds, overlays)
+  // Gradients (Animesuge style)
   gradient: {
-    hero: 'linear-gradient(180deg, transparent 0%, rgba(10, 10, 15, 0.8) 60%, #0a0a0f 100%)',
-    card: 'linear-gradient(135deg, rgba(255, 0, 128, 0.1) 0%, rgba(0, 217, 255, 0.1) 100%)',
-    premium: 'linear-gradient(135deg, #ff0080 0%, #b829ff 100%)',
+    hero: 'linear-gradient(180deg, transparent 0%, rgba(22, 22, 22, 0.7) 50%, #161616 100%)',
+    card: 'linear-gradient(135deg, rgba(255, 61, 65, 0.1) 0%, rgba(255, 61, 65, 0.05) 100%)',
+    premium: 'linear-gradient(135deg, #FF3D41 0%, #E02427 100%)',
     glass: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
   },
 
-  // Border colors
+  // Border colors (solid, consistent)
   border: {
-    default: 'rgba(255, 255, 255, 0.1)',
-    hover: 'rgba(255, 255, 255, 0.2)',
-    focus: 'rgba(255, 0, 128, 0.5)',
+    default: '#333333',      // Dark gray border
+    hover: '#4a4a4a',        // Medium gray hover
+    focus: '#FF3D41',        // Red focus (brand color)
   },
 } as const;
 
@@ -258,15 +258,16 @@ export const zIndex = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export const shadows = {
-  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
-  md: '0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
-  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3)',
-  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
-  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.6)',
+  sm: '0 1px 2px 0 rgba(0, 0, 0, 0.5)',
+  md: '0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.5)',
+  lg: '0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.6)',
+  xl: '0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 10px 10px -5px rgba(0, 0, 0, 0.7)',
+  '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.9)',
   glow: {
-    pink: '0 0 20px rgba(255, 0, 128, 0.5)',
-    cyan: '0 0 20px rgba(0, 217, 255, 0.5)',
-    purple: '0 0 20px rgba(184, 41, 255, 0.5)',
+    red: '0 0 20px rgba(255, 61, 65, 0.5)',
+    redLg: '0 0 40px rgba(255, 61, 65, 0.6)',
+    blue: '0 0 20px rgba(64, 169, 255, 0.5)',
+    purple: '0 0 20px rgba(146, 84, 222, 0.5)',
   },
 } as const;
 
@@ -311,11 +312,11 @@ export const cardDimensions = {
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 /**
- * Generate glassmorphism styles
+ * Generate glassmorphism styles (Animesuge style)
  */
-export function glassmorph(opacity = 0.7, blur = 10) {
+export function glassmorph(opacity = 0.8, blur = 10) {
   return {
-    background: `rgba(18, 18, 26, ${opacity})`,
+    background: `rgba(32, 32, 32, ${opacity})`,
     backdropFilter: `blur(${blur}px)`,
     WebkitBackdropFilter: `blur(${blur}px)`,
     border: `1px solid ${colors.border.default}`,

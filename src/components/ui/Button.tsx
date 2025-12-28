@@ -39,12 +39,12 @@ const buttonVariants = cva(
           "focus-visible:ring-primary",
         ].join(" "),
 
-        // Netflix Red - Primary CTA
+        // Animesuge Red - Primary CTA
         netflix: [
-          "bg-gradient-to-r from-red-600 to-red-700 text-white",
-          "shadow-lg shadow-red-500/30",
-          "hover:from-red-500 hover:to-red-600 hover:shadow-xl hover:shadow-red-500/40 hover:scale-[1.02]",
-          "focus-visible:ring-red-500",
+          "bg-[#FF3D41] text-white",
+          "shadow-lg shadow-[#FF3D41]/30",
+          "hover:bg-[#FF6366] hover:shadow-xl hover:shadow-[#FF6366]/40 hover:scale-[1.02]",
+          "focus-visible:ring-[#FF3D41]",
         ].join(" "),
 
         // Play Button - White primary action

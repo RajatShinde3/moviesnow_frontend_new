@@ -72,12 +72,12 @@ export function TitleCard({
         animationDelay: `${index * 50}ms`,
       }}
     >
-      {/* Card Container with shadow */}
+      {/* Card Container - TRANSPARENT (Animesuge style) */}
       <div
         className={cn(
-          "relative overflow-hidden rounded-lg bg-muted shadow-lg",
-          "transition-shadow duration-300",
-          "group-hover:shadow-2xl group-hover:shadow-black/50",
+          "relative overflow-hidden rounded-lg bg-transparent shadow-md",
+          "transition-all duration-300",
+          "group-hover:shadow-2xl group-hover:shadow-[0_0_30px_rgba(255,61,65,0.3)]",
           aspectRatio
         )}
       >
@@ -109,17 +109,10 @@ export function TitleCard({
           </div>
         )}
 
-        {/* Gradient Overlays */}
+        {/* Gradient Overlay (on hover only - Animesuge style) */}
         <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent",
-            "opacity-0 transition-opacity duration-300",
-            "group-hover:opacity-100"
-          )}
-        />
-        <div
-          className={cn(
-            "absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-transparent",
+            "absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent",
             "opacity-0 transition-opacity duration-300",
             "group-hover:opacity-100"
           )}
@@ -135,7 +128,7 @@ export function TitleCard({
               "scale-75 group-hover:scale-100 group-hover:opacity-100"
             )}
           >
-            {/* Play Button */}
+            {/* Play Button - Animesuge Red */}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -144,10 +137,10 @@ export function TitleCard({
               }}
               className={cn(
                 "flex h-10 w-10 items-center justify-center rounded-full",
-                "bg-white text-black shadow-lg",
+                "bg-[#FF3D41] text-white shadow-lg shadow-[#FF3D41]/50",
                 "transition-all duration-200",
-                "hover:scale-110 hover:bg-white/90",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                "hover:scale-110 hover:bg-[#FF6366] hover:shadow-[#FF6366]/70",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF3D41]"
               )}
               aria-label={`Play ${title.name}`}
             >

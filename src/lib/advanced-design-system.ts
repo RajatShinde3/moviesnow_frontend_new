@@ -16,100 +16,100 @@
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 export const advancedColors = {
-  // 🌌 Deep Space Backgrounds (Perceptual darkening)
+  // 🌌 Deep Space Backgrounds (Animesuge neutral)
   space: {
     void: '#000000',           // Pure black (OLED-friendly)
-    deep: '#0A0A0F',          // Near-black (primary bg)
-    nebula: '#12121A',        // Elevated surfaces
-    cosmos: '#1A1A26',        // Card backgrounds
-    stellar: '#222232',       // Hover states
-    aurora: '#2A2A3E',        // Active states
+    deep: '#161616',          // Dark gray (primary bg)
+    nebula: '#202020',        // Elevated surfaces
+    cosmos: '#2a2a2a',        // Hover states
+    stellar: '#1a1a1a',       // Modals
+    aurora: '#333333',        // Active states
   },
 
-  // 🎭 Primary Triadic (120° apart on color wheel)
+  // 🎭 Primary (Animesuge Red)
   primary: {
-    // Magenta-Pink (0°) — Energy, Action, Passion
-    base: '#FF0080',          // Hot pink
-    light: '#FF3399',         // Lighter pink
-    lighter: '#FF66B2',       // Soft pink
-    dark: '#CC0066',          // Deep pink
-    darker: '#99004D',        // Dark magenta
-    glow: 'rgba(255, 0, 128, 0.4)',
-    gradient: 'linear-gradient(135deg, #FF0080 0%, #FF3399 50%, #FF66B2 100%)',
+    // Red — Energy, Action, Passion (Animesuge brand)
+    base: '#FF3D41',          // Animesuge red
+    light: '#FF6366',         // Lighter red
+    lighter: '#FF8A8D',       // Soft red
+    dark: '#E02427',          // Deep red
+    darker: '#B81D1F',        // Dark red
+    glow: 'rgba(255, 61, 65, 0.4)',
+    gradient: 'linear-gradient(135deg, #FF3D41 0%, #FF6366 50%, #FF8A8D 100%)',
   },
 
-  // 🌊 Secondary Triadic (120°) — Cyan-Blue
+  // 🌊 Secondary (Blue)
   secondary: {
-    // Cyan (120°) — Technology, Trust, Innovation
-    base: '#00D9FF',          // Electric cyan
-    light: '#33E0FF',         // Light cyan
-    lighter: '#66E7FF',       // Soft cyan
-    dark: '#00AED9',          // Deep cyan
-    darker: '#0082A3',        // Dark teal
-    glow: 'rgba(0, 217, 255, 0.4)',
-    gradient: 'linear-gradient(135deg, #00D9FF 0%, #33E0FF 50%, #66E7FF 100%)',
+    // Blue — Technology, Trust, Innovation
+    base: '#40A9FF',          // Blue
+    light: '#6BB8FF',         // Light blue
+    lighter: '#96C7FF',       // Soft blue
+    dark: '#2A87CC',          // Deep blue
+    darker: '#1F6599',        // Dark blue
+    glow: 'rgba(64, 169, 255, 0.4)',
+    gradient: 'linear-gradient(135deg, #40A9FF 0%, #6BB8FF 50%, #96C7FF 100%)',
   },
 
-  // 💜 Tertiary Triadic (240°) — Purple-Violet
+  // 💜 Tertiary (Purple)
   tertiary: {
-    // Purple (240°) — Premium, Luxury, Mystery
-    base: '#B829FF',          // Vibrant purple
-    light: '#C64DFF',         // Light purple
-    lighter: '#D470FF',       // Soft purple
-    dark: '#9421CC',          // Deep purple
-    darker: '#701999',        // Dark violet
-    glow: 'rgba(184, 41, 255, 0.4)',
-    gradient: 'linear-gradient(135deg, #B829FF 0%, #C64DFF 50%, #D470FF 100%)',
+    // Purple — Premium, Luxury, Mystery
+    base: '#9254DE',          // Light purple
+    light: '#A876E8',         // Lighter purple
+    lighter: '#BE98F2',       // Soft purple
+    dark: '#7643B2',          // Deep purple
+    darker: '#5A3286',        // Dark violet
+    glow: 'rgba(146, 84, 222, 0.4)',
+    gradient: 'linear-gradient(135deg, #9254DE 0%, #A876E8 50%, #BE98F2 100%)',
   },
 
-  // 🎯 Semantic Colors (Complementary pairs)
+  // 🎯 Semantic Colors (Animesuge style)
   semantic: {
     success: {
-      base: '#00FF88',        // Neon green
-      light: '#33FFA3',
-      dark: '#00CC6D',
-      glow: 'rgba(0, 255, 136, 0.4)',
+      base: '#00D98E',        // Teal green
+      light: '#33E0A8',
+      dark: '#00AD72',
+      glow: 'rgba(0, 217, 142, 0.4)',
     },
     warning: {
-      base: '#FFD000',        // Golden yellow
-      light: '#FFD933',
-      dark: '#CCA600',
-      glow: 'rgba(255, 208, 0, 0.4)',
+      base: '#FFB020',        // Gold
+      light: '#FFBF4D',
+      dark: '#CC8D1A',
+      glow: 'rgba(255, 176, 32, 0.4)',
     },
     error: {
-      base: '#FF4444',        // Neon red
-      light: '#FF6666',
-      dark: '#CC3636',
-      glow: 'rgba(255, 68, 68, 0.4)',
+      base: '#FF4D4F',        // Red-orange
+      light: '#FF7072',
+      dark: '#CC3E3F',
+      glow: 'rgba(255, 77, 79, 0.4)',
     },
     info: {
-      base: '#00D9FF',        // Cyan
-      light: '#33E0FF',
-      dark: '#00AED9',
-      glow: 'rgba(0, 217, 255, 0.4)',
+      base: '#40A9FF',        // Blue
+      light: '#6BB8FF',
+      dark: '#2A87CC',
+      glow: 'rgba(64, 169, 255, 0.4)',
     },
   },
 
-  // 🌈 Quality Tier Colors (Perceptual hierarchy)
+  // 🌈 Quality Tier Colors (Animesuge hierarchy)
   quality: {
     '4k': {
-      base: '#FFD700',        // Gold
-      glow: 'rgba(255, 215, 0, 0.5)',
-      gradient: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)',
+      base: '#FFB020',        // Gold
+      glow: 'rgba(255, 176, 32, 0.5)',
+      gradient: 'linear-gradient(135deg, #FFB020 0%, #FF9500 100%)',
     },
     '1080p': {
-      base: '#FF0080',        // Magenta
-      glow: 'rgba(255, 0, 128, 0.5)',
-      gradient: 'linear-gradient(135deg, #FF0080 0%, #FF3399 100%)',
+      base: '#FF3D41',        // Red (premium)
+      glow: 'rgba(255, 61, 65, 0.5)',
+      gradient: 'linear-gradient(135deg, #FF3D41 0%, #FF6366 100%)',
     },
     '720p': {
-      base: '#00D9FF',        // Cyan
-      glow: 'rgba(0, 217, 255, 0.5)',
-      gradient: 'linear-gradient(135deg, #00D9FF 0%, #33E0FF 100%)',
+      base: '#40A9FF',        // Blue
+      glow: 'rgba(64, 169, 255, 0.5)',
+      gradient: 'linear-gradient(135deg, #40A9FF 0%, #6BB8FF 100%)',
     },
     '480p': {
-      base: '#B3B3B3',        // Silver
-      glow: 'rgba(179, 179, 179, 0.3)',
+      base: '#AAAAAA',        // Muted gray
+      glow: 'rgba(170, 170, 170, 0.3)',
       gradient: 'linear-gradient(135deg, #B3B3B3 0%, #D9D9D9 100%)',
     },
   },

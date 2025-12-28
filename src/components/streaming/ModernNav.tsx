@@ -105,14 +105,14 @@ export function ModernNav({ user, onLogout }: ModernNavProps) {
                 style={{
                   background: `linear-gradient(135deg, ${colors.accent.primary} 0%, ${colors.accent.tertiary} 100%)`,
                   color: colors.text.inverse,
-                  boxShadow: shadows.glow.pink,
+                  boxShadow: shadows.glow.red,
                 }}
               >
                 M
               </div>
               <span
                 className="hidden text-xl font-black tracking-tight sm:block"
-                style={{ color: colors.text.primary }}
+                style={{ color: colors.accent.primary }}
               >
                 MoviesNow
               </span>
@@ -126,12 +126,13 @@ export function ModernNav({ user, onLogout }: ModernNavProps) {
                 <motion.div
                   className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
                   style={{
-                    color: isActive(link.href) ? colors.text.primary : colors.text.secondary,
-                    background: isActive(link.href) ? colors.bg.elevated : 'transparent',
+                    color: isActive(link.href) ? colors.accent.primary : colors.text.secondary,
+                    background: isActive(link.href) ? colors.bg.tertiary : 'transparent',
+                    borderBottom: isActive(link.href) ? `2px solid ${colors.accent.primary}` : '2px solid transparent',
                   }}
                   whileHover={{
                     color: colors.text.primary,
-                    background: colors.bg.elevated,
+                    background: colors.bg.tertiary,
                   }}
                 >
                   {link.icon}
@@ -197,7 +198,7 @@ export function ModernNav({ user, onLogout }: ModernNavProps) {
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full"
                 style={{
-                  background: user?.avatar_url ? 'transparent' : colors.accent.secondary,
+                  background: user?.avatar_url ? 'transparent' : colors.accent.primary,
                   border: `2px solid ${userMenuOpen ? colors.accent.primary : 'transparent'}`,
                 }}
                 whileHover={{ scale: 1.1 }}
