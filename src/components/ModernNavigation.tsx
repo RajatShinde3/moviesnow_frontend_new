@@ -336,15 +336,28 @@ export function ModernNavigation() {
                         {/* User Info Section */}
                         <div className="border-b border-white/10 p-4">
                           <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-black text-lg">
-                              {user?.email?.[0]?.toUpperCase() || 'U'}
+                            {/* Avatar with user initials or default */}
+                            <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 text-white font-black text-lg shadow-lg">
+                              {(() => {
+                                const name = user?.full_name || user?.username || user?.email || 'User';
+                                const initials = name.split(' ').map(n => n[0]?.toUpperCase()).filter(Boolean).slice(0, 2).join('');
+                                return initials || 'U';
+                              })()}
                             </div>
                             <div className="flex-1 min-w-0">
+                              {/* Display full name if available, otherwise email */}
                               <p className="text-sm font-bold text-white truncate">
-                                {user?.email || 'Guest User'}
+                                {user?.full_name || user?.username || user?.email || 'Guest User'}
                               </p>
-                              <p className="text-xs text-white/60">
-                                {user?.is_email_verified ? '✓ Verified' : 'Unverified'}
+                              {/* Show email on second line if full name is displayed */}
+                              {user?.full_name && (
+                                <p className="text-xs text-white/50 truncate">
+                                  {user?.email}
+                                </p>
+                              )}
+                              {/* Verification status */}
+                              <p className="text-xs text-white/60 mt-0.5">
+                                {(user?.is_verified || user?.is_email_verified) ? '✓ Verified' : 'Unverified'}
                               </p>
                             </div>
                           </div>

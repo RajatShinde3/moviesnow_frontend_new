@@ -172,8 +172,10 @@ function MfaSettings() {
   // Sync enabled state with user data from backend
   React.useEffect(() => {
     if (user) {
-      const mfaEnabled = user.mfa_enabled || user.is_2fa_enabled || false;
+      // Check both field names (backend uses is_2fa_enabled, mfa_enabled is a synonym)
+      const mfaEnabled = !!(user.mfa_enabled ?? user.is_2fa_enabled ?? false);
       setEnabled(mfaEnabled);
+      console.log("🔐 [MFA] User MFA status:", { mfa_enabled: user.mfa_enabled, is_2fa_enabled: user.is_2fa_enabled, computed: mfaEnabled });
     }
   }, [user]);
 
@@ -299,7 +301,7 @@ function MfaSettings() {
       setEnabled(true);
 
       // Refetch user data to sync MFA status
-      refetchUser();
+      await refetchUser();
 
       if (trustDevice) {
         registerTrustedDeviceSafely(toast).catch(() => void 0);
@@ -337,7 +339,7 @@ function MfaSettings() {
       setSetup({ phase: "idle" });
 
       // Refetch user data to sync MFA status
-      refetchUser();
+      await refetchUser();
 
       toast({
         variant: "success",
@@ -363,7 +365,7 @@ function MfaSettings() {
         setSetup({ phase: "idle" });
 
         // Refetch user data to sync MFA status
-        refetchUser();
+        await refetchUser();
 
         toast({
           variant: "success",

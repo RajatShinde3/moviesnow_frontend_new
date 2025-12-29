@@ -29,15 +29,16 @@ export interface User {
   email: string;
   username?: string | null;
   full_name?: string | null;
-  is_verified: boolean;
-  is_active: boolean;
-  is_superuser: boolean;
-  created_at: string;
+  is_verified?: boolean;
+  is_email_verified?: boolean;
+  is_active?: boolean;
+  is_superuser?: boolean;
+  created_at?: string;
   updated_at?: string | null;
 
-  // MFA fields
-  mfa_enabled: boolean;
-  is_2fa_enabled?: boolean; // legacy alias
+  // MFA fields (backend returns is_2fa_enabled, mfa_enabled is an alias)
+  is_2fa_enabled?: boolean;
+  mfa_enabled?: boolean; // synonym of is_2fa_enabled
 
   // Optional profile fields
   avatar_url?: string | null;

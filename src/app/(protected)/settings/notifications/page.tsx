@@ -15,6 +15,7 @@
 import React, { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { fetchJson } from '@/lib/api/client';
 import {
   Bell,
   BellOff,
@@ -72,13 +73,9 @@ export default function NotificationSettingsPage() {
   const { data: preferencesData, isLoading } = useQuery({
     queryKey: ['notification-preferences'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/notifications/preferences', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
+      return await fetchJson('/api/v1/notifications/preferences', {
+        method: 'GET',
       });
-      if (!response.ok) throw new Error('Failed to fetch preferences');
-      return response.json();
     },
   });
 
@@ -94,16 +91,10 @@ export default function NotificationSettingsPage() {
   // Save preferences mutation
   const saveMutation = useMutation({
     mutationFn: async (updates: Partial<NotificationPreferences>) => {
-      const response = await fetch('/api/v1/notifications/preferences', {
+      return await fetchJson('/api/v1/notifications/preferences', {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
         body: JSON.stringify(updates),
       });
-      if (!response.ok) throw new Error('Failed to save preferences');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
@@ -118,14 +109,9 @@ export default function NotificationSettingsPage() {
   // Reset preferences mutation
   const resetMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/v1/notifications/preferences/reset', {
+      return await fetchJson('/api/v1/notifications/preferences/reset', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
       });
-      if (!response.ok) throw new Error('Failed to reset preferences');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
@@ -140,17 +126,9 @@ export default function NotificationSettingsPage() {
   // Mute temporarily mutation
   const muteMutation = useMutation({
     mutationFn: async (hours: number) => {
-      const response = await fetch(
-        `/api/v1/notifications/preferences/mute-temporarily?hours=${hours}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        }
-      );
-      if (!response.ok) throw new Error('Failed to mute notifications');
-      return response.json();
+      return await fetchJson(`/api/v1/notifications/preferences/mute-temporarily?hours=${hours}`, {
+        method: 'POST',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
@@ -161,14 +139,9 @@ export default function NotificationSettingsPage() {
   // Unmute mutation
   const unmuteMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/v1/notifications/preferences/unmute', {
+      return await fetchJson('/api/v1/notifications/preferences/unmute', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-        },
       });
-      if (!response.ok) throw new Error('Failed to unmute notifications');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });

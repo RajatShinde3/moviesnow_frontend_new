@@ -18,6 +18,7 @@
 
 import * as React from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { fetchJson } from '@/lib/api/client';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { PremiumBadge } from '@/components/PremiumBadge';
 import { BillingHistory } from '@/components/subscription/BillingHistory';
@@ -132,11 +133,9 @@ export default function SubscriptionSettingsPage() {
   const { data: subscriptionDetails } = useQuery<SubscriptionDetails>({
     queryKey: ['subscription-details'],
     queryFn: async () => {
-      const response = await fetch('/api/v1/subscriptions/payment-method', {
-        credentials: 'include',
+      return await fetchJson<SubscriptionDetails>('/api/v1/subscriptions/payment-method', {
+        method: 'GET',
       });
-      if (!response.ok) return null;
-      return response.json();
     },
     enabled: isPremium,
     staleTime: 5 * 60 * 1000,
@@ -145,15 +144,12 @@ export default function SubscriptionSettingsPage() {
   // Update payment method mutation
   const updatePaymentMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/v1/subscriptions/update-payment-method', {
+      return await fetchJson<{ portal_url?: string }>('/api/v1/subscriptions/update-payment-method', {
         method: 'POST',
-        credentials: 'include',
       });
-      if (!response.ok) throw new Error('Failed to open billing portal');
-      return response.json();
     },
     onSuccess: (data) => {
-      if (data.portal_url) {
+      if (data?.portal_url) {
         window.location.href = data.portal_url;
       }
     },
@@ -237,7 +233,7 @@ export default function SubscriptionSettingsPage() {
       {/* Animated Background Gradients */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-transparent rounded-full blur-3xl"
+          className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-red-500/10 via-red-500/5 to-transparent rounded-full blur-3xl"
           animate={{
             scale: [1, 1.2, 1],
             rotate: [0, 90, 0],
@@ -273,7 +269,7 @@ export default function SubscriptionSettingsPage() {
         <motion.div variants={itemVariants}>
           <div className="flex items-center gap-3 mb-4">
             <motion.div
-              className="rounded-2xl bg-gradient-to-br from-yellow-500 to-orange-500 p-3 shadow-lg shadow-yellow-500/30"
+              className="rounded-2xl bg-gradient-to-br from-red-600 to-red-500 p-3 shadow-lg shadow-red-500/30"
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.6 }}
             >
@@ -337,7 +333,7 @@ export default function SubscriptionSettingsPage() {
                   className={cn(
                     "flex h-16 w-16 items-center justify-center rounded-2xl shadow-xl",
                     isPremium
-                      ? 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 shadow-yellow-500/40'
+                      ? 'bg-gradient-to-br from-red-600 via-red-500 to-red-600 shadow-red-500/40'
                       : 'bg-gradient-to-br from-gray-600 to-gray-700 shadow-gray-500/20'
                   )}
                   whileHover={{ scale: 1.05, rotate: 5 }}
@@ -439,7 +435,7 @@ export default function SubscriptionSettingsPage() {
                   disabled={isProcessing}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-yellow-500 via-yellow-400 to-orange-500 px-6 py-3 font-bold text-white shadow-lg shadow-yellow-500/40 transition-all hover:shadow-yellow-500/60 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-red-600 via-red-500 to-red-600 px-6 py-3 font-bold text-white shadow-lg shadow-red-500/40 transition-all hover:shadow-red-500/60 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isProcessing ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -544,7 +540,7 @@ export default function SubscriptionSettingsPage() {
             className="rounded-2xl border border-border/50 bg-gradient-to-br from-card via-card to-card/80 backdrop-blur-sm p-6 shadow-lg"
           >
             <h2 className="flex items-center gap-2 text-lg font-bold text-foreground mb-4">
-              <div className="rounded-lg bg-gradient-to-br from-green-500 to-emerald-500 p-2 text-white shadow-md">
+              <div className="rounded-lg bg-gradient-to-br from-red-600 to-red-500 p-2 text-white shadow-md">
                 <CreditCard className="h-5 w-5" />
               </div>
               Billing Information
@@ -624,10 +620,10 @@ export default function SubscriptionSettingsPage() {
             variants={itemVariants}
             whileHover="hover"
             initial="rest"
-            className="relative overflow-hidden rounded-2xl border-2 border-yellow-500/30 bg-gradient-to-br from-yellow-500/20 via-yellow-600/10 to-orange-500/20 backdrop-blur-sm p-8 shadow-xl"
+            className="relative overflow-hidden rounded-2xl border-2 border-red-500/30 bg-gradient-to-br from-red-500/20 via-red-600/10 to-red-500/20 backdrop-blur-sm p-8 shadow-xl"
           >
             <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-yellow-500/10 to-transparent"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent"
               animate={{
                 x: ["-100%", "200%"],
               }}
@@ -640,7 +636,7 @@ export default function SubscriptionSettingsPage() {
 
             <div className="relative flex items-start gap-4">
               <motion.div
-                className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 shadow-lg shadow-yellow-500/40"
+                className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 to-red-500 shadow-lg shadow-red-500/40"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
@@ -659,7 +655,7 @@ export default function SubscriptionSettingsPage() {
                   disabled={isProcessing}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="rounded-xl bg-gradient-to-r from-yellow-500 to-orange-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-yellow-500/40 hover:shadow-yellow-500/60 disabled:opacity-50 transition-all"
+                  className="rounded-xl bg-gradient-to-r from-red-600 to-red-500 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-red-500/40 hover:shadow-red-500/60 disabled:opacity-50 transition-all"
                 >
                   {isProcessing ? (
                     <span className="flex items-center gap-2">
