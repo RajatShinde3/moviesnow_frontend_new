@@ -1,502 +1,315 @@
-"use client";
+'use client';
 
 /**
- * =============================================================================
- * Page · Settings · Security · Trusted Devices (Best-of-best)
- * =============================================================================
- * Manage devices that are "remembered" for MFA (trusted devices).
- *
- * What this page delivers
- * -----------------------
- * • Lists trusted devices with clear labels (platform, browser, last seen, IP).
- * • "Trust this device" CTA if the current device isn’t already trusted.
- * • Revoke a single device (step-up aware) or revoke all (step-up required).
- * • Best-in-class UX & a11y: neutral errors, assertive live region, guarded
- *   destructive actions, keyboard-first flows, table semantics improved.
- *
- * Security & resilience
- * ---------------------
- * • Uses your hooks:
- *      - `useTrustedDevices()`                → list devices
- *      - `useTrustedDeviceRegister()`         → trust current device
- *      - `useTrustedDeviceRevoke()`           → revoke one
- *      - `useTrustedDevicesRevokeAll()`       → revoke all
- * • Step-up (reauth) ready: if the API signals `need_step_up`, we open the
- *   `ReauthDialog`, collect a short-lived token, then retry with `xReauth`.
- * • Neutral, user-friendly errors via `formatError()`; subtle request-id.
- * • Client no-store hints; server should also send no-store.
+ * Devices Page (Trusted Devices)
+ * Professional eye-comfortable design for managing MFA-trusted devices
+ * - View all trusted devices
+ * - Trust current device
+ * - Revoke individual devices
+ * - Revoke all devices
  */
 
-import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { fetchJson } from '@/lib/api/client';
+import {
+  SettingsLayout,
+  PageHeader,
+  SettingCard,
+  Button,
+} from '@/components/settings';
+import { Icon } from '@/components/icons/Icon';
+import { cn } from '@/lib/cn';
 
-import { cn } from "@/lib/cn";
-import { PATHS } from "@/lib/env";
-import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/feedback/Toasts";
-import EmptyState from "@/components/feedback/EmptyState";
-import { useReauthPrompt } from "@/components/ReauthDialog";
+// ══════════════════════════════════════════════════════════════════════════════
+// Types
+// ══════════════════════════════════════════════════════════════════════════════
 
-// Hooks you provided
-import { useTrustedDevices } from "@/features/auth/useTrustedDevices";
-import { useTrustedDeviceRegister } from "@/features/auth/useTrustedDeviceRegister";
-import { useTrustedDeviceRevoke } from "@/features/auth/useTrustedDeviceRevoke";
-import { useTrustedDevicesRevokeAll } from "@/features/auth/useTrustedDevicesRevokeAll";
-
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-// Cache hints are configured at the (protected) segment layout.
-
-// -----------------------------------------------------------------------------
-// Types & helpers (tolerant to backend field names)
-// -----------------------------------------------------------------------------
-type TrustedDevice = {
+interface TrustedDevice {
   id: string;
-  label?: string | null;
-  current?: boolean;            // is this the device the user is on?
-  created_at?: string | null;   // ISO
-  last_seen_at?: string | null; // ISO
-  ip?: string | null;
-  user_agent?: string | null;
-  platform?: string | null;     // macOS, iOS, Android, Windows, etc.
-  browser?: string | null;      // Safari, Chrome, etc.
-};
-
-function isStepUpRequired(err: unknown): boolean {
-  const e = err as any;
-  return (
-    (e && e.code === "need_step_up") ||
-    (e &&
-      e.headers &&
-      (e.headers["x-reauth"] === "required" || e.headers["X-Reauth"] === "required"))
-  );
+  label?: string;
+  current?: boolean;
+  created_at?: string;
+  last_seen_at?: string;
+  ip?: string;
+  user_agent?: string;
+  platform?: string;
+  browser?: string;
 }
 
-function fmtDate(iso?: string | null) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return new Intl.DateTimeFormat(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
-    }).format(d);
-  } catch {
-    return iso!;
-  }
-}
+// ══════════════════════════════════════════════════════════════════════════════
+// Component
+// ══════════════════════════════════════════════════════════════════════════════
 
-function compactUA(platform?: string | null, browser?: string | null) {
-  const a = platform?.trim();
-  const b = browser?.trim();
-  if (a && b) return `${a} · ${b}`;
-  return a || b || "—";
-}
-
-function pickList(res: any): TrustedDevice[] {
-  if (Array.isArray(res)) return res as TrustedDevice[];
-  if (Array.isArray(res?.devices)) return res.devices as TrustedDevice[];
-  if (Array.isArray(res?.data)) return res.data as TrustedDevice[];
-  if (Array.isArray(res?.items)) return res.items as TrustedDevice[];
-  return [];
-}
-
-// -----------------------------------------------------------------------------
-// Page
-// -----------------------------------------------------------------------------
-export default function TrustedDevicesPage() {
-  return (
-    <main className="mx-auto w-full max-w-4xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Trusted devices</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          These devices won’t be asked for an MFA code as often. Revoke any you don’t recognize.
-        </p>
-      </header>
-      <DevicesPanel />
-      <footer className="mt-8 text-sm text-muted-foreground">
-        <Link
-          href={PATHS.settingsSecurity || "/settings/security"}
-          className="font-medium underline underline-offset-4 hover:text-foreground"
-          prefetch
-        >
-          Back to Security
-        </Link>
-      </footer>
-    </main>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Panel · list, register current, revoke single/all (step-up aware)
-// -----------------------------------------------------------------------------
-function DevicesPanel() {
+export default function DevicesPage() {
+  const queryClient = useQueryClient();
   const router = useRouter();
-  const toast = useToast();
-  const promptReauth = useReauthPrompt();
 
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const errorRef = React.useRef<HTMLDivElement | null>(null);
+  // Fetch trusted devices
+  const { data: devicesData, isLoading } = useQuery<{ devices: TrustedDevice[] }>({
+    queryKey: ['trusted-devices'],
+    queryFn: async () => {
+      return await fetchJson<{ devices: TrustedDevice[] }>('/api/v1/auth/trusted-devices', {
+        method: 'GET',
+      });
+    },
+  });
 
-  const { data: devicesData, error: listError, isFetching: isListing, refetch: refetchDevices } = useTrustedDevices();
-  const fetchDevices = React.useCallback(async (..._args: any[]) => {
-    const { data } = await refetchDevices();
-    return (data ?? devicesData) as any;
-  }, [refetchDevices, devicesData]);
-  const { mutateAsync: registerDevice, isPending: isRegistering } = useTrustedDeviceRegister();
-  const { mutateAsync: revokeDevice, isPending: isRevokingOne } = useTrustedDeviceRevoke();
-  const { mutateAsync: revokeAll, isPending: isRevokingAll } = useTrustedDevicesRevokeAll();
+  const devices = devicesData?.devices ?? [];
 
-  const [devices, setDevices] = React.useState<TrustedDevice[] | null>(null);
-  const [needsReauthToView, setNeedsReauthToView] = React.useState(false);
+  // Trust current device
+  const trustMutation = useMutation({
+    mutationFn: async () => {
+      return await fetchJson('/api/v1/auth/trusted-devices', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trusted-devices'] });
+      toast.success('This device is now trusted');
+    },
+    onError: () => {
+      toast.error('Failed to trust this device');
+    },
+  });
 
-  React.useEffect(() => {
-    if (errorMsg && errorRef.current) errorRef.current.focus();
-  }, [errorMsg]);
+  // Revoke device
+  const revokeMutation = useMutation({
+    mutationFn: async (deviceId: string) => {
+      return await fetchJson(`/api/v1/auth/trusted-devices/${deviceId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trusted-devices'] });
+      toast.success('Device revoked');
+    },
+    onError: () => {
+      toast.error('Failed to revoke device');
+    },
+  });
 
-  // initial load
-  React.useEffect(() => {
-    (async () => {
-      setErrorMsg(null);
-      try {
-        const res = await fetchDevices({} as any);
-        setDevices(pickList(res));
-        setNeedsReauthToView(false);
-      } catch (err) {
-        if (isStepUpRequired(err)) {
-          setNeedsReauthToView(true);
-          setDevices(null);
-          return;
-        }
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t load your trusted devices right now.",
-        });
-        setErrorMsg(friendly);
-      }
-    })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Revoke all devices
+  const revokeAllMutation = useMutation({
+    mutationFn: async () => {
+      return await fetchJson('/api/v1/auth/trusted-devices/revoke-all', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['trusted-devices'] });
+      toast.success('All devices revoked');
+      router.refresh();
+    },
+    onError: () => {
+      toast.error('Failed to revoke all devices');
+    },
+  });
 
-  const currentTrusted = (devices ?? []).some((d) => d.current);
-
-  async function refreshWithOptionalToken(xReauth?: string) {
-    const res = await fetchDevices({ xReauth } as any);
-    setDevices(pickList(res));
-    router.refresh();
-  }
-
-  async function handleReauthView() {
-    setErrorMsg(null);
+  const formatDate = (iso?: string) => {
+    if (!iso) return '—';
     try {
-      await promptReauth({
-        reason: "Confirm it’s you to view trusted devices",
+      return new Date(iso).toLocaleDateString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short',
       } as any);
-      await refreshWithOptionalToken();
-      setNeedsReauthToView(false);
-    } catch (err) {
-      const friendly = formatError(err, {
-        includeRequestId: true,
-        maskServerErrors: true,
-        fallback: "We couldn’t confirm it was you just now.",
-      });
-      setErrorMsg(friendly);
+    } catch {
+      return iso;
     }
-  }
+  };
 
-  /**
-   * Register (remember) the current device.
-   * Some backends require step-up here → we handle it transparently.
-   */
-  async function handleRegister() {
-    setErrorMsg(null);
-    try {
-      await registerDevice({} as any);
-      toast.success({
-        title: "Device remembered",
-        description: "We’ll ask for MFA less often on this device.",
-        duration: 2200,
-      });
-      await refreshWithOptionalToken();
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t remember this device right now. Please try again.",
-        });
-        setErrorMsg(friendly);
-        return;
-      }
-      // Step-up path
-      try {
-        await promptReauth({
-          reason: "Confirm it’s you to trust this device",
-        } as any);
-        await registerDevice({} as any);
-        toast.success({
-          title: "Device remembered",
-          description: "We’ll ask for MFA less often on this device.",
-          duration: 2200,
-        });
-        await refreshWithOptionalToken();
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now. Please try again.",
-        });
-        setErrorMsg(friendly);
-      }
-    }
-  }
+  const currentDevice = devices.find((d) => d.current);
+  const otherDevices = devices.filter((d) => !d.current);
 
-  async function handleRevokeOne(id: string, isCurrent: boolean) {
-    setErrorMsg(null);
-    if (isCurrent) {
-      const ok = window.confirm(
-        "Revoke trust for this device?\n\nYou may be asked for MFA next time you sign in here."
-      );
-      if (!ok) return;
-    }
-    try {
-      await revokeDevice({ id } as any);
-      toast.success({
-        title: "Trust revoked",
-        description: "This device will no longer be remembered.",
-        duration: 1800,
-      });
-      await refreshWithOptionalToken();
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t revoke this device right now. Please try again.",
-        });
-        setErrorMsg(friendly);
-        return;
-      }
-      // step-up
-      try {
-        await promptReauth({
-          reason: "Confirm it’s you to revoke a trusted device",
-        } as any);
-        await revokeDevice({ id } as any);
-        toast.success({
-          title: "Trust revoked",
-          description: "This device will no longer be remembered.",
-          duration: 1800,
-        });
-        await refreshWithOptionalToken();
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback:
-            "We couldn’t confirm it was you just now. Please try again or use a different method.",
-        });
-        setErrorMsg(friendly);
-      }
-    }
-  }
-
-  async function handleRevokeAll() {
-    setErrorMsg(null);
-    const ok = window.confirm(
-      "Revoke trust for ALL devices?\n\nYou will be asked for MFA on every sign-in until a device is remembered again."
+  if (isLoading) {
+    return (
+      <SettingsLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#3A3A3A] border-t-[#E5E5E5]"></div>
+        </div>
+      </SettingsLayout>
     );
-    if (!ok) return;
-    try {
-      // Most servers require step-up for revoke-all; prompt proactively
-      await promptReauth({
-        reason: "Confirm it’s you to revoke all trusted devices",
-      } as any);
-      await revokeAll({} as any);
-      toast.success({
-        title: "All devices revoked",
-        description: "No devices are remembered now.",
-        duration: 2200,
-      });
-      await refreshWithOptionalToken();
-    } catch (err) {
-      const friendly = formatError(err, {
-        includeRequestId: true,
-        maskServerErrors: true,
-        fallback: "We couldn’t revoke all devices right now. Please try again.",
-      });
-      setErrorMsg(friendly);
-    }
   }
 
-  const isBusy = isListing || isRegistering || isRevokingOne || isRevokingAll;
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
-    <section className="space-y-6" aria-busy={isBusy || undefined}>
-      {/* Inline error (assertive live region; focuses on update) */}
-      <div
-        ref={errorRef}
-        tabIndex={errorMsg ? -1 : undefined}
-        aria-live="assertive"
-        className={cn(
-          "rounded-lg border px-4 py-3 text-sm shadow-sm",
-          errorMsg ? "border-destructive/30 bg-destructive/10 text-destructive" : "hidden"
-        )}
-      >
-        {errorMsg}
+    <SettingsLayout>
+      <PageHeader
+        title="Trusted Devices"
+        description="Manage devices that are remembered for two-factor authentication"
+        icon="smartphone"
+      />
+
+      {/* Info Notice */}
+      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6 mb-6 mt-8">
+        <div className="flex items-start gap-4">
+          <div className="rounded-lg bg-[#242424] p-2.5 border border-[#3A3A3A]">
+            <Icon name="info" className="text-[#B0B0B0]" size={20} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[#F0F0F0] mb-1">About Trusted Devices</h3>
+            <p className="text-sm text-[#B0B0B0]">
+              Trusted devices don't require two-factor authentication codes after the initial setup.
+              If you lost a device or notice suspicious activity, revoke it immediately.
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Reauth gate for viewing (when list requires step-up) */}
-      {needsReauthToView && (
-        <div className="rounded-xl border bg-accent/30 p-5 text-sm shadow-sm">
-          <div className="font-medium">Confirm it’s you</div>
-          <p className="mt-1 text-muted-foreground">
-            For your security, please confirm your identity to view trusted devices.
-          </p>
-          <div className="mt-3">
-            <button
-              onClick={handleReauthView}
-              disabled={isListing}
-              className={cn(
-                "inline-flex items-center justify-center rounded-lg border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition",
-                isListing && "cursor-not-allowed opacity-75"
-              )}
-            >
-              {isListing ? "Opening…" : "Confirm & view devices"}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Loading skeletons for first view */}
-      {devices === null && !needsReauthToView && (
-        <div className="space-y-3">
-          <div className="h-16 animate-pulse rounded-xl border bg-muted/40" />
-          <div className="h-40 animate-pulse rounded-xl border bg-muted/40" />
-          <div className="h-24 animate-pulse rounded-xl border bg-muted/40" />
-        </div>
-      )}
-
-      {/* Empty state (no trusted devices yet) */}
-      {!needsReauthToView && devices && devices.length === 0 && (
-        <EmptyState
-          title="No trusted devices yet"
-          description="Remember this device to reduce MFA prompts when you sign in here."
-          actionLabel={isRegistering ? "Remembering…" : "Remember this device"}
-          onAction={isRegistering ? undefined : handleRegister}
-        />
-      )}
-
-      {/* List + actions */}
-      {!needsReauthToView && devices && devices.length > 0 && (
-        <>
-          {!currentTrusted && (
-            <div className="rounded-xl border bg-card/50 p-5 shadow-sm">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="text-sm font-medium">This device isn’t remembered</div>
-                  <p className="text-xs text-muted-foreground">
-                    Remember this device to reduce MFA prompts when signing in here.
-                  </p>
+      {/* Current Device */}
+      {currentDevice ? (
+        <SettingCard
+          title="Current Device"
+          description="This is the device you're using right now"
+          icon="monitor"
+          className="mb-6"
+        >
+          <div className="rounded-lg border border-[#10B981]/30 bg-[#10B981]/5 p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="check" className="text-[#10B981]" size={16} />
+                  <span className="text-sm font-semibold text-[#F0F0F0]">
+                    {currentDevice.label || 'This Device'}
+                  </span>
+                  <span className="text-xs text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
                 </div>
-                <button
-                  onClick={handleRegister}
-                  disabled={isRegistering}
-                  className={cn(
-                    "inline-flex items-center justify-center rounded-lg border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition",
-                    isRegistering && "cursor-not-allowed opacity-75"
-                  )}
-                >
-                  {isRegistering ? "Remembering…" : "Remember this device"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Devices table */}
-          <div className="overflow-hidden rounded-xl border shadow-sm">
-            <table className="min-w-full border-collapse text-sm">
-              <caption className="sr-only">Trusted devices for your account</caption>
-              <thead className="bg-muted/60">
-                <tr className="text-left">
-                  <th scope="col" className="px-3 py-2 font-medium">Device</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Last seen</th>
-                  <th scope="col" className="px-3 py-2 font-medium">IP</th>
-                  <th scope="col" className="px-3 py-2 font-medium">Added</th>
-                  <th scope="col" className="px-3 py-2 font-medium text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {devices.map((d) => {
-                  const ua = compactUA(d.platform, d.browser);
-                  return (
-                    <tr
-                      key={d.id}
-                      className="border-t transition hover:bg-accent/40"
-                      aria-current={d.current || undefined}
-                    >
-                      <td className="px-3 py-2 align-top">
-                        <div className="font-medium">
-                          {d.label?.trim() || ua || "Device"}
-                          {d.current ? (
-                            <span className="ml-2 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                              Current
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="text-xs text-muted-foreground">{ua}</div>
-                      </td>
-                      <td className="px-3 py-2 align-top">{fmtDate(d.last_seen_at)}</td>
-                      <td className="px-3 py-2 align-top">{d.ip || "—"}</td>
-                      <td className="px-3 py-2 align-top">{fmtDate(d.created_at)}</td>
-                      <td className="px-3 py-2 align-top text-right">
-                        <button
-                          onClick={() => handleRevokeOne(d.id, !!d.current)}
-                          disabled={isRevokingOne}
-                          className={cn(
-                            "inline-flex items-center justify-center rounded-md border bg-background px-3 py-1.5 font-medium shadow-sm transition hover:bg-accent",
-                            isRevokingOne && "cursor-not-allowed opacity-75"
-                          )}
-                          aria-label={`Revoke trust for ${d.label || ua || "device"}`}
-                        >
-                          Revoke
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Danger zone: revoke all */}
-          <div className="rounded-xl border bg-destructive/5 p-5">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div className="text-sm font-medium text-destructive">Revoke all trusted devices</div>
-                <p className="text-xs text-muted-foreground">
-                  This will forget every remembered device. You’ll be asked for MFA on next sign-ins.
+                <p className="text-xs text-[#B0B0B0] mb-1">
+                  {currentDevice.platform} · {currentDevice.browser}
                 </p>
-              </div>
-              <button
-                onClick={handleRevokeAll}
-                disabled={isRevokingAll}
-                className={cn(
-                  "inline-flex items-center justify-center rounded-lg border bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm transition hover:bg-destructive/90",
-                  isRevokingAll && "cursor-not-allowed opacity-75"
+                <p className="text-xs text-[#808080]">
+                  Last seen: {formatDate(currentDevice.last_seen_at)}
+                </p>
+                {currentDevice.ip && (
+                  <p className="text-xs text-[#808080] mt-1">IP: {currentDevice.ip}</p>
                 )}
-              >
-                {isRevokingAll ? "Revoking…" : "Revoke all"}
-              </button>
+              </div>
             </div>
           </div>
-        </>
+        </SettingCard>
+      ) : (
+        <SettingCard
+          title="Current Device"
+          description="Trust this device to skip 2FA on future logins"
+          icon="monitor"
+          className="mb-6"
+        >
+          <div className="flex items-center justify-between p-4 rounded-lg border border-[#3A3A3A] bg-[#242424]">
+            <div>
+              <p className="text-sm font-medium text-[#F0F0F0] mb-1">
+                This device is not trusted
+              </p>
+              <p className="text-xs text-[#808080]">
+                Trust this device to avoid entering 2FA codes in the future
+              </p>
+            </div>
+            <Button
+              variant="primary"
+              onClick={() => trustMutation.mutate()}
+              isLoading={trustMutation.isPending}
+            >
+              Trust Device
+            </Button>
+          </div>
+        </SettingCard>
       )}
-    </section>
+
+      {/* Other Trusted Devices */}
+      {otherDevices.length > 0 && (
+        <SettingCard
+          title="Other Trusted Devices"
+          description={`${otherDevices.length} other device${otherDevices.length !== 1 ? 's' : ''} with access`}
+          icon="smartphone"
+          className="mb-6"
+        >
+          <div className="space-y-3">
+            {otherDevices.map((device) => (
+              <div
+                key={device.id}
+                className="flex items-start justify-between p-4 rounded-lg border border-[#3A3A3A] bg-[#242424] hover:border-[#4A4A4A] transition-colors"
+              >
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-[#F0F0F0] mb-1">
+                    {device.label || 'Unnamed Device'}
+                  </p>
+                  <p className="text-xs text-[#B0B0B0] mb-1">
+                    {device.platform} · {device.browser}
+                  </p>
+                  <p className="text-xs text-[#808080]">
+                    Last seen: {formatDate(device.last_seen_at)}
+                  </p>
+                  {device.ip && (
+                    <p className="text-xs text-[#808080] mt-1">IP: {device.ip}</p>
+                  )}
+                </div>
+                <Button
+                  variant="danger"
+                  onClick={() => revokeMutation.mutate(device.id)}
+                  isLoading={revokeMutation.isPending}
+                >
+                  Revoke
+                </Button>
+              </div>
+            ))}
+          </div>
+        </SettingCard>
+      )}
+
+      {/* No Devices Empty State */}
+      {devices.length === 0 && (
+        <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-12 text-center">
+          <Icon name="smartphone" className="text-[#808080] mx-auto mb-4" size={48} />
+          <h3 className="text-lg font-semibold text-[#F0F0F0] mb-2">No Trusted Devices</h3>
+          <p className="text-sm text-[#808080] mb-4">
+            You don't have any trusted devices yet. Trust this device to skip 2FA codes.
+          </p>
+          <Button variant="primary" onClick={() => trustMutation.mutate()}>
+            Trust This Device
+          </Button>
+        </div>
+      )}
+
+      {/* Danger Zone */}
+      {devices.length > 1 && (
+        <div className="rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/5 p-6 mt-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-[#EF4444] mb-1">Revoke All Devices</h3>
+              <p className="text-sm text-[#B0B0B0]">
+                Remove trust from all devices. You'll need to re-authenticate with 2FA on every device.
+              </p>
+            </div>
+            <Button
+              variant="danger"
+              onClick={() => {
+                if (confirm('Are you sure? This will revoke trust from all devices.')) {
+                  revokeAllMutation.mutate();
+                }
+              }}
+              isLoading={revokeAllMutation.isPending}
+            >
+              Revoke All
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Back Link */}
+      <div className="mt-8">
+        <Link href="/settings/security">
+          <Button variant="ghost">
+            <Icon name="arrow-left" size={16} />
+            Back to Security
+          </Button>
+        </Link>
+      </div>
+
+      {/* Bottom Spacing */}
+      <div className="h-12" />
+    </SettingsLayout>
   );
 }

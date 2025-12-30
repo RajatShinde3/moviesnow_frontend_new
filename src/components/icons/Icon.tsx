@@ -21,7 +21,7 @@ export type IconName =
   // Billing
   | 'credit-card' | 'invoice' | 'crown' | 'dollar'
   // Notifications
-  | 'bell' | 'bell-off' | 'bell-ring'
+  | 'bell' | 'bell-off' | 'bell-ring' | 'list' | 'moon'
   // Privacy
   | 'eye' | 'eye-off' | 'globe' | 'lock-open'
   // Devices
@@ -29,9 +29,10 @@ export type IconName =
   // General
   | 'settings' | 'download' | 'upload' | 'language' | 'clock'
   | 'check' | 'x' | 'arrow-right' | 'arrow-left' | 'chevron-right'
-  | 'activity' | 'calendar' | 'help' | 'info' | 'alert';
+  | 'activity' | 'calendar' | 'help' | 'info' | 'alert' | 'refresh'
+  | 'log-in' | 'log-out' | 'play' | 'plus';
 
-const icons: Record<IconName, (size: number, strokeWidth: number) => JSX.Element> = {
+const icons: Record<IconName, (size: number, strokeWidth: number) => React.ReactElement> = {
   // ============================================================================
   // Account & Profile Icons
   // ============================================================================
@@ -200,6 +201,25 @@ const icons: Record<IconName, (size: number, strokeWidth: number) => JSX.Element
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
       <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
       <path d="M2 8s1-1 2-1m20 0s-1-1-2-1M7 3s1-1 2-1m8 0s-1-1-2-1"/>
+    </svg>
+  ),
+
+  list: (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="8" y1="6" x2="21" y2="6"/>
+      <line x1="8" y1="12" x2="21" y2="12"/>
+      <line x1="8" y1="18" x2="21" y2="18"/>
+      <line x1="3" y1="6" x2="3.01" y2="6"/>
+      <line x1="3" y1="12" x2="3.01" y2="12"/>
+      <line x1="3" y1="18" x2="3.01" y2="18"/>
+    </svg>
+  ),
+
+  moon: (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
     </svg>
   ),
 
@@ -392,6 +412,47 @@ const icons: Record<IconName, (size: number, strokeWidth: number) => JSX.Element
       stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
       <path d="M12 9v4m0 4h.01"/>
+    </svg>
+  ),
+
+  refresh: (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21.5 2v6h-6M2.5 22v-6h6"/>
+      <path d="M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+    </svg>
+  ),
+
+  'log-in': (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+      <polyline points="10 17 15 12 10 7"/>
+      <line x1="15" y1="12" x2="3" y2="12"/>
+    </svg>
+  ),
+
+  'log-out': (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <polyline points="16 17 21 12 16 7"/>
+      <line x1="21" y1="12" x2="9" y2="12"/>
+    </svg>
+  ),
+
+  play: (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="5 3 19 12 5 21 5 3"/>
+    </svg>
+  ),
+
+  plus: (size, strokeWidth) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19"/>
+      <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
   ),
 };

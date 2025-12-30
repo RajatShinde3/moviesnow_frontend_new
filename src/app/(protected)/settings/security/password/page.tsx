@@ -1,352 +1,249 @@
-"use client";
+'use client';
 
 /**
- * =============================================================================
- * Page · Settings · Security · Change Password (Best-of-best)
- * =============================================================================
- * Secure, production-grade password change flow with reauth awareness.
- *
- * SECURITY & RESILIENCE
- * ---------------------
- * • Uses `useChangePassword()`; tolerant to 204; client refresh after success.
- * • Step-up (reauth) aware: on `need_step_up`, opens <ReauthDialog/> and retries
- *   with `xReauth` — no lost form state.
- * • Neutral, support-friendly errors via `formatError()` (request-id surfaced).
- * • Client "no-store" hints; server route should also send no-store.
- *
- * UX & A11y
- * ---------
- * • Minimal friction: new password + confirm. Optional “Current password” block
- *   for servers that accept it (collapsed by default); else reauth handles it.
- * • Live strength meter, semantic labels, proper autocomplete hints.
- * • Assertive error live region + focus handoff; keyboard-first; clear-on-edit.
- *
- * BACKEND SHAPE TOLERANCE
- * -----------------------
- * • Sends both `new_password` and `password` (your API can ignore one).
- * • If the user provides a current password, includes `current_password`.
+ * Change Password Page
+ * Professional eye-comfortable design for changing account password
+ * - Current and new password fields
+ * - Password strength indicator
+ * - Secure validation
  */
 
-import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { fetchJson } from '@/lib/api/client';
+import {
+  SettingsLayout,
+  PageHeader,
+  SettingCard,
+  Button,
+} from '@/components/settings';
+import { Icon } from '@/components/icons/Icon';
 
-import { cn } from "@/lib/cn";
-import { PATHS } from "@/lib/env";
-import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/feedback/Toasts";
-import { useReauthPrompt } from "@/components/ReauthDialog";
-import { PasswordField } from "@/components/forms/PasswordField";
-import PasswordStrength from "@/components/forms/PasswordStrength";
-
-import { useChangePassword } from "@/features/auth/useChangePassword";
-
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-// Cache hints are configured at the (protected) segment layout.
-
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-const MIN_PW = 8;
-
-function isStepUpRequired(err: unknown): boolean {
-  const e = err as any;
-  return (
-    (e && e.code === "need_step_up") ||
-    (e &&
-      e.headers &&
-      (e.headers["x-reauth"] === "required" || e.headers["X-Reauth"] === "required"))
-  );
-}
-
-type FormState = {
-  current?: string;
-  next: string;
-  confirm: string;
-  showCurrent: boolean;
-};
-
-// -----------------------------------------------------------------------------
-// Page
-// -----------------------------------------------------------------------------
 export default function ChangePasswordPage() {
-  return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Change password</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Choose a strong, unique password. For your security, we may ask you to confirm it’s you.
-        </p>
-      </header>
-
-      <ChangePasswordForm />
-
-      <footer className="mt-8 text-sm text-muted-foreground">
-        <Link
-          href={PATHS.settingsSecurity || "/settings/security"}
-          className="font-medium underline underline-offset-4 hover:text-foreground"
-          prefetch
-        >
-          Back to Security
-        </Link>
-      </footer>
-    </main>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Form · tolerant payload · reauth-aware · strong a11y
-// -----------------------------------------------------------------------------
-function ChangePasswordForm() {
   const router = useRouter();
-  const toast = useToast();
-  const promptReauth = useReauthPrompt();
+  const [currentPassword, setCurrentPassword] = React.useState('');
+  const [newPassword, setNewPassword] = React.useState('');
+  const [confirmPassword, setConfirmPassword] = React.useState('');
+  const [showPasswords, setShowPasswords] = React.useState(false);
 
-  const [form, setForm] = React.useState<FormState>({
-    current: "",
-    next: "",
-    confirm: "",
-    showCurrent: false,
+  // Password change mutation
+  const passwordMutation = useMutation({
+    mutationFn: async (data: { current_password: string; new_password: string }) => {
+      return await fetchJson('/api/v1/auth/password/change', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    onSuccess: () => {
+      toast.success('Password changed successfully');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      router.push('/settings/security');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to change password');
+    },
   });
 
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const errorRef = React.useRef<HTMLDivElement | null>(null);
+  const getPasswordStrength = (password: string): { score: number; label: string; color: string } => {
+    if (!password) return { score: 0, label: '', color: '' };
 
-  const { mutateAsync: changePassword, isPending } = useChangePassword();
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (password.length >= 12) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^a-zA-Z0-9]/.test(password)) score++;
 
-  // Focus error when it appears (screen readers jump here too)
-  React.useEffect(() => {
-    if (errorMsg && errorRef.current) errorRef.current.focus();
-  }, [errorMsg]);
+    if (score <= 1) return { score, label: 'Weak', color: '#EF4444' };
+    if (score <= 3) return { score, label: 'Fair', color: '#F59E0B' };
+    if (score <= 4) return { score, label: 'Good', color: '#10B981' };
+    return { score, label: 'Strong', color: '#10B981' };
+  };
 
-  // Scrub sensitive fields on tab hide and unmount (defense-in-depth)
-  React.useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === "hidden") {
-        setForm((s) => ({ ...s, current: "", next: "", confirm: "" }));
-      }
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => {
-      document.removeEventListener("visibilitychange", onVis);
-      setForm({ current: "", next: "", confirm: "", showCurrent: false });
-    };
-  }, []);
+  const strength = getPasswordStrength(newPassword);
+  const passwordsMatch = newPassword && confirmPassword && newPassword === confirmPassword;
+  const canSubmit = currentPassword && newPassword.length >= 8 && passwordsMatch;
 
-  // Clear inline error as user edits (prevents stale banners)
-  const clearErrorThen =
-    <K extends keyof FormState>(key: K) =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (errorMsg) setErrorMsg(null);
-      setForm((s) => ({ ...s, [key]: e.currentTarget.value }));
-    };
-
-  const passwordsMatch = form.next.length > 0 && form.next === form.confirm;
-  const nextStrongEnough = form.next.length >= MIN_PW; // server enforces final policy
-  const currentProvidedIsOk = form.showCurrent ? (form.current || "").length >= 1 : true;
-
-  const canSubmit = !isPending && nextStrongEnough && passwordsMatch && currentProvidedIsOk;
-
-  async function submit(xReauth?: string) {
-    // Tolerant payload for varied APIs
-    const payload: any = {
-      new_password: form.next,
-      password: form.next,
-    };
-    if (form.showCurrent && form.current) payload.current_password = form.current;
-    if (xReauth) payload.xReauth = xReauth;
-
-    await changePassword(payload);
-  }
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmit) return;
-
-    setErrorMsg(null);
-
-    if (!passwordsMatch) {
-      setErrorMsg("Passwords don’t match. Please re-enter your new password.");
-      return;
-    }
-
-    try {
-      await submit();
-      toast({
-        variant: "success",
-        title: "Password updated",
-        description: "Use your new password the next time you sign in.",
-        duration: 2400,
+    if (canSubmit) {
+      passwordMutation.mutate({
+        current_password: currentPassword,
+        new_password: newPassword,
       });
-      // Many servers revoke other sessions on password change; refresh keeps UI consistent.
-      router.refresh();
-      // Clear sensitive fields (keep "showCurrent" preference)
-      setForm((s) => ({ ...s, current: "", next: "", confirm: "" }));
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t change your password right now. Please try again.",
-        });
-        setErrorMsg(friendly);
-        return;
-      }
-      // Step-up required → collect short-lived token then retry
-      try {
-        await promptReauth({
-          reason: "Confirm it’s you to change your password",
-        } as any);
-        await submit();
-        toast({
-          variant: "success",
-          title: "Password updated",
-          description: "Use your new password the next time you sign in.",
-          duration: 2400,
-        });
-        router.refresh();
-        setForm((s) => ({ ...s, current: "", next: "", confirm: "" }));
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now. Please try again.",
-        });
-        setErrorMsg(friendly);
-      }
     }
   };
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-6" aria-busy={isPending || undefined}>
-      {/* Inline error banner (assertive live region; focuses on update) */}
-      <div
-        ref={errorRef}
-        tabIndex={errorMsg ? -1 : undefined}
-        aria-live="assertive"
-        className={cn(
-          "rounded-lg border px-4 py-3 text-sm shadow-sm",
-          errorMsg ? "border-destructive/30 bg-destructive/10 text-destructive" : "hidden"
-        )}
-      >
-        {errorMsg}
-      </div>
+    <SettingsLayout>
+      <PageHeader
+        title="Change Password"
+        description="Update your account password"
+        icon="key"
+      />
 
-      {/* New password */}
-      <div className="space-y-2">
-        <PasswordField
-          id="new-password"
-          name="new-password"
-          label="New password"
-          kind="new"
-          required
-          autoComplete="new-password"
-          placeholder="Create a strong password"
-          value={form.next}
-          onChange={clearErrorThen("next")}
-          hint={`Use at least ${MIN_PW} characters. A mix of letters, numbers, and symbols is best.`}
-        />
-        <PasswordStrength value={form.next} />
-      </div>
-
-      {/* Confirm new password */}
-      <div className="space-y-2">
-        <label htmlFor="confirm" className="block text-sm font-medium">
-          Confirm new password
-        </label>
-        <input
-          id="confirm"
-          name="confirm"
-          type="password"
-          autoComplete="new-password"
-          required
-          placeholder="Re-enter your new password"
-          value={form.confirm}
-          onChange={clearErrorThen("confirm")}
-          className={cn(
-            "block w-full rounded-lg border bg-background px-3 py-2 text-base shadow-sm",
-            "outline-none ring-0 transition placeholder:text-muted-foreground/70",
-            "focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-          )}
-          aria-invalid={form.confirm.length > 0 && !passwordsMatch ? true : undefined}
-          aria-describedby={!passwordsMatch ? "confirm-help" : undefined}
-        />
-        {!passwordsMatch && form.confirm.length > 0 ? (
-          <p id="confirm-help" className="text-xs text-destructive">
-            The passwords don’t match.
-          </p>
-        ) : null}
-      </div>
-
-      {/* Optional: current password (some servers accept this instead of reauth) */}
-      <div className="rounded-lg border p-4">
-        <div className="flex items-center justify-between">
-          <div className="text-sm font-medium">Confirm with current password (optional)</div>
-          <button
-            type="button"
-            className="text-xs font-medium underline underline-offset-4 hover:text-foreground"
-            onClick={() => setForm((s) => ({ ...s, showCurrent: !s.showCurrent }))}
-            aria-expanded={form.showCurrent}
-            aria-controls="current-password-section"
-          >
-            {form.showCurrent ? "Hide" : "Add current password"}
-          </button>
-        </div>
-
-        {form.showCurrent && (
-          <div id="current-password-section" className="mt-3">
-            <PasswordField
-              id="current-password"
-              name="current-password"
-              label="Current password"
-              kind="current"
-              autoComplete="current-password"
-              placeholder="••••••••"
-              value={form.current || ""}
-              onChange={clearErrorThen("current")}
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              If you don’t remember it, we’ll ask you to re-authenticate another way.
+      {/* Security Notice */}
+      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6 mb-6 mt-8">
+        <div className="flex items-start gap-4">
+          <div className="rounded-lg bg-[#242424] p-2.5 border border-[#3A3A3A]">
+            <Icon name="shield" className="text-[#B0B0B0]" size={20} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-[#F0F0F0] mb-1">Password Security</h3>
+            <p className="text-sm text-[#B0B0B0]">
+              Use a strong, unique password with at least 8 characters, including uppercase,
+              lowercase, numbers, and special characters.
             </p>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Submit */}
-      <div className="pt-2" aria-busy={isPending || undefined}>
-        <button
-          type="submit"
-          disabled={!canSubmit}
-          className={cn(
-            "inline-flex items-center justify-center rounded-lg border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition",
-            !canSubmit && "cursor-not-allowed opacity-75"
-          )}
-        >
-          {isPending ? "Updating…" : "Update password"}
-        </button>
+      {/* Password Change Form */}
+      <SettingCard
+        title="Update Password"
+        description="Enter your current and new password"
+        icon="lock"
+        className="mb-6"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Current Password */}
+          <div>
+            <label htmlFor="current-password" className="block text-sm font-medium text-[#F0F0F0] mb-2">
+              Current Password
+            </label>
+            <div className="relative">
+              <input
+                id="current-password"
+                type={showPasswords ? 'text' : 'password'}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] placeholder-[#808080] focus:outline-none focus:border-[#E5E5E5] transition-colors pr-10"
+                required
+                autoComplete="current-password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPasswords(!showPasswords)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#808080] hover:text-[#F0F0F0] transition-colors"
+              >
+                <Icon name={showPasswords ? 'eye-off' : 'eye'} size={18} />
+              </button>
+            </div>
+          </div>
 
-        <p className="mt-2 text-xs text-muted-foreground">
-          Tip: After changing your password, review your{" "}
-          <Link
-            href={PATHS.settingsSessions || "/settings/sessions"}
-            className="underline underline-offset-4 hover:text-foreground"
-            prefetch
+          {/* New Password */}
+          <div>
+            <label htmlFor="new-password" className="block text-sm font-medium text-[#F0F0F0] mb-2">
+              New Password
+            </label>
+            <input
+              id="new-password"
+              type={showPasswords ? 'text' : 'password'}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] placeholder-[#808080] focus:outline-none focus:border-[#E5E5E5] transition-colors"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+
+            {/* Password Strength Indicator */}
+            {newPassword && (
+              <div className="mt-2">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs text-[#808080]">Password Strength</span>
+                  <span className="text-xs font-medium" style={{ color: strength.color }}>
+                    {strength.label}
+                  </span>
+                </div>
+                <div className="h-2 bg-[#3A3A3A] rounded-full overflow-hidden">
+                  <div
+                    className="h-full transition-all duration-300"
+                    style={{
+                      width: `${(strength.score / 5) * 100}%`,
+                      backgroundColor: strength.color,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Confirm Password */}
+          <div>
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-[#F0F0F0] mb-2">
+              Confirm New Password
+            </label>
+            <input
+              id="confirm-password"
+              type={showPasswords ? 'text' : 'password'}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] placeholder-[#808080] focus:outline-none focus:border-[#E5E5E5] transition-colors"
+              required
+              minLength={8}
+              autoComplete="new-password"
+            />
+            {confirmPassword && !passwordsMatch && (
+              <p className="text-xs text-[#EF4444] mt-1">Passwords do not match</p>
+            )}
+            {confirmPassword && passwordsMatch && (
+              <p className="text-xs text-[#10B981] mt-1">Passwords match</p>
+            )}
+          </div>
+
+          <Button
+            type="submit"
+            variant="primary"
+            isLoading={passwordMutation.isPending}
+            disabled={!canSubmit}
+            className="w-full"
           >
-            active sessions
-          </Link>{" "}
-          and consider enabling{" "}
-          <Link
-            href={PATHS.settingsMfa || "/settings/security/mfa"}
-            className="underline underline-offset-4 hover:text-foreground"
-            prefetch
-          >
-            two-factor authentication
-          </Link>
-          .
-        </p>
+            Change Password
+          </Button>
+        </form>
+      </SettingCard>
+
+      {/* Password Tips */}
+      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6">
+        <h3 className="text-sm font-semibold text-[#F0F0F0] mb-3">Password Tips</h3>
+        <ul className="space-y-2 text-xs text-[#B0B0B0]">
+          <li className="flex items-start gap-2">
+            <Icon name="check" className="text-[#10B981] mt-0.5" size={14} />
+            <span>Use at least 8 characters (12+ recommended)</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Icon name="check" className="text-[#10B981] mt-0.5" size={14} />
+            <span>Mix uppercase and lowercase letters</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Icon name="check" className="text-[#10B981] mt-0.5" size={14} />
+            <span>Include numbers and special characters</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <Icon name="check" className="text-[#10B981] mt-0.5" size={14} />
+            <span>Avoid common words and personal information</span>
+          </li>
+        </ul>
       </div>
-    </form>
+
+      {/* Back Link */}
+      <div className="mt-8">
+        <Link href="/settings/security">
+          <Button variant="ghost">
+            <Icon name="arrow-left" size={16} />
+            Back to Security
+          </Button>
+        </Link>
+      </div>
+
+      {/* Bottom Spacing */}
+      <div className="h-12" />
+    </SettingsLayout>
   );
 }

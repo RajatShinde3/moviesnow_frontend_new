@@ -1,434 +1,269 @@
-"use client";
+'use client';
 
 /**
- * =============================================================================
- * Page · Settings · Account · Delete (Best-of-best)
- * =============================================================================
- * Permanently delete an account with strong safeguards:
- *   1) User acknowledges impact (typed confirm + checkbox) → request OTP
- *   2) User enters 6-digit OTP → finalize deletion
- *
- * SECURITY & RESILIENCE
- * ---------------------
- * • Hooks:
- *     - `useRequestDeletionOtp()` → sends a one-time code to the account email
- *     - `useDeleteUser()`         → deletes the account (requires OTP)
- * • Step-up aware: on reauth demand, opens <ReauthDialog/> and retries with
- *   `xReauth`, preserving UI state.
- * • Neutral error copy via formatError(); subtle request-id surfacing.
- * • Client no-store hints (server should also send no-store).
- *
- * UX & ACCESSIBILITY
- * ------------------
- * • Guarded destructive pattern: typed confirm ("DELETE") + consent checkbox + OTP.
- * • Assertive inline error region, focus handoff for SR users.
- * • Keyboard-first; buttons disabled while pending; resend cooldown (if provided).
- *
- * POST-DELETE BEHAVIOR
- * --------------------
- * • Most servers revoke tokens immediately; AuthGate will redirect.
- * • As a fallback, we `window.location.replace(PATHS.afterDeletion || "/login")`.
+ * Account Delete Page
+ * Professional eye-comfortable design for permanently deleting account
+ * - Confirmation with typed "DELETE" phrase
+ * - OTP verification for security
+ * - Clear warning about permanent deletion
  */
 
-import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMutation } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { fetchJson } from '@/lib/api/client';
+import {
+  SettingsLayout,
+  PageHeader,
+  SettingCard,
+  Button,
+} from '@/components/settings';
+import { Icon } from '@/components/icons/Icon';
 
-import { cn } from "@/lib/cn";
-import { PATHS } from "@/lib/env";
-import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/feedback/Toasts";            // ✅ keep this path consistent with your file
-import { useReauthPrompt } from "@/components/ReauthDialog";
-import OtpInput from "@/components/forms/OtpInput";
+type Phase = 'intro' | 'otp' | 'done';
 
-import { useRequestDeletionOtp } from "@/features/auth/useRequestDeletionOtp";
-import { useDeleteUser } from "@/features/auth/useDeleteUser";
-
-// -----------------------------------------------------------------------------
-// Page-level caching hints (client-side). Server should also send no-store.
-// -----------------------------------------------------------------------------
-// Cache hints are configured at the (protected) segment layout.
-
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-function isStepUpRequired(err: unknown): boolean {
-  const e = err as any;
-  return (
-    (e && e.code === "need_step_up") ||
-    (e && e.headers && (e.headers["x-reauth"] === "required" || e.headers["X-Reauth"] === "required"))
-  );
-}
-
-/** Derive a resend cooldown (seconds) from backend hints if available. */
-function deriveCooldown(hint: { retry_after?: unknown; next_allowed_at?: unknown } | undefined): number {
-  if (!hint) return 0;
-  const ra = typeof hint.retry_after === "number" ? hint.retry_after : undefined;
-  if (typeof ra === "number" && Number.isFinite(ra) && ra > 0) return Math.min(ra, 3600);
-  const naa = typeof hint.next_allowed_at === "string" ? hint.next_allowed_at : undefined;
-  if (naa) {
-    const diff = Math.ceil((new Date(naa).getTime() - Date.now()) / 1000);
-    return diff > 0 && Number.isFinite(diff) ? Math.min(diff, 3600) : 0;
-  }
-  return 0;
-}
-
-type Phase = "intro" | "otp" | "done";
-
-// -----------------------------------------------------------------------------
-// Page
-// -----------------------------------------------------------------------------
 export default function DeleteAccountPage() {
-  return (
-    <main className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Delete account</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          This is permanent and cannot be undone. We’ll ask you to confirm it’s you.
-        </p>
-      </header>
-      <DeletePanel />
-      <footer className="mt-8 text-sm text-muted-foreground">
-        <Link
-          href={PATHS.settingsSecurity || "/settings/security"}
-          className="font-medium underline underline-offset-4 hover:text-foreground"
-          prefetch
-        >
-          Back to Security
-        </Link>
-      </footer>
-    </main>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Panel · Acknowledgement → OTP → Finalize (reauth-aware, cooldown support)
-// -----------------------------------------------------------------------------
-function DeletePanel() {
   const router = useRouter();
-  const toast = useToast();
-  const promptReauth = useReauthPrompt();
-
-  const [phase, setPhase] = React.useState<Phase>("intro");
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const errorRef = React.useRef<HTMLDivElement | null>(null);
-
-  // Step 1 (acknowledgement)
-  const [confirmText, setConfirmText] = React.useState("");
+  const [phase, setPhase] = React.useState<Phase>('intro');
+  const [confirmText, setConfirmText] = React.useState('');
   const [agree, setAgree] = React.useState(false);
+  const [otp, setOtp] = React.useState('');
+  const [cooldown, setCooldown] = React.useState(0);
 
-  // Step 2 (OTP)
-  const [otp, setOtp] = React.useState("");
+  // Request deletion OTP mutation
+  const requestOtpMutation = useMutation({
+    mutationFn: async () => {
+      return await fetchJson('/api/v1/auth/account/delete/request-otp', {
+        method: 'POST',
+      });
+    },
+    onSuccess: () => {
+      setPhase('otp');
+      setCooldown(60); // 60 second cooldown
+      toast.success('Verification code sent to your email');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to send verification code');
+    },
+  });
 
-  // Resend cooldown (seconds)
-  const [cooldown, setCooldown] = React.useState<number>(0);
+  // Delete account mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return await fetchJson('/api/v1/auth/account/delete', {
+        method: 'POST',
+        body: JSON.stringify({ code }),
+      });
+    },
+    onSuccess: () => {
+      setPhase('done');
+      toast.success('Account deleted successfully');
+      setTimeout(() => {
+        window.location.replace('/login');
+      }, 1500);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Invalid verification code');
+      setOtp('');
+    },
+  });
 
-  // Hooks
-  const { mutateAsync: requestOtp, isPending: isRequesting } = useRequestDeletionOtp();
-  const { mutateAsync: deleteUser, isPending: isDeleting } = useDeleteUser();
-
-  React.useEffect(() => {
-    if (errorMsg && errorRef.current) errorRef.current.focus();
-  }, [errorMsg]);
-
-  // Cooldown ticker
+  // Cooldown timer
   React.useEffect(() => {
     if (cooldown <= 0) return;
-    const t = window.setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => window.clearInterval(t);
+    const timer = setInterval(() => {
+      setCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
   }, [cooldown]);
 
-  const canSendOtp = !isRequesting && agree && confirmText.trim().toUpperCase() === "DELETE";
-  const isOtpValid = otp.replace(/\D/g, "").length === 6;
-  const canResend = !isRequesting && cooldown <= 0;
+  const canSendOtp = !requestOtpMutation.isPending && agree && confirmText.trim().toUpperCase() === 'DELETE';
+  const isOtpValid = otp.replace(/\D/g, '').length === 6;
+  const canResend = !requestOtpMutation.isPending && cooldown <= 0;
 
-  // -- Step 1: Send OTP (with step-up if required)
-  async function sendOtp(nextToken?: string) {
-    const payload: any = nextToken ? { xReauth: nextToken } : {};
-    return await requestOtp(payload); // may return ACK with hint timings
-  }
-
-  async function onSendOtp() {
-    setErrorMsg(null);
-    try {
-      const ack: any = await sendOtp();
-      setPhase("otp");
-      const cd = deriveCooldown(ack);
-      if (cd > 0) setCooldown(cd);
-
-      toast({
-        variant: "success",
-        title: "Check your email",
-        description: "We sent a one-time code to confirm deletion.",
-        duration: 2400,
-      });
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t send a confirmation code right now. Please try again.",
-        });
-        setErrorMsg(friendly);
-        return;
-      }
-      try {
-        await promptReauth({ reason: "Confirm it’s you to request account deletion" } as any);
-        const ack: any = await sendOtp();
-        setPhase("otp");
-        const cd = deriveCooldown(ack);
-        if (cd > 0) setCooldown(cd);
-
-        toast({
-          variant: "success",
-          title: "Check your email",
-          description: "We sent a one-time code to confirm deletion.",
-          duration: 2400,
-        });
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now. Please try again.",
-        });
-        setErrorMsg(friendly);
-      }
+  const handleSendOtp = () => {
+    if (canSendOtp) {
+      requestOtpMutation.mutate();
     }
-  }
+  };
 
-  // -- Step 2: Finalize deletion (with step-up if required)
-  async function finalizeDeletion(code: string) {
-    const payload: any = { code };
-    await deleteUser(payload);
-  }
-
-  async function onSubmitOtp(e: React.FormEvent) {
+  const handleSubmitOtp = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-
-    const code = otp.replace(/\D/g, "");
-    if (code.length !== 6) {
-      setErrorMsg("Enter the 6-digit code from your email.");
-      return;
+    const code = otp.replace(/\D/g, '');
+    if (code.length === 6) {
+      deleteMutation.mutate(code);
     }
+  };
 
-    try {
-      await finalizeDeletion(code);
-      afterSuccess();
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "That code didn’t work. Request a new one and try again.",
-        });
-        setErrorMsg(friendly);
-        setOtp("");
-        return;
-      }
-      try {
-        await promptReauth({ reason: "Confirm it’s you to permanently delete your account" } as any);
-        await finalizeDeletion(code);
-        afterSuccess();
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now. Please try again.",
-        });
-        setErrorMsg(friendly);
-        setOtp("");
-      }
-    }
-  }
-
-  function afterSuccess() {
-    setPhase("done");
-    toast({
-      variant: "success",
-      title: "Account deleted",
-      description: "We’re signing you out now.",
-      duration: 2200,
-    });
-
-    // If tokens invalidate immediately, AuthGate will redirect on its own.
-    // Best-effort fallback: navigate to a public route.
-    const exitPath = (PATHS as any).afterDeletion || "/login";
-    try {
-      setTimeout(() => {
-        window?.location?.replace(exitPath);
-      }, 600); // give the toast a moment to render
-    } catch {
-      /* noop; AuthGate will handle logout redirection */
-    }
-  }
-
-  const busy = isRequesting || isDeleting;
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
   return (
-    <section className="space-y-6" aria-busy={busy || undefined}>
-      {/* Inline error (assertive live region; focuses on update) */}
-      <div
-        ref={errorRef}
-        tabIndex={errorMsg ? -1 : undefined}
-        aria-live="assertive"
-        className={cn(
-          "rounded-lg border px-4 py-3 text-sm shadow-sm",
-          errorMsg ? "border-destructive/30 bg-destructive/10 text-destructive" : "hidden"
-        )}
-      >
-        {errorMsg}
-      </div>
+    <SettingsLayout>
+      <PageHeader
+        title="Delete Account"
+        description="This is permanent and cannot be undone. We'll ask you to confirm it's you."
+        icon="trash"
+      />
 
       {/* Phase: Intro / Acknowledgement */}
-      {phase === "intro" && (
-        <div className="rounded-xl border bg-destructive/5 p-5 shadow-sm">
-          <div className="text-sm font-medium text-destructive">Before you delete</div>
-          <ul className="mt-2 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-            <li>Your account and associated data will be deleted permanently.</li>
-            <li>Active sessions will be revoked. You’ll be signed out everywhere.</li>
-            <li>This action cannot be undone.</li>
-          </ul>
-
-          {/* Confirm phrase + checkbox */}
-          <div className="mt-4 space-y-3">
-            <label className="block text-sm font-medium" htmlFor="confirm-text">
-              Type <span className="font-mono">DELETE</span> to confirm
-            </label>
-            <input
-              id="confirm-text"
-              type="text"
-              inputMode="text"
-              autoCapitalize="characters"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.currentTarget.value)}
-              className={cn(
-                "block w-full rounded-lg border bg-background px-3 py-2 text-base shadow-sm",
-                "outline-none ring-0 transition placeholder:text-muted-foreground/70",
-                "focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"
-              )}
-              placeholder="DELETE"
-            />
-
-            <label className="flex items-start gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="mt-0.5 h-4 w-4 rounded border"
-                checked={agree}
-                onChange={(e) => setAgree(e.currentTarget.checked)}
-              />
-              <span>I understand that deleting my account is permanent and cannot be undone.</span>
-            </label>
+      {phase === 'intro' && (
+        <>
+          {/* Warning Card */}
+          <div className="rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/10 p-6 mb-6 mt-8">
+            <div className="flex items-start gap-4">
+              <div className="rounded-lg bg-[#EF4444]/20 p-2.5 border border-[#EF4444]/30">
+                <Icon name="alert" className="text-[#EF4444]" size={20} />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-[#F0F0F0] mb-1">Before you delete</h3>
+                <ul className="space-y-1 text-sm text-[#B0B0B0]">
+                  <li>• Your account and associated data will be deleted permanently</li>
+                  <li>• Active sessions will be revoked. You'll be signed out everywhere</li>
+                  <li>• This action cannot be undone</li>
+                </ul>
+              </div>
+            </div>
           </div>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            <button
-              onClick={onSendOtp}
-              disabled={!canSendOtp}
-              className={cn(
-                "inline-flex items-center justify-center rounded-lg border bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm transition hover:bg-destructive/90",
-                !canSendOtp && "cursor-not-allowed opacity-75"
-              )}
-            >
-              {isRequesting ? "Sending code…" : "Send confirmation code"}
-            </button>
-            <Link
-              href={PATHS.settingsSecurity || "/settings/security"}
-              className="inline-flex items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-              prefetch
-            >
-              Cancel
-            </Link>
-          </div>
-        </div>
+          {/* Confirmation Form */}
+          <SettingCard
+            title="Confirm Deletion"
+            description="Type DELETE to confirm you want to permanently delete your account"
+            icon="lock"
+            className="mb-6"
+          >
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="confirm-text" className="block text-sm font-medium text-[#F0F0F0] mb-2">
+                  Type <span className="font-mono font-bold">DELETE</span> to confirm
+                </label>
+                <input
+                  id="confirm-text"
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="DELETE"
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] placeholder-[#808080] focus:outline-none focus:border-[#E5E5E5] transition-colors"
+                />
+              </div>
+
+              <label className="flex items-start gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={agree}
+                  onChange={(e) => setAgree(e.target.checked)}
+                  className="mt-0.5 rounded border-[#3A3A3A] bg-[#242424] text-[#E5E5E5] focus:ring-0 focus:ring-offset-0"
+                />
+                <span className="text-[#F0F0F0]">
+                  I understand that deleting my account is permanent and cannot be undone
+                </span>
+              </label>
+
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="danger"
+                  onClick={handleSendOtp}
+                  disabled={!canSendOtp}
+                >
+                  {requestOtpMutation.isPending ? 'Sending code...' : 'Send confirmation code'}
+                </Button>
+                <Link href="/settings/security">
+                  <Button variant="secondary">Cancel</Button>
+                </Link>
+              </div>
+            </div>
+          </SettingCard>
+        </>
       )}
 
-      {/* Phase: OTP entry */}
-      {phase === "otp" && (
-        <form onSubmit={onSubmitOtp} noValidate className="rounded-xl border p-5 shadow-sm">
-          <div className="mb-3">
-            <div className="text-sm font-medium">Enter the 6-digit code</div>
-            <p className="text-xs text-muted-foreground">
-              We sent it to your account email. Codes expire quickly.
-            </p>
-          </div>
+      {/* Phase: OTP Entry */}
+      {phase === 'otp' && (
+        <form onSubmit={handleSubmitOtp} noValidate className="mt-8">
+          <SettingCard
+            title="Enter Verification Code"
+            description="We sent a 6-digit code to your account email. Codes expire quickly."
+            icon="key"
+            className="mb-6"
+          >
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="otp" className="block text-sm font-medium text-[#F0F0F0] mb-2">
+                  6-Digit Code
+                </label>
+                <input
+                  id="otp"
+                  type="text"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] placeholder-[#808080] focus:outline-none focus:border-[#E5E5E5] transition-colors font-mono text-lg"
+                  autoFocus
+                />
+                <p className="text-xs text-[#808080] mt-1">
+                  If it fails, wait for a new code and try again
+                </p>
+              </div>
 
-          <div className="space-y-2">
-            <OtpInput
-              value={otp}
-              onChange={setOtp}
-              length={6}
-              numericOnly
-              ariaLabel="One-time code"
-              autoFocus
-            />
-            <p id="delete-otp-help" className="text-xs text-muted-foreground">
-              If it fails, wait for a new code and try again.
-            </p>
-          </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button
-              type="submit"
-              disabled={isDeleting || !isOtpValid}
-              className={cn(
-                "inline-flex items-center justify-center rounded-lg border bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground shadow-sm transition hover:bg-destructive/90",
-                (isDeleting || !isOtpValid) && "cursor-not-allowed opacity-75"
-              )}
-            >
-              {isDeleting ? "Deleting…" : "Permanently delete my account"}
-            </button>
-            <button
-              type="button"
-              onClick={onSendOtp}
-              disabled={!canResend}
-              className={cn(
-                "inline-flex items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent",
-                !canResend && "cursor-not-allowed opacity-60"
-              )}
-              aria-disabled={!canResend}
-            >
-              {isRequesting ? "Resending…" : cooldown > 0 ? `Resend in ${cooldown}s` : "Resend code"}
-            </button>
-            <Link
-              href={PATHS.settingsSecurity || "/settings/security"}
-              className="ml-auto inline-flex items-center justify-center rounded-lg border bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent"
-              prefetch
-            >
-              Cancel
-            </Link>
-          </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="submit"
+                  variant="danger"
+                  disabled={deleteMutation.isPending || !isOtpValid}
+                  isLoading={deleteMutation.isPending}
+                >
+                  Permanently delete my account
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={handleSendOtp}
+                  disabled={!canResend}
+                >
+                  {requestOtpMutation.isPending ? 'Resending...' : cooldown > 0 ? `Resend in ${cooldown}s` : 'Resend code'}
+                </Button>
+                <Link href="/settings/security" className="ml-auto">
+                  <Button variant="ghost">Cancel</Button>
+                </Link>
+              </div>
+            </div>
+          </SettingCard>
         </form>
       )}
 
-      {/* Phase: Done (brief fallback if AuthGate hasn't redirected yet) */}
-      {phase === "done" && (
-        <div className="rounded-xl border bg-card/50 p-5 text-sm shadow-sm">
-          <div className="font-medium">Your account has been deleted.</div>
-          <p className="mt-1 text-muted-foreground">
-            We’re signing you out. If this page doesn’t change, you can continue below.
+      {/* Phase: Done */}
+      {phase === 'done' && (
+        <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-8 text-center mt-8">
+          <Icon name="check" className="text-[#10B981] mx-auto mb-4" size={48} />
+          <h3 className="text-lg font-semibold text-[#F0F0F0] mb-2">Account deleted</h3>
+          <p className="text-sm text-[#B0B0B0]">
+            We're signing you out. If this page doesn't change, you can continue below.
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              href={(PATHS as any).afterDeletion || "/login"}
-              className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-              prefetch
-            >
-              Go to sign in
+          <div className="mt-4 flex justify-center gap-3">
+            <Link href="/login">
+              <Button variant="secondary">Go to sign in</Button>
             </Link>
-            <Link
-              href="/"
-              className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-              prefetch
-            >
-              Home
+            <Link href="/">
+              <Button variant="ghost">Home</Button>
             </Link>
           </div>
         </div>
       )}
-    </section>
+
+      {/* Back Link */}
+      {phase === 'intro' && (
+        <div className="mt-8">
+          <Link href="/settings/security">
+            <Button variant="ghost">
+              <Icon name="arrow-left" size={16} />
+              Back to Security
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Bottom Spacing */}
+      <div className="h-12" />
+    </SettingsLayout>
   );
 }

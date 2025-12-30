@@ -1,671 +1,306 @@
-"use client";
+'use client';
 
 /**
- * =============================================================================
- * Page · Settings · Security (Overview · Best-of-best)
- * =============================================================================
- * Production-grade security overview that summarizes the account’s protection
- * posture and links into detailed pages (MFA, Recovery Codes, Devices, Sessions,
- * Password, Alerts, Activity).
- *
- * SECURITY & RESILIENCE
- * ---------------------
- * • Reads status using your hooks in parallel (Promise.allSettled):
- *    - MFA status (inferred from recovery codes availability/shape)
- *    - Recovery codes (remaining)
- *    - Trusted devices (count)
- *    - Sessions (count)
- *    - Alerts subscription (enabled/disabled)
- *    - Password last changed (newest "password" event)
- * • Step-up aware: on `need_step_up` opens <ReauthDialog/> and retries
- *   all reads with `xReauth` — no lost state.
- * • Neutral, support-friendly errors via `formatError()`; assertive a11y region.
- *
- * UX & A11y
- * ---------
- * • Clear cards with status chips, icons, and primary actions.
- * • Skeleton chips on first load; keyboard-first; focus handoff on errors.
- * • Alerts toggle is optimistic with rollback on failure.
- * • Optional “Refresh status” button.
- *
- * Integration Notes
- * -----------------
- * 1) Ensure <ToastsRoot/> and <ReauthDialogProvider/> are mounted at app level.
- * 2) Server should also send `Cache-Control: no-store` for this route.
- * 3) If any hook returns an unexpected shape, we normalize defensively to avoid
- *    breaking the UI (counts default to 0, booleans to false/unknown).
+ * Security Settings Overview Page
+ * Professional eye-comfortable design with:
+ * - MFA status and management
+ * - Password management
+ * - Trusted devices
+ * - Active sessions
+ * - Security alerts toggle
+ * - Real-time status updates
  */
 
-import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import * as React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { fetchJson } from '@/lib/api/client';
 import {
-  Bell,
-  CheckCircle2,
-  FileCode2,
-  KeyRound,
-  ListTree,
-  LogIn,
-  RefreshCw,
-  Shield,
-  ShieldAlert,
-  Smartphone,
-} from "lucide-react";
+  SettingsLayout,
+  PageHeader,
+  SettingCard,
+  Toggle,
+  Button,
+  SettingItem,
+} from '@/components/settings';
+import { Icon } from '@/components/icons/Icon';
+import { cn } from '@/lib/cn';
 
-import { cn } from "@/lib/cn";
-import { PATHS } from "@/lib/env";
-import { formatError } from "@/lib/formatError";
-import { useToast } from "@/components/feedback/Toasts";
-import { useReauthPrompt } from "@/components/ReauthDialog";
-import EmptyState from "@/components/feedback/EmptyState";
+// ══════════════════════════════════════════════════════════════════════════════
+// Types
+// ══════════════════════════════════════════════════════════════════════════════
 
-// Hooks (read)
-import { useTrustedDevices } from "@/features/auth/useTrustedDevices";
-import { useAuthSessions } from "@/features/auth/useAuthSessions";
-import { useRecoveryCodesList } from "@/features/auth/useRecoveryCodesList";
-import { useAlertSubscription } from "@/features/auth/useAlertSubscription";
-import { useAuthActivity } from "@/features/auth/useAuthActivity";
-
-// Hooks (write)
-import { useUpdateAlertSubscription } from "@/features/auth/useUpdateAlertSubscription";
-
-// Cache is handled at the segment layout level for all protected routes.
-
-// -----------------------------------------------------------------------------
-// Helpers
-// -----------------------------------------------------------------------------
-function isStepUpRequired(err: unknown): boolean {
-  const e = err as any;
-  return (
-    (e && e.code === "need_step_up") ||
-    (e &&
-      e.headers &&
-      (e.headers["x-reauth"] === "required" || e.headers["X-Reauth"] === "required"))
-  );
+interface SecurityStatus {
+  mfa_enabled: boolean;
+  recovery_codes_remaining?: number;
+  trusted_devices_count: number;
+  active_sessions_count: number;
+  security_alerts_enabled: boolean;
+  password_last_changed?: string;
 }
 
-const dt = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
-const fmt = (iso?: string | null) => (iso ? dt.format(new Date(iso)) : "—");
-
-// Defensive extractors for variable API shapes
-function toArray(x: any): any[] {
-  if (!x) return [];
-  if (Array.isArray(x)) return x;
-  if (Array.isArray(x?.items)) return x.items;
-  if (Array.isArray(x?.data)) return x.data;
-  if (Array.isArray(x?.results)) return x.results;
-  return [];
-}
-function toCount(x: any): number {
-  if (typeof x === "number") return x;
-  if (typeof x?.count === "number") return x.count;
-  if (typeof x?.total === "number") return x.total;
-  const arr = toArray(x);
-  return arr.length;
-}
-function coerceBoolean(v: any): boolean {
-  return v === true || v === "true" || v === 1 || v === "1";
-}
-
-type SecuritySummary = {
-  mfaEnabled: boolean | "unknown";
-  recoveryRemaining?: number;
-  devicesCount: number;
-  sessionsCount: number;
-  alertsEnabled: boolean | "unknown";
-  passwordLastChanged?: string | null; // ISO
-};
+// ══════════════════════════════════════════════════════════════════════════════
+// Component
+// ══════════════════════════════════════════════════════════════════════════════
 
 export default function SecurityOverviewPage() {
-  return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
-      <header className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Security</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Review your account's protection and manage key controls.
-          </p>
-        </div>
-        <RefreshButton />
-      </header>
-
-      <SecurityOverviewPanel />
-
-      <footer className="mt-10 text-sm text-muted-foreground">
-        <Link
-          href={PATHS.settingsActivity || "/settings/activity"}
-          prefetch
-          className="inline-flex items-center gap-2 font-medium underline underline-offset-4 hover:text-foreground"
-        >
-          <ListTree className="h-4 w-4" />
-          View full account activity
-        </Link>
-      </footer>
-    </main>
-  );
-}
-
-// Small “Refresh status” button (triggers a window-level event that panel listens for)
-function RefreshButton() {
-  return (
-    <button
-      type="button"
-      onClick={() => window.dispatchEvent(new CustomEvent("security:refresh"))}
-      className="inline-flex items-center gap-2 rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-    >
-      <RefreshCw className="h-3.5 w-3.5" />
-      Refresh status
-    </button>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Panel · fetch → normalize → render
-// -----------------------------------------------------------------------------
-function SecurityOverviewPanel() {
+  const queryClient = useQueryClient();
   const router = useRouter();
-  const toast = useToast();
-  const promptReauth = useReauthPrompt();
 
-  const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
-  const errorRef = React.useRef<HTMLDivElement | null>(null);
-  const alive = React.useRef(true);
-
-  React.useEffect(() => {
-    return () => {
-      alive.current = false;
-    };
-  }, []);
-
-  // Local status state
-  const [data, setData] = React.useState<SecuritySummary>({
-    mfaEnabled: "unknown",
-    recoveryRemaining: undefined,
-    devicesCount: 0,
-    sessionsCount: 0,
-    alertsEnabled: "unknown",
-    passwordLastChanged: undefined,
+  // Fetch security status
+  const { data: statusData, isLoading, refetch } = useQuery<{ status: SecurityStatus }>({
+    queryKey: ['security-status'],
+    queryFn: async () => {
+      return await fetchJson<{ status: SecurityStatus }>('/api/v1/security/status', {
+        method: 'GET',
+      });
+    },
   });
-  const [loading, setLoading] = React.useState(true);
-  const [updatingAlerts, setUpdatingAlerts] = React.useState(false);
 
-  // Treat read hooks as "fetchers" to keep a consistent pattern with earlier pages
-  const { data: devicesData, refetch: refetchDevices } = useTrustedDevices();
-  const { data: sessionsData, refetch: refetchSessions } = useAuthSessions();
-  const { data: recoveryData, refetch: refetchRecoveryCodes } = useRecoveryCodesList();
-  const { data: alertsData, refetch: refetchAlerts } = useAlertSubscription();
-  const { data: activityData, refetch: refetchActivity } = useAuthActivity();
-  // Back-compat tiny shims to reuse existing logic below
-  const fetchDevices = React.useCallback(async (..._args: any[]) => (await refetchDevices()).data ?? devicesData, [refetchDevices, devicesData]);
-  const fetchSessions = React.useCallback(async (..._args: any[]) => (await refetchSessions()).data ?? sessionsData, [refetchSessions, sessionsData]);
-  const fetchRecoveryCodes = React.useCallback(async (..._args: any[]) => (await refetchRecoveryCodes()).data ?? recoveryData, [refetchRecoveryCodes, recoveryData]);
-  const fetchAlerts = React.useCallback(async (..._args: any[]) => (await refetchAlerts()).data ?? alertsData, [refetchAlerts, alertsData]);
-  const fetchActivity = React.useCallback(async (..._args: any[]) => (await refetchActivity()).data ?? activityData, [refetchActivity, activityData]);
-  const { mutateAsync: updateAlerts } = useUpdateAlertSubscription();
+  const status = statusData?.status;
 
-  React.useEffect(() => {
-    if (errorMsg && errorRef.current) errorRef.current.focus();
-  }, [errorMsg]);
-
-  React.useEffect(() => {
-    void loadAll();
-    const onRefresh = () => void loadAll();
-    window.addEventListener("security:refresh", onRefresh);
-    return () => window.removeEventListener("security:refresh", onRefresh);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  async function loadAll(nextToken?: string) {
-    setErrorMsg(null);
-    setLoading(true);
-
-    try {
-      const args = (nextToken ? { xReauth: nextToken } : {}) as any;
-
-      const [devicesRes, sessionsRes, codesRes, alertsRes, activityRes] =
-        await Promise.allSettled([
-          fetchDevices(args),
-          fetchSessions({ ...args, limit: 50 }),
-          fetchRecoveryCodes(args),
-          fetchAlerts(args),
-          fetchActivity({ ...args, limit: 25, q: "password" }),
-        ]);
-
-      // Devices
-      const devicesCount =
-        devicesRes.status === "fulfilled" ? toCount(devicesRes.value) : 0;
-
-      // Sessions
-      const sessionsCount =
-        sessionsRes.status === "fulfilled" ? toCount(sessionsRes.value) : 0;
-
-      // Recovery codes (proxy for MFA enabled)
-      let mfaEnabled: SecuritySummary["mfaEnabled"] = "unknown";
-      let recoveryRemaining: number | undefined = undefined;
-      if (codesRes.status === "fulfilled") {
-        const val: any = codesRes.value;
-        const list = toArray(val);
-        const explicitRemaining =
-          typeof val?.codes_remaining === "number"
-            ? val.codes_remaining
-            : typeof val?.remaining === "number"
-            ? val.remaining
-            : undefined;
-
-        if (typeof explicitRemaining === "number") {
-          recoveryRemaining = explicitRemaining;
-          mfaEnabled = true;
-        } else if (Array.isArray(list)) {
-          recoveryRemaining = list.length;
-          // Many backends expose recovery codes only when MFA is enabled
-          mfaEnabled = true;
-        } else if (val?.mfa_enabled !== undefined) {
-          mfaEnabled = coerceBoolean(val.mfa_enabled);
-        }
-      } else {
-        // Best-effort inference: 404/403 may imply no MFA
-        const err: any = (codesRes as any).reason;
-        if (err?.status === 404 || err?.status === 403) mfaEnabled = false;
-      }
-
-      // Alerts subscription
-      let alertsEnabled: SecuritySummary["alertsEnabled"] = "unknown";
-      if (alertsRes.status === "fulfilled") {
-        const raw = alertsRes.value as any;
-        // tolerate {enabled}, {subscribed}, {on}, or {channels:{email}}
-        alertsEnabled = coerceBoolean(
-          raw?.enabled ??
-            raw?.subscribed ??
-            raw?.on ??
-            raw?.channels?.email ??
-            raw?.email
-        );
-      }
-
-      // Password last changed (from activity)
-      let passwordLastChanged: string | null | undefined = undefined;
-      if (activityRes.status === "fulfilled") {
-        const rows = toArray(activityRes.value);
-        const recentPasswordEvent = rows
-          .filter((r) => {
-            const t = (r?.type || r?.event || r?.action || "").toString().toLowerCase();
-            return t.includes("password");
-          })
-          .sort((a, b) => {
-            const at = new Date(a?.timestamp || a?.created_at || a?.at || 0).getTime();
-            const bt = new Date(b?.timestamp || b?.created_at || b?.at || 0).getTime();
-            return bt - at;
-          })[0];
-        passwordLastChanged =
-          recentPasswordEvent
-            ? (recentPasswordEvent.timestamp ||
-               recentPasswordEvent.created_at ||
-               recentPasswordEvent.at ||
-               null)
-            : null;
-      }
-
-      if (!alive.current) return;
-
-      setData({
-        mfaEnabled,
-        recoveryRemaining,
-        devicesCount,
-        sessionsCount,
-        alertsEnabled,
-        passwordLastChanged,
+  // Toggle security alerts
+  const alertsMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      return await fetchJson('/api/v1/security/alerts', {
+        method: 'PATCH',
+        body: JSON.stringify({ enabled }),
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['security-status'] });
+      toast.success('Security alert settings updated');
+    },
+    onError: () => {
+      toast.error('Failed to update security alerts');
+    },
+  });
 
-      setLoading(false);
-      router.refresh(); // keep header/user data in sync if anything changed
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t load your security summary right now.",
-        });
-        if (!alive.current) return;
-        setErrorMsg(friendly);
-        setLoading(false);
-        return;
-      }
-      // Step-up: prompt and retry once
-      try {
-        await promptReauth({ reason: "Confirm it’s you to view security settings" } as any);
-        await loadAll();
-      } catch (err2) {
-        const friendly = formatError(err2, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t confirm it was you just now.",
-        });
-        if (!alive.current) return;
-        setErrorMsg(friendly);
-        setLoading(false);
-      }
-    }
+  const handleRefresh = () => {
+    refetch();
+    router.refresh();
+  };
+
+  if (isLoading || !status) {
+    return (
+      <SettingsLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#3A3A3A] border-t-[#E5E5E5]"></div>
+        </div>
+      </SettingsLayout>
+    );
   }
-
-  // Toggle alerts with optimistic UI
-  async function onToggleAlerts(next: boolean) {
-    setUpdatingAlerts(true);
-    setErrorMsg(null);
-    const prev = data.alertsEnabled;
-    setData((d) => ({ ...d, alertsEnabled: next }));
-
-    try {
-      await updateAlerts({ enabled: next } as any);
-      toast({
-        variant: "success",
-        title: next ? "Security alerts enabled" : "Security alerts disabled",
-        duration: 2000,
-      });
-    } catch (err) {
-      if (!isStepUpRequired(err)) {
-        setData((d) => ({ ...d, alertsEnabled: prev }));
-        const friendly = formatError(err, {
-          includeRequestId: true,
-          maskServerErrors: true,
-          fallback: "We couldn’t update your alert preference. Please try again.",
-        });
-        setErrorMsg(friendly);
-      } else {
-        try {
-          await promptReauth({ reason: "Confirm it’s you to change alert settings" } as any);
-          await updateAlerts({ enabled: next } as any);
-          toast({
-            variant: "success",
-            title: next ? "Security alerts enabled" : "Security alerts disabled",
-            duration: 2000,
-          });
-        } catch (err2) {
-          setData((d) => ({ ...d, alertsEnabled: prev }));
-          const friendly = formatError(err2, {
-            includeRequestId: true,
-            maskServerErrors: true,
-            fallback: "We couldn’t confirm it was you just now.",
-          });
-          setErrorMsg(friendly);
-        }
-      }
-    } finally {
-      setUpdatingAlerts(false);
-    }
-  }
-
-  const { mfaEnabled, recoveryRemaining, sessionsCount, devicesCount, alertsEnabled, passwordLastChanged } = data;
 
   return (
-    <section className="space-y-6" aria-busy={loading || undefined}>
-      {/* Error banner (assertive live region) */}
-      <div
-        ref={errorRef}
-        tabIndex={errorMsg ? -1 : undefined}
-        aria-live="assertive"
-        className={cn(
-          "rounded-lg border px-4 py-3 text-sm shadow-sm",
-          errorMsg ? "border-destructive/30 bg-destructive/10 text-destructive" : "hidden"
-        )}
+    <SettingsLayout>
+      <div className="flex items-start justify-between mb-8">
+        <PageHeader
+          title="Security"
+          description="Review your account protection and manage security controls"
+          icon="shield"
+        />
+        <Button variant="ghost" onClick={handleRefresh}>
+          <Icon name="refresh" size={16} />
+          Refresh
+        </Button>
+      </div>
+
+      {/* Security Status Overview */}
+      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6 mb-6">
+        <div className="flex items-start gap-4">
+          <div className="rounded-lg bg-[#242424] p-2.5 border border-[#3A3A3A]">
+            <Icon name="shield-check" className="text-[#B0B0B0]" size={20} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-lg font-bold text-[#F0F0F0] mb-1">
+              Security Status
+            </h3>
+            <p className="text-sm text-[#B0B0B0]">
+              {status.mfa_enabled
+                ? 'Your account is protected with two-factor authentication.'
+                : 'Enhance your security by enabling two-factor authentication.'}
+            </p>
+            <div className="flex items-center gap-3 mt-3">
+              {status.mfa_enabled ? (
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 px-3 py-1">
+                  <Icon name="check" className="text-[#10B981]" size={14} />
+                  <span className="text-xs font-medium text-[#10B981]">Protected</span>
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-2 rounded-full bg-[#EF4444]/10 border border-[#EF4444]/30 px-3 py-1">
+                  <Icon name="alert" className="text-[#EF4444]" size={14} />
+                  <span className="text-xs font-medium text-[#EF4444]">At Risk</span>
+                </div>
+              )}
+              <span className="text-xs text-[#808080]">
+                {status.active_sessions_count} active session{status.active_sessions_count !== 1 ? 's' : ''}
+              </span>
+              <span className="text-xs text-[#808080]">
+                {status.trusted_devices_count} trusted device{status.trusted_devices_count !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Authentication Security */}
+      <SettingCard
+        title="Authentication"
+        description="Manage your login security and verification methods"
+        icon="lock"
+        className="mb-6"
       >
-        {errorMsg}
-        {errorMsg ? (
-          <div className="mt-2">
-            <button
-              type="button"
-              onClick={() => loadAll()}
-              className="inline-flex items-center justify-center rounded-md border bg-background px-2.5 py-1 text-xs font-medium shadow-sm hover:bg-accent"
-            >
-              Try again
-            </button>
-          </div>
-        ) : null}
-      </div>
-
-      {/* Grid of security cards */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* MFA */}
-        <SecurityCard
-          title="Two-factor authentication"
-          icon={<Shield className="h-4 w-4" aria-hidden />}
-          status={
-            loading ? (
-              <SkeletonChip />
-            ) : mfaEnabled === true ? (
-              <Chip good>
-                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-                On
-              </Chip>
-            ) : mfaEnabled === false ? (
-              <Chip bad>
-                <ShieldAlert className="h-3.5 w-3.5" aria-hidden />
-                Off
-              </Chip>
-            ) : (
-              <Chip neutral>Unknown</Chip>
-            )
+        <SettingItem
+          icon="shield-check"
+          label="Two-Factor Authentication"
+          description={
+            status.mfa_enabled
+              ? `Enabled · ${status.recovery_codes_remaining ?? 0} recovery codes remaining`
+              : 'Add an extra layer of security to your account'
           }
-          meta={
-            loading
-              ? "Checking…"
-              : mfaEnabled === true
-              ? `Recovery codes: ${
-                  typeof recoveryRemaining === "number" ? recoveryRemaining : "—"
-                } remaining`
-              : "Protect your account with an authenticator app"
-          }
-          primaryHref={PATHS.settingsMfa || "/settings/security/mfa"}
-          primaryLabel={mfaEnabled === true ? "Manage MFA" : "Enable MFA"}
-          secondaryHref={PATHS.settingsRecoveryCodes || "/settings/security/recovery-codes"}
-          secondaryLabel="Recovery codes"
-        />
-
-        {/* Password */}
-        <SecurityCard
-          title="Password"
-          icon={<KeyRound className="h-4 w-4" aria-hidden />}
-          status={loading ? <SkeletonChip /> : <Chip neutral>Last changed</Chip>}
-          meta={loading ? "Checking…" : fmt(passwordLastChanged ?? undefined)}
-          primaryHref={PATHS.settingsPassword || "/settings/security/password"}
-          primaryLabel="Change password"
-          secondaryHref={PATHS.settingsActivity || "/settings/activity"}
-          secondaryLabel="View activity"
-        />
-
-        {/* Trusted devices */}
-        <SecurityCard
-          title="Trusted devices"
-          icon={<Smartphone className="h-4 w-4" aria-hidden />}
-          status={
-            loading ? (
-              <SkeletonChip />
-            ) : (
-              <Chip neutral>
-                {devicesCount} device{devicesCount === 1 ? "" : "s"}
-              </Chip>
-            )
-          }
-          meta={loading ? "Checking…" : "Devices remembered after MFA"}
-          primaryHref={PATHS.settingsDevices || "/settings/security/devices"}
-          primaryLabel="Manage devices"
-        />
-
-        {/* Active sessions */}
-        <SecurityCard
-          title="Active sessions"
-          icon={<LogIn className="h-4 w-4" aria-hidden />}
-          status={
-            loading ? (
-              <SkeletonChip />
-            ) : (
-              <Chip neutral>
-                {sessionsCount} session{sessionsCount === 1 ? "" : "s"}
-              </Chip>
-            )
-          }
-          meta={loading ? "Checking…" : "Sign-ins on your account"}
-          primaryHref={PATHS.settingsSessions || "/settings/sessions"}
-          primaryLabel="Manage sessions"
-        />
-
-        {/* Security alerts */}
-        <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-muted-foreground">
-              <Bell className="h-4 w-4" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="text-sm font-medium">Security alerts</h2>
-                {loading ? (
-                  <SkeletonChip />
-                ) : (
-                  <button
-                    type="button"
-                    disabled={updatingAlerts || alertsEnabled === "unknown"}
-                    onClick={() => onToggleAlerts(!(alertsEnabled === true))}
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs shadow-sm transition",
-                      alertsEnabled === true
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100"
-                        : "bg-muted text-muted-foreground hover:bg-accent",
-                      (updatingAlerts || alertsEnabled === "unknown") && "cursor-not-allowed opacity-60"
-                    )}
-                    aria-pressed={alertsEnabled === true}
-                  >
-                    {alertsEnabled === true ? "On" : "Off"}
-                  </button>
-                )}
-              </div>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Get notified about new sign-ins and important security changes.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link
-                  href={PATHS.settingsAlerts || "/settings/alerts"}
-                  prefetch
-                  className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-                >
-                  Manage alerts
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick actions (optional helpful block) */}
-        <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
-          <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-muted-foreground">
-              <FileCode2 className="h-4 w-4" aria-hidden />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-sm font-medium">Quick actions</h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Generate fresh recovery codes or review recent activity.
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <Link
-                  href={PATHS.settingsRecoveryCodes || "/settings/security/recovery-codes"}
-                  prefetch
-                  className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-                >
-                  Recovery codes
-                </Link>
-                <Link
-                  href={PATHS.settingsActivity || "/settings/activity"}
-                  prefetch
-                  className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-                >
-                  Activity timeline
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Empty fallback if everything loads but yields nothing meaningful */}
-      {!loading &&
-        data.mfaEnabled === "unknown" &&
-        data.sessionsCount === 0 &&
-        data.devicesCount === 0 && (
-          <EmptyState
-            className="rounded-xl border bg-card/50"
-            title="No signals yet"
-            description="As you sign in and change settings, your security overview will populate here."
-          />
-        )}
-    </section>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Small presentational helpers
-// -----------------------------------------------------------------------------
-function SecurityCard(props: {
-  title: string;
-  icon: React.ReactNode;
-  status: React.ReactNode;
-  meta?: string;
-  primaryHref: string;
-  primaryLabel: string;
-  secondaryHref?: string;
-  secondaryLabel?: string;
-}) {
-  const { title, icon, status, meta, primaryHref, primaryLabel, secondaryHref, secondaryLabel } = props;
-  return (
-    <div className="rounded-xl border bg-card/50 p-4 shadow-sm">
-      <div className="flex items-start gap-3">
-        <div className="mt-0.5 text-muted-foreground">{icon}</div>
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-sm font-medium">{title}</h2>
-            {status}
-          </div>
-          {meta ? <p className="mt-1 text-xs text-muted-foreground">{meta}</p> : null}
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Link
-              href={primaryHref}
-              prefetch
-              className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-            >
-              {primaryLabel}
+          action={
+            <Link href="/settings/security/mfa">
+              <Button variant={status.mfa_enabled ? 'secondary' : 'primary'}>
+                {status.mfa_enabled ? 'Manage' : 'Enable'}
+              </Button>
             </Link>
-            {secondaryHref && secondaryLabel ? (
-              <Link
-                href={secondaryHref}
-                prefetch
-                className="inline-flex items-center justify-center rounded-lg border bg-background px-3 py-1.5 text-xs font-medium shadow-sm transition hover:bg-accent"
-              >
-                {secondaryLabel}
-              </Link>
-            ) : null}
-          </div>
+          }
+        />
+
+        <SettingItem
+          icon="key"
+          label="Recovery Codes"
+          description="Backup codes for account recovery if you lose access"
+          action={
+            <Link href="/settings/security/recovery-codes">
+              <Button variant="ghost">View Codes</Button>
+            </Link>
+          }
+        />
+
+        <SettingItem
+          icon="lock"
+          label="Password"
+          description={
+            status.password_last_changed
+              ? `Last changed: ${new Date(status.password_last_changed).toLocaleDateString()}`
+              : 'Manage your account password'
+          }
+          action={
+            <Link href="/settings/security/password">
+              <Button variant="ghost">Change</Button>
+            </Link>
+          }
+        />
+      </SettingCard>
+
+      {/* Devices & Sessions */}
+      <SettingCard
+        title="Devices & Sessions"
+        description="Monitor and manage your logged-in devices and sessions"
+        icon="smartphone"
+        className="mb-6"
+      >
+        <SettingItem
+          icon="smartphone"
+          label="Trusted Devices"
+          description={`${status.trusted_devices_count} device${status.trusted_devices_count !== 1 ? 's' : ''} remembered after MFA`}
+          action={
+            <Link href="/settings/trusted-devices">
+              <Button variant="ghost">Manage</Button>
+            </Link>
+          }
+        />
+
+        <SettingItem
+          icon="activity"
+          label="Active Sessions"
+          description={`${status.active_sessions_count} active session${status.active_sessions_count !== 1 ? 's' : ''} on your account`}
+          action={
+            <Link href="/settings/sessions">
+              <Button variant="ghost">View All</Button>
+            </Link>
+          }
+        />
+      </SettingCard>
+
+      {/* Security Alerts */}
+      <SettingCard
+        title="Security Alerts"
+        description="Get notified about important security events"
+        icon="bell"
+        className="mb-6"
+      >
+        <Toggle
+          checked={status.security_alerts_enabled}
+          onChange={(enabled) => alertsMutation.mutate(enabled)}
+          label="Security Alerts"
+          description="Receive email notifications for new sign-ins and security changes"
+          disabled={alertsMutation.isPending}
+        />
+
+        <SettingItem
+          icon="bell-ring"
+          label="Alert Preferences"
+          description="Customize which security events trigger notifications"
+          action={
+            <Link href="/settings/alerts">
+              <Button variant="ghost">Configure</Button>
+            </Link>
+          }
+        />
+      </SettingCard>
+
+      {/* Activity & Monitoring */}
+      <SettingCard
+        title="Activity & Monitoring"
+        description="Review your account activity and security history"
+        icon="eye"
+        className="mb-6"
+      >
+        <SettingItem
+          icon="activity"
+          label="Account Activity"
+          description="View recent login attempts, password changes, and security events"
+          action={
+            <Link href="/settings/activity">
+              <Button variant="ghost">View Activity</Button>
+            </Link>
+          }
+        />
+      </SettingCard>
+
+      {/* Quick Actions */}
+      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6">
+        <h3 className="text-sm font-semibold text-[#F0F0F0] mb-4">Quick Actions</h3>
+        <div className="flex flex-wrap gap-3">
+          {!status.mfa_enabled && (
+            <Link href="/settings/security/mfa">
+              <Button variant="primary">
+                <Icon name="shield-check" size={16} />
+                Enable 2FA
+              </Button>
+            </Link>
+          )}
+          <Link href="/settings/security/recovery-codes">
+            <Button variant="secondary">
+              <Icon name="key" size={16} />
+              Recovery Codes
+            </Button>
+          </Link>
+          <Link href="/settings/activity">
+            <Button variant="secondary">
+              <Icon name="activity" size={16} />
+              View Activity
+            </Button>
+          </Link>
         </div>
       </div>
-    </div>
-  );
-}
 
-function Chip({
-  children,
-  good,
-  bad,
-  neutral,
-}: React.PropsWithChildren<{ good?: boolean; bad?: boolean; neutral?: boolean }>) {
-  const cls = good
-    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-    : bad
-    ? "bg-rose-50 text-rose-700 border-rose-200"
-    : "bg-muted text-muted-foreground border-muted";
-  return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px]", cls)}>
-      {children}
-    </span>
+      {/* Bottom Spacing */}
+      <div className="h-12" />
+    </SettingsLayout>
   );
-}
-
-function SkeletonChip() {
-  return <span className="inline-block h-5 w-16 animate-pulse rounded-full bg-muted" />;
 }
