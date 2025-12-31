@@ -50,7 +50,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
   const active = resolveActive(segments);
 
   return (
-    <>
+    <div className="dark min-h-screen bg-gradient-to-br from-[#0F0F0F] via-[#0F0F0F] to-[#1A1A1A]">
       {/* Skip link for keyboard + SR users */}
       <a
         href="#settings-content"
@@ -65,6 +65,6 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <main id="settings-content" className="mt-6">
         {children}
       </main>
-    </>
+    </div>
   );
 }

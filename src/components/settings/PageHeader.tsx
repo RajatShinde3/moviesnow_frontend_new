@@ -1,7 +1,7 @@
 /**
- * PageHeader Component
- * Consistent page header for all settings pages
- * Eye-comfortable typography with proper hierarchy
+ * PageHeader Component - ENHANCED ENTERPRISE GRADE
+ * Sophisticated page header with premium visual elements
+ * Professional typography hierarchy and interactive elements
  */
 
 import * as React from 'react';
@@ -33,43 +33,60 @@ export const PageHeader: React.FC<PageHeaderProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className={cn('mb-8', className)}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className={cn('mb-10', className)}
     >
       {backHref && (
         <Link
           href={backHref}
-          className="inline-flex items-center gap-2 text-sm text-[#B0B0B0] hover:text-[#F0F0F0] transition-colors mb-4 group"
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#B0B0B0] hover:text-[#F0F0F0] transition-all duration-200 mb-6 group"
         >
           <Icon
             name="arrow-left"
-            className="group-hover:-translate-x-1 transition-transform"
+            className="group-hover:-translate-x-1 transition-transform duration-200"
             size={16}
           />
-          {backLabel}
+          <span className="relative">
+            {backLabel}
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-[#F0F0F0] group-hover:w-full transition-all duration-200" />
+          </span>
         </Link>
       )}
 
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex items-start justify-between gap-6">
+        <div className="flex items-start gap-5">
           {icon && (
             <motion.div
-              className="rounded-2xl bg-[#1A1A1A] border border-[#3A3A3A] p-3 shadow-lg"
-              whileHover={{ rotate: 5 }}
-              transition={{ duration: 0.3 }}
+              className="relative rounded-2xl bg-gradient-to-br from-[#242424] to-[#1A1A1A] border border-[#3A3A3A]/50 p-4 shadow-xl shadow-black/20"
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              transition={{ duration: 0.3, ease: 'easeOut' }}
             >
-              <Icon name={icon} className="text-[#F0F0F0]" size={24} />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#E5E5E5]/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+              <Icon name={icon} className="relative text-[#F0F0F0]" size={28} />
             </motion.div>
           )}
-          <div>
-            <h1 className="text-3xl font-bold text-[#F0F0F0]">{title}</h1>
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold bg-gradient-to-br from-[#F0F0F0] to-[#B0B0B0] bg-clip-text text-transparent">
+              {title}
+            </h1>
             {description && (
-              <p className="text-[#808080] mt-1">{description}</p>
+              <p className="text-base text-[#808080] max-w-2xl leading-relaxed">
+                {description}
+              </p>
             )}
           </div>
         </div>
 
-        {action && <div className="flex-shrink-0">{action}</div>}
+        {action && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+            className="flex-shrink-0"
+          >
+            {action}
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

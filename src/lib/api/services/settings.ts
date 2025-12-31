@@ -76,16 +76,16 @@ export const settingsService = {
    * Get user settings
    */
   async getSettings(): Promise<UserSettings> {
-    return (await fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`))!;
+    return (await fetchJson<UserSettings>('/user/settings'))!;
   },
 
   /**
    * Update user settings
    */
   async updateSettings(data: Partial<UserSettings>): Promise<UserSettings> {
-    return (await fetchJson<UserSettings>(`${API_BASE}/api/v1/user/settings`, {
+    return (await fetchJson<UserSettings>('/user/settings', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      json: data,
     }))!;
   },
 
@@ -93,16 +93,16 @@ export const settingsService = {
    * Get privacy settings
    */
   async getPrivacySettings(): Promise<PrivacySettings> {
-    return (await fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`))!;
+    return (await fetchJson<PrivacySettings>('/user/privacy'))!;
   },
 
   /**
    * Update privacy settings
    */
   async updatePrivacySettings(data: Partial<PrivacySettings>): Promise<PrivacySettings> {
-    return (await fetchJson<PrivacySettings>(`${API_BASE}/api/v1/user/privacy`, {
+    return (await fetchJson<PrivacySettings>('/user/privacy', {
       method: 'PUT',
-      body: JSON.stringify(data),
+      json: data,
     }))!;
   },
 
@@ -110,14 +110,14 @@ export const settingsService = {
    * Get all devices
    */
   async getDevices(): Promise<{ devices: Device[] }> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/devices`);
+    return fetchJson<any>('/user/devices');
   },
 
   /**
    * Remove device
    */
   async removeDevice(deviceId: string): Promise<void> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/${deviceId}`, {
+    return fetchJson<any>(`/user/devices/${deviceId}`, {
       method: 'DELETE',
     });
   },
@@ -126,7 +126,7 @@ export const settingsService = {
    * Trust device
    */
   async trustDevice(deviceId: string): Promise<Device> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/${deviceId}/trust`, {
+    return fetchJson<any>(`/user/devices/${deviceId}/trust`, {
       method: 'POST',
     });
   },
@@ -135,7 +135,7 @@ export const settingsService = {
    * Sign out all devices
    */
   async signOutAllDevices(): Promise<void> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/devices/signout-all`, {
+    return fetchJson<any>('/user/devices/signout-all', {
       method: 'POST',
     });
   },
@@ -157,7 +157,7 @@ export const settingsService = {
     if (options?.per_page) params.append('per_page', options.per_page.toString());
 
     const query = params.toString() ? `?${params.toString()}` : '';
-    return fetchJson<any>(`${API_BASE}/api/v1/user/activity${query}`);
+    return fetchJson<any>(`/user/activity${query}`);
   },
 
   /**
@@ -167,9 +167,9 @@ export const settingsService = {
     current_password: string;
     new_password: string;
   }): Promise<void> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/change-password`, {
+    return fetchJson<any>('/user/change-password', {
       method: 'POST',
-      body: JSON.stringify(data),
+      json: data,
     });
   },
 
@@ -180,9 +180,9 @@ export const settingsService = {
     new_email: string;
     password: string;
   }): Promise<void> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/change-email`, {
+    return fetchJson<any>('/user/change-email', {
       method: 'POST',
-      body: JSON.stringify(data),
+      json: data,
     });
   },
 
@@ -190,9 +190,9 @@ export const settingsService = {
    * Delete account
    */
   async deleteAccount(password: string): Promise<void> {
-    return fetchJson<any>(`${API_BASE}/api/v1/user/delete-account`, {
+    return fetchJson<any>('/user/delete-account', {
       method: 'POST',
-      body: JSON.stringify({ password }),
+      json: { password },
     });
   },
 
@@ -200,7 +200,7 @@ export const settingsService = {
    * Export user data
    */
   async exportData(): Promise<Blob> {
-    const response = await fetch(`${API_BASE}/api/v1/user/export-data`, {
+    const response = await fetch(`${API_BASE}/user/export-data`, {
       credentials: 'include',
     });
 

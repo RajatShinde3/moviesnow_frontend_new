@@ -56,14 +56,14 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   {
     href: "/settings/sessions",
     label: "Sessions",
-    icon: <Smartphone className="h-4 w-4" />,
-    description: "Active devices",
+    icon: <Activity className="h-4 w-4" />,
+    description: "View active login sessions",
   },
   {
     href: "/settings/devices",
     label: "Devices",
     icon: <Smartphone className="h-4 w-4" />,
-    description: "Trusted devices",
+    description: "Manage trusted devices",
   },
   {
     href: "/settings/alerts",

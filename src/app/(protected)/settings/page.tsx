@@ -1,12 +1,14 @@
 'use client';
 
 /**
- * Settings Index Page
- * Professional eye-comfortable navigation hub
+ * Settings Index Page - ENHANCED ENTERPRISE GRADE
+ * Premium navigation hub with sophisticated design
+ * Professional cards, animations, and visual hierarchy
  */
 
 import * as React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api/services';
 import { SettingsLayout } from '@/components/settings';
@@ -136,12 +138,6 @@ export default function SettingsPage() {
           description: 'View active login sessions',
           href: '/settings/sessions',
         },
-        {
-          icon: 'monitor',
-          label: 'Trusted Devices',
-          description: 'Manage trusted devices',
-          href: '/settings/trusted-devices',
-        },
       ],
     },
     {
@@ -197,143 +193,236 @@ export default function SettingsPage() {
   return (
     <SettingsLayout>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#F0F0F0]">Settings</h1>
-        <p className="text-[#808080] mt-2">
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mb-10"
+      >
+        <div className="flex items-center gap-4 mb-3">
+          <motion.div
+            className="rounded-2xl bg-gradient-to-br from-[#242424] to-[#1A1A1A] border border-[#3A3A3A]/50 p-4 shadow-xl shadow-black/20"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Icon name="settings" className="text-[#F0F0F0]" size={32} />
+          </motion.div>
+          <div>
+            <h1 className="text-5xl font-bold bg-gradient-to-br from-[#F0F0F0] to-[#B0B0B0] bg-clip-text text-transparent">
+              Settings
+            </h1>
+          </div>
+        </div>
+        <p className="text-base text-[#808080] leading-relaxed ml-20">
           Manage your account settings and preferences
         </p>
-      </div>
+      </motion.div>
 
       {/* User Overview Card */}
       {user && (
-        <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6 mb-8">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-[#242424] border border-[#3A3A3A] flex items-center justify-center">
-              <Icon name="user" className="text-[#B0B0B0]" size={32} />
-            </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+          className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#1A1A1A] via-[#1A1A1A] to-[#1F1F1F] border border-[#3A3A3A]/60 p-7 mb-10 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/20 hover:border-[#4A4A4A]/80 transition-all duration-300"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#E5E5E5]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative flex items-center gap-5">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+              className="h-20 w-20 rounded-2xl bg-gradient-to-br from-[#2D2D2D] to-[#242424] border border-[#3A3A3A]/50 flex items-center justify-center shadow-lg"
+            >
+              <Icon name="user" className="text-[#E5E5E5]" size={36} />
+            </motion.div>
             <div>
-              <h2 className="text-xl font-semibold text-[#F0F0F0]">
+              <h2 className="text-2xl font-bold text-[#F0F0F0] mb-1">
                 {user.email}
               </h2>
-              <p className="text-sm text-[#808080] mt-1">
+              <p className="text-sm text-[#808080]">
                 Account created on {new Date(user.created_at).toLocaleDateString()}
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Settings Sections */}
-      <div className="space-y-12">
+      <div className="space-y-14">
         {sections.map((section, sectionIndex) => (
-          <div key={sectionIndex}>
+          <motion.div
+            key={sectionIndex}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 + sectionIndex * 0.1 }}
+          >
             {/* Section Header */}
-            <div className="mb-4">
-              <h2 className="text-xl font-bold text-[#F0F0F0]">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold bg-gradient-to-br from-[#F0F0F0] to-[#B0B0B0] bg-clip-text text-transparent">
                 {section.title}
               </h2>
-              <p className="text-sm text-[#808080] mt-1">
+              <p className="text-sm text-[#808080] mt-2 leading-relaxed">
                 {section.description}
               </p>
             </div>
 
             {/* Section Items */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {section.items.map((item, itemIndex) => (
-                <Link
+                <motion.div
                   key={itemIndex}
-                  href={item.href}
-                  className={cn(
-                    'group relative rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-5',
-                    'hover:border-[#4A4A4A] hover:bg-[#242424]',
-                    'transition-all duration-200'
-                  )}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 + itemIndex * 0.05 }}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="rounded-lg bg-[#242424] p-2.5 border border-[#3A3A3A] group-hover:border-[#4A4A4A] transition-colors">
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'group relative block rounded-2xl overflow-hidden',
+                      'bg-gradient-to-br from-[#1A1A1A] via-[#1A1A1A] to-[#1F1F1F]',
+                      'border border-[#3A3A3A]/60 p-6',
+                      'shadow-lg shadow-black/10',
+                      'hover:border-[#4A4A4A]/80 hover:shadow-xl hover:shadow-black/20',
+                      'transition-all duration-300 ease-out'
+                    )}
+                  >
+                    {/* Hover gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#E5E5E5]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* Content */}
+                    <div className="relative flex items-start gap-4">
+                      <motion.div
+                        whileHover={{ scale: 1.1, rotate: 5 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex-shrink-0 rounded-xl bg-gradient-to-br from-[#2D2D2D] to-[#242424] p-3 border border-[#3A3A3A]/50 shadow-md"
+                      >
+                        <Icon
+                          name={item.icon}
+                          className="text-[#B0B0B0] group-hover:text-[#E5E5E5] transition-colors duration-200"
+                          size={22}
+                        />
+                      </motion.div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="text-base font-bold text-[#F0F0F0] group-hover:text-white transition-colors">
+                            {item.label}
+                          </h3>
+                          {item.badge && (
+                            <span className="px-2.5 py-0.5 rounded-full text-xs bg-gradient-to-br from-[#E5E5E5] to-[#D0D0D0] text-[#0F0F0F] font-bold shadow-md">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-[#808080] leading-relaxed line-clamp-2">
+                          {item.description}
+                        </p>
+                      </div>
                       <Icon
-                        name={item.icon}
-                        className="text-[#B0B0B0] group-hover:text-[#F0F0F0] transition-colors"
-                        size={20}
+                        name="chevron-right"
+                        className="text-[#808080] group-hover:text-[#E5E5E5] group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 mt-1"
+                        size={18}
                       />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-semibold text-[#F0F0F0] group-hover:text-[#FFFFFF] transition-colors">
-                          {item.label}
-                        </h3>
-                        {item.badge && (
-                          <span className="px-2 py-0.5 rounded text-xs bg-[#E5E5E5] text-[#0F0F0F] font-medium">
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-[#808080] line-clamp-2">
-                        {item.description}
-                      </p>
-                    </div>
-                    <Icon
-                      name="chevron-right"
-                      className="text-[#808080] group-hover:text-[#B0B0B0] group-hover:translate-x-1 transition-all flex-shrink-0"
-                      size={16}
-                    />
-                  </div>
-                </Link>
+
+                    {/* Bottom accent */}
+                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E5E5E5]/10 to-transparent" />
+                  </Link>
+                </motion.div>
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Danger Zone */}
-      <div className="mt-12 pt-8 border-t border-[#3A3A3A]">
-        <div className="mb-4">
-          <h2 className="text-xl font-bold text-[#F0F0F0]">Danger Zone</h2>
-          <p className="text-sm text-[#808080] mt-1">
-            Irreversible account actions
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 1 }}
+        className="mt-16 pt-10"
+      >
+        <div className="h-px bg-gradient-to-r from-transparent via-[#EF4444]/30 to-transparent mb-8" />
+
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-[#EF4444] flex items-center gap-3">
+            <Icon name="alert" size={28} />
+            Danger Zone
+          </h2>
+          <p className="text-sm text-[#808080] mt-2 leading-relaxed">
+            Irreversible account actions - proceed with caution
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Link
-            href="/settings/account/deactivate"
-            className="rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/5 p-5 hover:bg-[#EF4444]/10 transition-all"
+        <div className="grid gap-5 sm:grid-cols-2">
+          <motion.div
+            whileHover={{ scale: 1.02, y: -2 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-[#EF4444]/10 p-2.5 border border-[#EF4444]/30">
-                <Icon name="alert" className="text-[#EF4444]" size={20} />
+            <Link
+              href="/settings/account/deactivate"
+              className="group relative block rounded-2xl overflow-hidden border border-[#EF4444]/40 bg-gradient-to-br from-[#EF4444]/8 to-[#EF4444]/3 p-6 hover:border-[#EF4444]/60 hover:bg-[#EF4444]/12 transition-all duration-300 shadow-lg shadow-[#EF4444]/5 hover:shadow-xl hover:shadow-[#EF4444]/10"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#EF4444]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-start gap-4">
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-shrink-0 rounded-xl bg-gradient-to-br from-[#EF4444]/15 to-[#EF4444]/5 p-3 border border-[#EF4444]/40 shadow-md"
+                >
+                  <Icon name="alert" className="text-[#EF4444]" size={24} />
+                </motion.div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-[#EF4444] mb-2 group-hover:text-[#FF5555] transition-colors">
+                    Deactivate Account
+                  </h3>
+                  <p className="text-xs text-[#808080] leading-relaxed">
+                    Temporarily disable your account and pause all services
+                  </p>
+                </div>
+                <Icon
+                  name="chevron-right"
+                  className="text-[#EF4444]/50 group-hover:text-[#EF4444] group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 mt-1"
+                  size={18}
+                />
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-[#EF4444] mb-1">
-                  Deactivate Account
-                </h3>
-                <p className="text-xs text-[#808080]">
-                  Temporarily disable your account
-                </p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
 
-          <Link
-            href="/settings/account/delete"
-            className="rounded-xl border border-[#EF4444]/30 bg-[#EF4444]/5 p-5 hover:bg-[#EF4444]/10 transition-all"
+          <motion.div
+            whileHover={{ scale: 1.02, y: -2 }}
+            transition={{ duration: 0.2 }}
           >
-            <div className="flex items-start gap-4">
-              <div className="rounded-lg bg-[#EF4444]/10 p-2.5 border border-[#EF4444]/30">
-                <Icon name="trash" className="text-[#EF4444]" size={20} />
+            <Link
+              href="/settings/account/delete"
+              className="group relative block rounded-2xl overflow-hidden border border-[#EF4444]/40 bg-gradient-to-br from-[#EF4444]/8 to-[#EF4444]/3 p-6 hover:border-[#EF4444]/60 hover:bg-[#EF4444]/12 transition-all duration-300 shadow-lg shadow-[#EF4444]/5 hover:shadow-xl hover:shadow-[#EF4444]/10"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#EF4444]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative flex items-start gap-4">
+                <motion.div
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex-shrink-0 rounded-xl bg-gradient-to-br from-[#EF4444]/15 to-[#EF4444]/5 p-3 border border-[#EF4444]/40 shadow-md"
+                >
+                  <Icon name="trash" className="text-[#EF4444]" size={24} />
+                </motion.div>
+                <div className="flex-1">
+                  <h3 className="text-base font-bold text-[#EF4444] mb-2 group-hover:text-[#FF5555] transition-colors">
+                    Delete Account
+                  </h3>
+                  <p className="text-xs text-[#808080] leading-relaxed">
+                    Permanently delete your account and all associated data
+                  </p>
+                </div>
+                <Icon
+                  name="chevron-right"
+                  className="text-[#EF4444]/50 group-hover:text-[#EF4444] group-hover:translate-x-1 transition-all duration-200 flex-shrink-0 mt-1"
+                  size={18}
+                />
               </div>
-              <div>
-                <h3 className="text-sm font-semibold text-[#EF4444] mb-1">
-                  Delete Account
-                </h3>
-                <p className="text-xs text-[#808080]">
-                  Permanently delete your account and data
-                </p>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Bottom Spacing */}
       <div className="h-12" />

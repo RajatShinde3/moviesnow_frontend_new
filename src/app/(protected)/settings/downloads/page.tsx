@@ -11,6 +11,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { fetchJson } from '@/lib/api/client';
@@ -232,122 +233,191 @@ export default function DownloadsPage() {
       />
 
       {/* Storage Stats */}
-      <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-6 mb-6 mt-8">
-        <div className="flex items-start gap-4">
-          <div className="rounded-lg bg-[#242424] p-2.5 border border-[#3A3A3A]">
-            <Icon name="download" className="text-[#B0B0B0]" size={20} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="group relative rounded-2xl border border-[#3A3A3A]/60 bg-gradient-to-br from-[#1A1A1A] via-[#1A1A1A] to-[#1F1F1F] p-8 mb-6 mt-8 shadow-lg shadow-black/10 hover:border-[#4A4A4A]/80 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 overflow-hidden"
+      >
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#E5E5E5]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Bottom accent line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E5E5E5]/10 to-transparent" />
+
+        <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Total Downloads */}
+          <div className="flex items-start gap-4">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+              className="flex-shrink-0 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#10B981]/10 p-3 border border-[#10B981]/40 shadow-md shadow-black/10"
+            >
+              <Icon name="download" className="text-[#10B981]" size={24} />
+            </motion.div>
+            <div>
+              <div className="text-4xl font-bold bg-gradient-to-br from-[#F0F0F0] to-[#E5E5E5] bg-clip-text text-transparent mb-1">
+                {downloads.length}
+              </div>
+              <div className="text-sm font-medium text-[#B0B0B0]">Total Downloads</div>
+              <p className="text-xs text-[#808080] mt-1">Files in history</p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-bold text-[#F0F0F0] mb-1">Download Statistics</h3>
-            <div className="flex gap-6 mt-3">
-              <div>
-                <p className="text-xs text-[#808080]">Total Downloads</p>
-                <p className="text-xl font-bold text-[#F0F0F0]">{downloads.length}</p>
+
+          {/* Total Storage */}
+          <div className="flex items-start gap-4">
+            <motion.div
+              whileHover={{ scale: 1.1, rotate: 5 }}
+              transition={{ duration: 0.2 }}
+              className="flex-shrink-0 rounded-xl bg-gradient-to-br from-[#3B82F6]/20 to-[#3B82F6]/10 p-3 border border-[#3B82F6]/40 shadow-md shadow-black/10"
+            >
+              <Icon name="hard-drive" className="text-[#3B82F6]" size={24} />
+            </motion.div>
+            <div>
+              <div className="text-4xl font-bold bg-gradient-to-br from-[#F0F0F0] to-[#E5E5E5] bg-clip-text text-transparent mb-1">
+                {formatSize(totalSize)}
               </div>
-              <div>
-                <p className="text-xs text-[#808080]">Total Size</p>
-                <p className="text-xl font-bold text-[#F0F0F0]">{formatSize(totalSize)}</p>
-              </div>
+              <div className="text-sm font-medium text-[#B0B0B0]">Total Storage</div>
+              <p className="text-xs text-[#808080] mt-1">Space consumed</p>
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Download Settings */}
-      <SettingCard
-        title="Download Preferences"
-        description="Configure download behavior"
-        icon="settings"
-        className="mb-6"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
       >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-[#F0F0F0] mb-2">
-              Default Quality
-            </label>
-            <select
-              value={settings.default_quality}
-              onChange={(e) => handleSelect('default_quality', e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] focus:outline-none focus:border-[#E5E5E5] transition-colors"
-            >
-              <option value="480p">480p</option>
-              <option value="720p">720p</option>
-              <option value="1080p">1080p</option>
-            </select>
+        <SettingCard
+          title="Download Preferences"
+          description="Configure download behavior"
+          icon="settings"
+          className="mb-6"
+        >
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#F0F0F0] mb-2">
+                Default Quality
+              </label>
+              <select
+                value={settings.default_quality}
+                onChange={(e) => handleSelect('default_quality', e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg border border-[#3A3A3A] bg-[#242424] text-[#F0F0F0] focus:outline-none focus:border-[#E5E5E5] transition-colors"
+              >
+                <option value="480p">480p</option>
+                <option value="720p">720p</option>
+                <option value="1080p">1080p</option>
+              </select>
+            </div>
+
+            <Toggle
+              checked={settings.wifi_only}
+              onChange={() => handleToggle('wifi_only')}
+              label="Wi-Fi Only Downloads"
+              description="Only download content when connected to Wi-Fi"
+            />
+
+            <Toggle
+              checked={settings.auto_delete_watched}
+              onChange={() => handleToggle('auto_delete_watched')}
+              label="Auto-Delete Watched"
+              description="Automatically remove downloads after watching"
+            />
           </div>
-
-          <Toggle
-            checked={settings.wifi_only}
-            onChange={() => handleToggle('wifi_only')}
-            label="Wi-Fi Only Downloads"
-            description="Only download content when connected to Wi-Fi"
-          />
-
-          <Toggle
-            checked={settings.auto_delete_watched}
-            onChange={() => handleToggle('auto_delete_watched')}
-            label="Auto-Delete Watched"
-            description="Automatically remove downloads after watching"
-          />
-        </div>
-      </SettingCard>
+        </SettingCard>
+      </motion.div>
 
       {/* Download History */}
       {downloads.length > 0 ? (
-        <SettingCard
-          title="Download History"
-          description={`${downloads.length} download${downloads.length !== 1 ? 's' : ''} in history`}
-          icon="clock"
-          className="mb-6"
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
         >
-          <div className="space-y-3">
-            {downloads.slice(0, 10).map((download) => (
-              <div
-                key={download.id}
-                className="flex items-center justify-between p-4 rounded-lg border border-[#3A3A3A] bg-[#242424] hover:border-[#4A4A4A] transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-semibold text-[#F0F0F0] truncate">
-                    {download.title}
-                  </h3>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-[#808080]">
-                    <span>{download.quality}</span>
-                    <span>•</span>
-                    <span>{formatSize(download.size)}</span>
-                    <span>•</span>
-                    <span>{formatDate(download.downloaded_at)}</span>
+          <SettingCard
+            title="Download History"
+            description={`${downloads.length} download${downloads.length !== 1 ? 's' : ''} in history`}
+            icon="clock"
+            className="mb-6"
+          >
+            <div className="space-y-3">
+              {downloads.slice(0, 10).map((download, index) => (
+                <motion.div
+                  key={download.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 + index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+                  className="group relative flex items-center justify-between p-4 rounded-lg border border-[#3A3A3A] bg-[#242424] hover:border-[#4A4A4A] hover:bg-[#282828] transition-all duration-300"
+                >
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-sm font-semibold text-[#F0F0F0] truncate group-hover:text-[#FFFFFF] transition-colors">
+                      {download.title}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-[#808080]">
+                      <span>{download.quality}</span>
+                      <span>•</span>
+                      <span>{formatSize(download.size)}</span>
+                      <span>•</span>
+                      <span>{formatDate(download.downloaded_at)}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="inline-flex items-center gap-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-1 text-xs font-medium text-[#10B981]">
-                  {download.quality}
-                </div>
-              </div>
-            ))}
-          </div>
+                  <div className="inline-flex items-center gap-1 rounded-full bg-[#10B981]/10 border border-[#10B981]/30 px-2 py-1 text-xs font-medium text-[#10B981]">
+                    {download.quality}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
 
-          <div className="mt-4 pt-4 border-t border-[#3A3A3A]">
-            <Button
-              variant="danger"
-              onClick={handleClearHistory}
-              isLoading={clearMutation.isPending}
-            >
-              Clear Download History
-            </Button>
-          </div>
-        </SettingCard>
+            <div className="mt-4 pt-4 border-t border-[#3A3A3A]">
+              <Button
+                variant="danger"
+                onClick={handleClearHistory}
+                isLoading={clearMutation.isPending}
+              >
+                Clear Download History
+              </Button>
+            </div>
+          </SettingCard>
+        </motion.div>
       ) : (
-        <div className="rounded-xl border border-[#3A3A3A] bg-[#1A1A1A] p-12 text-center mb-6">
-          <Icon name="download" className="text-[#808080] mx-auto mb-4" size={48} />
-          <h3 className="text-lg font-semibold text-[#F0F0F0] mb-2">No Downloads Yet</h3>
-          <p className="text-sm text-[#808080]">
-            Your download history will appear here
-          </p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="group relative rounded-2xl border border-[#3A3A3A]/60 bg-gradient-to-br from-[#1A1A1A] via-[#1A1A1A] to-[#1F1F1F] p-12 text-center mb-6 shadow-lg shadow-black/10 hover:border-[#4A4A4A]/80 hover:shadow-xl hover:shadow-black/20 transition-all duration-300 overflow-hidden"
+        >
+          {/* Subtle gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#E5E5E5]/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Bottom accent line */}
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#E5E5E5]/10 to-transparent" />
+
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+            className="relative"
+          >
+            <Icon name="download" className="text-[#808080] mx-auto mb-4" size={48} />
+            <h3 className="text-lg font-semibold bg-gradient-to-br from-[#F0F0F0] to-[#B0B0B0] bg-clip-text text-transparent mb-2">
+              No Downloads Yet
+            </h3>
+            <p className="text-sm text-[#808080]">
+              Your download history will appear here
+            </p>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Save/Cancel Actions */}
       {hasChanges && (
-        <div className="flex justify-end gap-3 pt-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+          className="flex justify-end gap-3 pt-4"
+        >
           <Button variant="secondary" onClick={handleCancel}>
             Cancel
           </Button>
@@ -358,7 +428,7 @@ export default function DownloadsPage() {
           >
             Save Download Settings
           </Button>
-        </div>
+        </motion.div>
       )}
 
       {/* Bottom Spacing */}
